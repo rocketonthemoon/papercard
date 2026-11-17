@@ -12,7 +12,7 @@ const outDir = pos[1] ?? os.tmpdir();
 const chrome = ["C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", "/usr/bin/google-chrome"].find((p) => fs.existsSync(p));
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "duel-chrome-"));
 const proc = spawn(chrome, ["--headless=new", "--remote-debugging-port=9334", `--user-data-dir=${profile}`, "--window-size=1300,1000", "--no-first-run", "about:blank"], { stdio: "ignore" });
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); yesd
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let ws;
 for (let i = 0; i < 50 && !ws; i++) {
@@ -62,9 +62,13 @@ try {
   await shot("1-landing");
 
   await js(`document.getElementById("dev-name").value = "Tester ${Date.now() % 1000}"; document.getElementById("dev-login").requestSubmit()`);
-  await waitFor(`!!document.querySelector(".module-card")`, "dashboard after sign-in");
-  console.log("dashboard:", JSON.stringify(await js(`({ decks: document.querySelectorAll(".module-card").length, open: document.querySelectorAll(".module-card.open").length, chartDays: document.querySelectorAll(".activity-col").length, chips: document.getElementById("top-chips").textContent })`)));
+  await waitFor(`!!document.querySelector(".enrolled-card")`, "dashboard after sign-in");
+  console.log("dashboard:", JSON.stringify(await js(`({ courses: document.querySelectorAll(".enrolled-card").length, chartDays: document.querySelectorAll(".activity-col").length, chips: document.getElementById("top-chips").textContent })`)));
   await shot("2-learn-path");
+
+  // Open the enrolled course to view decks and lessons
+  await js(`document.querySelector(".enrolled-card .btn")?.click()`);
+  await waitFor(`!!document.querySelector(".module-card")`, "course path decks");
 
   // Teach the page the answers (from the word list) so the run can answer correctly.
   await js(`fetch("/api/learn/words").then((r) => r.json()).then((d) => { window.__w = d.units.flatMap((u) => u.lessons.flatMap((l) => l.words)); return true; })`);
@@ -214,8 +218,8 @@ try {
   console.log("codes: unused", await js(`document.getElementById("t-unused").textContent`), "| downloaded:", await js(`window.__downloads.join(", ")`));
   await shot("16c-settings-codes");
   await js(`location.hash = "#/learn"`);
-  await waitFor(`!!document.querySelector(".course-tiles")`, "dashboard with course tiles");
-  console.log("course tiles:", await js(`[...document.querySelectorAll(".course-tile h3, .course-tile b")].map((o) => o.textContent).join(" | ")`));
+  await waitFor(`!!document.querySelector(".enrolled-card")`, "dashboard with enrolled courses");
+  console.log("enrolled courses:", await js(`[...document.querySelectorAll(".enrolled-card h3")].map((o) => o.textContent).join(" | ")`));
   await shot("17-dashboard-after");
 } catch (e) {
   console.error("FAILED:", e.message);

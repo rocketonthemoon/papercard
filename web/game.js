@@ -490,7 +490,12 @@ function renderNav() {
   const bottom = document.getElementById("side-bottom");
   bottom.innerHTML = `<button class="icon-btn" id="logout" title="Sign out" aria-label="Sign out">${ICON.logout}</button>`;
   bottom.prepend(themeBtn);
-  document.getElementById("page-title").textContent = location.hash.startsWith("#/learn/words") ? "Your words" : (TITLES[page()] ?? "Vokab");
+  const learnCourseMatch = /^#\/learn\/course\/(\d+)$/.exec(location.hash);
+  document.getElementById("page-title").textContent = location.hash.startsWith("#/learn/words")
+    ? "Your words"
+    : learnCourseMatch
+      ? (course?.title || "Learn")
+      : (TITLES[page()] ?? "Vokab");
   $account.innerHTML = `<a class="who" href="#/u/${esc(me.username)}" title="Your profile (@${esc(me.username)})">${avatar(me)}<span>${esc(me.name)}</span></a>`;
   document.getElementById("logout").onclick = async () => {
     await api("/auth/logout", { method: "POST", body: {} });
@@ -920,22 +925,180 @@ function wireChartTips(root) {
   }
 }
 
-async function renderLearnPath() {
-  $app.innerHTML = `<p class="muted loading">Loading your dashboard…</p>`;
+function dashSideHtml(stats, board, feed = { courses: [] }) {
+  const today = stats?.days?.at(-1)?.xp ?? 0;
+  const fresh = (feed?.courses || []).filter((c) => !c.enrolled);
+  const quests = stats ? QUESTS.filter((q) => q > stats.xp)
+    .slice(0, 3)
+    .map((q) => `<li><div class="row spread"><span>Earn ${q} XP</span><span class="muted small">${stats.xp}/${q}</span></div><div class="bar"><i style="width:${Math.round((100 * stats.xp) / q)}%"></i></div></li>`)
+    .join("") : "";
+
+  return `
+    <aside class="dash-side">
+      <section class="card widget">
+        <div class="widget-head"><h3>${today ? `You earned ${today} XP today!` : "No XP yet today"}</h3></div>
+        ${stats?.days?.length ? activityHtml(stats.days) : ""}
+      </section>
+      <section class="card widget">
+        <div class="stat-row">
+          <div><span>Streak</span><b>${stats?.streak ?? 0}</b></div>
+          <div><span>Learned</span><b>${stats?.learned ?? 0}</b></div>
+          <div><span>Due</span><b>${stats?.due ?? 0}</b></div>
+          <div><span>Hearts</span><b>${stats?.hearts ?? 0}</b></div>
+        </div>
+        ${stats?.due ? `<a class="btn block" href="#/learn/review">Review ${plural(stats.due, "word")}</a>` : `<p class="stat-note">${stats?.learned ? `Nothing to review. Next review ${fmtUntil(stats.nextDueAt)}.` : "Words you learn come back for review just before you'd forget them."}</p>`}
+        ${stats && stats.hearts < stats.maxHearts ? `<p class="stat-note">Next heart in ${fmtMinutes(stats.nextHeartMs)}.</p>` : ""}
+        <a class="small" href="#/learn/words">${I.list} All your words</a>
+      </section>
+      <section class="card widget" id="board-widget">
+        <div class="widget-head"><h3>Leaderboard</h3><select id="board-period" aria-label="Period"><option value="week">Weekly</option><option value="all">All time</option></select></div>
+        <div id="board-body">${boardHtml(board?.rows ?? [])}</div>
+      </section>
+      ${
+        fresh.length
+          ? `<section class="card widget"><div class="widget-head"><h3>From people you follow</h3><a href="#/discover?tab=following" class="small">All</a></div>
+              <ul class="feed">${fresh.slice(0, 3).map((c) => `<li><a href="#/course/${c.id}"><b>${esc(c.title)}</b></a><span class="muted small">by ${userLink(c.creator)} · ${plural(c.words, "word")}</span></li>`).join("")}</ul></section>`
+          : `<section class="card widget"><h3>Follow creators</h3><p class="stat-note">Follow accounts to see their new courses here. Start with us: <a href="#/u/vokab">@vokab</a></p></section>`
+      }
+      ${quests ? `<section class="card widget"><h3>Quests</h3><ul class="quests">${quests}</ul></section>` : ""}
+    </aside>`;
+}
+
+function wireDashSide(root = $app) {
+  wireChartTips(root);
+  const period = root.querySelector("#board-period");
+  if (period) {
+    period.onchange = async (e) => {
+      try {
+        const b = await api(`/leaderboard?period=${e.target.value}`);
+        const body = root.querySelector("#board-body");
+        if (body) body.innerHTML = boardHtml(b.rows);
+      } catch (x) {
+        toast(x.message);
+      }
+    };
+  }
+}
+
+/** Home dashboard: displays enrolled courses cards. Clicking a course opens its learning path. */
+async function renderEnrolledCourses() {
+  $app.innerHTML = `<p class="muted loading">Loading your courses…</p>`;
   let data;
   let board = { rows: [] };
   let feed = { courses: [] };
   try {
-    [data, board, feed] = await Promise.all([api("/learn"), api("/leaderboard?period=week").catch(() => board), api("/feed").catch(() => feed)]);
+    [data, board, feed] = await Promise.all([
+      api("/learn"),
+      api("/leaderboard?period=week").catch(() => board),
+      api("/feed").catch(() => feed),
+    ]);
   } catch (x) {
     $app.innerHTML = errorCard(x.message, ["#/discover", "Discover courses"]);
+    return;
+  }
+  const { stats, myCourses = [] } = data;
+  course = data.course;
+  setTopStats(stats);
+
+  const enrolledCards = myCourses
+    .map((c) => {
+      const pct = c.words ? Math.round((100 * (c.learned || 0)) / c.words) : 0;
+      return `
+      <div class="card enrolled-card" data-course="${c.id}">
+        <div class="tile-art ${tint(c.id)}">
+          <span class="tag-chip">${c.creator?.official ? "Official" : "Enrolled"}</span>
+          <span class="lang-orb">${esc(flag(c))}</span>
+          <h3 title="${esc(c.title)}">${esc(c.title)}</h3>
+          <div class="meta">
+            <span>${esc(c.fromLang)} → ${esc(c.toLang)}</span>
+            <span>${plural(c.units, "deck")}</span>
+            <span>${plural(c.words, "word")}</span>
+          </div>
+        </div>
+        ${c.description ? `<p class="enrolled-desc">${esc(c.description)}</p>` : ""}
+        <div class="enrolled-progress">
+          <div class="row spread small">
+            <span><b>${pct}%</b> completed</span>
+            <span class="muted">${c.learned || 0}/${c.words} words</span>
+          </div>
+          <div class="bar"><i style="width:${pct}%"></i></div>
+        </div>
+        <div class="enrolled-foot">
+          <a class="btn ${c.learned ? "" : "outline"}" href="#/learn/course/${c.id}">${c.learned ? "Continue learning" : "Start course"}</a>
+          <a class="btn outline small" href="#/course/${c.id}" title="Course details">About</a>
+        </div>
+      </div>`;
+    })
+    .join("");
+
+  const addCard = `
+    <a class="enrolled-add" href="#/discover">
+      <div>
+        <span class="plus">${ICON.plus}</span>
+        <b>Find more courses</b>
+        <span class="muted small">Courses by us and by other learners</span>
+      </div>
+    </a>`;
+
+  const emptyState = `
+    <section class="card picker">
+      <header class="picker-head">
+        <span class="board-icon">${I.learn}</span>
+        <h2>You're not enrolled in any courses yet</h2>
+        <p class="muted">Explore courses created by us and the community to start learning.</p>
+      </header>
+      <div class="row" style="justify-content:center">
+        <a class="btn" href="#/discover">Find a course</a>
+        <a class="btn outline" href="#/studio">Create a course</a>
+      </div>
+    </section>`;
+
+  $app.innerHTML = `
+    <div class="dash">
+      <div class="dash-main">
+        <header class="dash-head">
+          <div>
+            <h1>My Courses</h1>
+            <p class="muted">${myCourses.length ? "Pick a course to continue learning" : "Start your language journey"}</p>
+          </div>
+          <a class="btn outline small" href="#/discover">${ICON.plus} Discover</a>
+        </header>
+        ${myCourses.length ? `<div class="enrolled-grid">${enrolledCards}${addCard}</div>` : emptyState}
+      </div>
+      ${dashSideHtml(stats, board, feed)}
+    </div>`;
+
+  wireDashSide($app);
+
+  for (const card of $app.querySelectorAll(".enrolled-card[data-course]")) {
+    card.addEventListener("click", (e) => {
+      if (e.target.closest("a, button")) return;
+      location.hash = `#/learn/course/${card.dataset.course}`;
+    });
+  }
+}
+
+/** Specific course learning path: displays decks and lessons for that course. */
+async function renderCoursePath(courseId) {
+  $app.innerHTML = `<p class="muted loading">Loading course path…</p>`;
+  let data;
+  let board = { rows: [] };
+  let feed = { courses: [] };
+  try {
+    [data, board, feed] = await Promise.all([
+      api(`/learn?course=${courseId}`),
+      api("/leaderboard?period=week").catch(() => board),
+      api("/feed").catch(() => feed),
+    ]);
+  } catch (x) {
+    $app.innerHTML = errorCard(x.message, ["#/learn", "Back to My Courses"]);
     return;
   }
   const { units, stats } = data;
   course = data.course;
   setTopStats(stats);
   if (!course) {
-    $app.innerHTML = `<section class="card picker"><header class="picker-head"><span class="board-icon">${I.learn}</span><h2>Pick a course to start</h2><p class="muted">Find one from us or from other learners, or make your own.</p></header><div class="row" style="justify-content:center"><a class="btn" href="#/discover">Find a course</a><a class="btn outline" href="#/studio">Create a course</a></div></section>`;
+    $app.innerHTML = errorCard("Course not found", ["#/learn", "Back to My Courses"]);
     return;
   }
 
@@ -1001,65 +1164,49 @@ async function renderLearnPath() {
     </section>`;
   };
 
-  // Top row: this course, your other courses, and a way to find more.
-  const tile = (c, isThis) => `<${isThis ? "a" : "button"} class="course-tile" ${isThis ? `href="#/course/${c.id}"` : `data-switch="${c.id}" type="button"`} title="${isThis ? "About this course" : "Switch to this course"}">
-      <div class="tile-art ${tint(c.id)}">
-        <span class="tag-chip">${isThis ? "Learning now" : c.creator.official ? "Official" : "Enrolled"}</span>
-        <span class="lang-orb">${esc(flag(c))}</span>
-        <h3 title="${esc(c.title)}">${esc(c.title)}</h3>
-        <div class="meta"><span>${plural(c.units, "deck")}</span><span>${plural(c.words, "word")}</span></div>
-      </div>
-      <div class="tile-foot">Learned: <b>${c.learned ?? 0}/${c.words}</b></div>
-    </${isThis ? "a" : "button"}>`;
-  const others = data.myCourses.filter((c) => c.id !== course.id).slice(0, 1);
-  const tiles = `<div class="course-tiles">${tile(course, true)}${others.map((c) => tile(c, false)).join("")}
-      <a class="course-tile add" href="#/discover"><div><span class="plus">${ICON.plus}</span><b>Add a course</b><span class="muted small">Courses by us and by people you follow</span></div></a>
-    </div>`;
-
-  const today = stats.days?.at(-1)?.xp ?? 0;
-  const fresh = feed.courses.filter((c) => !c.enrolled);
-  const quests = QUESTS.filter((q) => q > stats.xp)
-    .slice(0, 3)
-    .map((q) => `<li><div class="row spread"><span>Earn ${q} XP</span><span class="muted small">${stats.xp}/${q}</span></div><div class="bar"><i style="width:${Math.round((100 * stats.xp) / q)}%"></i></div></li>`)
-    .join("");
+  const totalWords = course.words || 0;
+  const learnedWords = course.learned || 0;
+  const coursePct = totalWords ? Math.round((100 * learnedWords) / totalWords) : 0;
 
   $app.innerHTML = `
     <div class="dash">
       <div class="dash-main">
-        ${tiles}
+        <div class="toolbar">
+          <a class="back" href="#/learn">${I.back} My courses</a>
+          <div class="toolbar-actions">
+            ${course.mine ? `<a class="btn outline small" href="#/studio/${course.id}">${I.edit} Edit in Studio</a>` : ""}
+            <a class="btn outline small" href="#/course/${course.id}">About course</a>
+          </div>
+        </div>
+
+        <section class="card course-hero-path ${tint(course.id)}">
+          <div class="course-hero-inner">
+            <span class="lang-orb">${esc(flag(course))}</span>
+            <div class="course-hero-text">
+              <div class="row spread">
+                <span class="tag-chip">${course.creator?.official ? "Official" : "Course"}</span>
+                <span class="muted small">${esc(course.fromLang)} → ${esc(course.toLang)}</span>
+              </div>
+              <h2>${esc(course.title)}</h2>
+              ${course.description ? `<p class="muted">${esc(course.description)}</p>` : ""}
+              <div class="course-path-progress">
+                <div class="row spread small">
+                  <span><b>${coursePct}%</b> done</span>
+                  <span class="muted">${learnedWords}/${totalWords} words learned · ${plural(units.length, "deck")}</span>
+                </div>
+                <div class="bar"><i style="width:${coursePct}%"></i></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         ${units.map(moduleHtml).join("") || `<section class="card picker"><header class="picker-head"><h2>No lessons yet</h2><p class="muted">${course.mine ? `Add decks and words in the <a href="#/studio/${course.id}">Studio</a>.` : "The creator hasn't added any lessons yet."}</p></header></section>`}
       </div>
-      <aside class="dash-side">
-        <section class="card widget">
-          <div class="widget-head"><h3>${today ? `You earned ${today} XP today!` : "No XP yet today"}</h3></div>
-          ${stats.days?.length ? activityHtml(stats.days) : ""}
-        </section>
-        <section class="card widget">
-          <div class="stat-row">
-            <div><span>Streak</span><b>${stats.streak}</b></div>
-            <div><span>Learned</span><b>${stats.learned}</b></div>
-            <div><span>Due</span><b>${stats.due}</b></div>
-            <div><span>Hearts</span><b>${stats.hearts}</b></div>
-          </div>
-          ${stats.due ? `<a class="btn block" href="#/learn/review">Review ${plural(stats.due, "word")}</a>` : `<p class="stat-note">${stats.learned ? `Nothing to review. Next review ${fmtUntil(stats.nextDueAt)}.` : "Words you learn come back for review just before you'd forget them."}</p>`}
-          ${stats.hearts < stats.maxHearts ? `<p class="stat-note">Next heart in ${fmtMinutes(stats.nextHeartMs)}.</p>` : ""}
-          <a class="small" href="#/learn/words">${I.list} All your words</a>
-        </section>
-        <section class="card widget" id="board-widget">
-          <div class="widget-head"><h3>Leaderboard</h3><select id="board-period" aria-label="Period"><option value="week">Weekly</option><option value="all">All time</option></select></div>
-          <div id="board-body">${boardHtml(board.rows)}</div>
-        </section>
-        ${
-          fresh.length
-            ? `<section class="card widget"><div class="widget-head"><h3>From people you follow</h3><a href="#/discover?tab=following" class="small">All</a></div>
-                <ul class="feed">${fresh.slice(0, 3).map((c) => `<li><a href="#/course/${c.id}"><b>${esc(c.title)}</b></a><span class="muted small">by ${userLink(c.creator)} · ${plural(c.words, "word")}</span></li>`).join("")}</ul></section>`
-            : `<section class="card widget"><h3>Follow creators</h3><p class="stat-note">Follow accounts to see their new courses here. Start with us: <a href="#/u/vokab">@vokab</a></p></section>`
-        }
-        ${quests ? `<section class="card widget"><h3>Quests</h3><ul class="quests">${quests}</ul></section>` : ""}
-      </aside>
+      ${dashSideHtml(stats, board, feed)}
     </div>`;
 
-  wireChartTips($app);
+  wireDashSide($app);
+
   for (const h of $app.querySelectorAll("[data-toggle]")) {
     h.onclick = (e) => {
       if (e.target.closest("a")) return;
@@ -1068,35 +1215,20 @@ async function renderLearnPath() {
       h.querySelector(".chev").setAttribute("aria-expanded", String(card.classList.contains("open")));
     };
   }
-  for (const b of $app.querySelectorAll("[data-switch]")) {
-    b.onclick = async () => {
-      try {
-        await api("/learn/current", { method: "POST", body: { courseId: Number(b.dataset.switch) } });
-        renderLearnPath();
-      } catch (x) {
-        toast(x.message);
-      }
-    };
-  }
-  document.getElementById("board-period").onchange = async (e) => {
-    try {
-      const b = await api(`/leaderboard?period=${e.target.value}`);
-      document.getElementById("board-body").innerHTML = boardHtml(b.rows);
-    } catch (x) {
-      toast(x.message);
-    }
-  };
   for (const b of $app.querySelectorAll("[data-feedback]")) {
     b.onclick = (e) => {
       e.stopPropagation();
       const u = units.find((x) => x.id === Number(b.dataset.feedback));
       openFeedback(u, Number(b.dataset.rating ?? 0), () => {
         u.feedbackSent = true;
-        if (page() === "learn") renderLearnPath();
+        renderCoursePath(courseId);
       });
     };
   }
 }
+
+/** Legacy alias pointing to renderEnrolledCourses */
+const renderLearnPath = renderEnrolledCourses;
 
 // ---------------------------------------------------------------- unit feedback ("suggest an improvement")
 
@@ -1255,8 +1387,9 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
   const setHearts = () => {
     if (!safe) document.getElementById("hearts").textContent = stats.hearts;
   };
+  const courseBack = course?.id ? `#/learn/course/${course.id}` : "#/learn";
   document.getElementById("quit").onclick = () => {
-    if (solved === 0 || confirm(review ? "Stop reviewing? Words you've answered are saved." : "Quit the lesson? Words you've finished are saved.")) location.hash = "#/learn";
+    if (solved === 0 || confirm(review ? "Stop reviewing? Words you've answered are saved." : "Quit the lesson? Words you've finished are saved.")) location.hash = courseBack;
   };
 
   let challenge = null;
@@ -1270,7 +1403,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
       <span class="modal-icon">${I.heart}</span>
       <h2 id="oh-title">You ran out of hearts</h2>
       <p class="muted">Review your words or practise a lesson you've finished to earn hearts back, or wait: the next one comes back in ${fmtMinutes(stats.nextHeartMs)}.</p>
-      <div class="row" style="justify-content:center">${stats.due ? `<a class="btn outline" href="#/learn/review">Review words</a>` : ""}<a class="btn" href="#/learn">Back to Learn</a></div>
+      <div class="row" style="justify-content:center">${stats.due ? `<a class="btn outline" href="#/learn/review">Review words</a>` : ""}<a class="btn" href="${courseBack}">Back to course</a></div>
     </div>`;
     document.body.append(d);
     addEventListener("hashchange", () => d.remove(), { once: true });
@@ -1359,7 +1492,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
         ${review ? `<div class="fstat hp"><span>Still due</span><b>${stats.due}</b></div>` : `<div class="fstat hp"><span>Hearts</span><b>${I.heart}${stats.hearts}</b></div>`}
       </div>
       <div id="unit-feedback"></div>
-      <div class="row" style="justify-content:center">${review && stats.due ? `<a class="btn big outline" href="#/learn/review" id="more">Review more</a>` : ""}<a class="btn big" href="#/learn">Continue</a></div>
+      <div class="row" style="justify-content:center">${review && stats.due ? `<a class="btn big outline" href="#/learn/review" id="more">Review more</a>` : ""}<a class="btn big" href="${courseBack}">Continue</a></div>
     </section>`;
     document.getElementById("more")?.addEventListener("click", (e) => (e.preventDefault(), renderReview()));
     if (review) return;
@@ -1632,7 +1765,7 @@ function wireCourseCards(root = $app) {
       try {
         await api(`/courses/${b.dataset.enroll}/enroll`, { method: "POST", body: {} });
         toast("You're in! Your path is ready.");
-        location.hash = "#/learn";
+        location.hash = `#/learn/course/${b.dataset.enroll}`;
       } catch (x) {
         toast(x.message);
       }
@@ -1642,7 +1775,7 @@ function wireCourseCards(root = $app) {
     b.onclick = async () => {
       try {
         await api("/learn/current", { method: "POST", body: { courseId: Number(b.dataset.continue) } });
-        location.hash = "#/learn";
+        location.hash = `#/learn/course/${b.dataset.continue}`;
       } catch (x) {
         toast(x.message);
       }
@@ -2694,6 +2827,8 @@ function route() {
   if (!me) return renderLanding();
   const code = duelCodeFromHash();
   if (code) return renderDuel(code);
+  const learnCourseId = /^#\/learn\/course\/(\d+)$/.exec(location.hash)?.[1];
+  if (learnCourseId) return renderCoursePath(Number(learnCourseId));
   const lessonId = /^#\/learn\/lesson\/(\d+)$/.exec(location.hash)?.[1];
   if (lessonId) return renderLesson(Number(lessonId));
   if (location.hash.startsWith("#/learn/review")) return renderReview();
@@ -2706,13 +2841,13 @@ function route() {
   const username = /^#\/u\/([A-Za-z0-9_]{1,40})$/.exec(location.hash)?.[1];
   if (username) return renderProfile(username);
   if (page() === "discover") return renderDiscover();
-  if (page() === "learn") return renderLearnPath();
+  if (page() === "learn") return renderEnrolledCourses();
   if (page() === "leaderboard") return renderLeaderboard();
   if (page() === "admin") return renderAdmin();
   if (page() !== "play") {
     history.replaceState(null, "", "#/learn");
     renderNav();
-    return renderLearnPath();
+    return renderEnrolledCourses();
   }
   return renderPlayHub();
 }
