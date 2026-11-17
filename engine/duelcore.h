@@ -22,6 +22,9 @@ char *duel_grade(const char *accepted_json, const char *others_json, const char 
 // The accepted answers for a word: JSON array of `lt` plus the ';'-separated `also`.
 char *duel_accepted(const char *lt, const char *also);
 
+// `s` folded for search and matching: lowercase, accents removed, in any language. Plain string.
+char *duel_fold(const char *s);
+
 // Scores a duel answer sheet (`answers_json`: option id or null per question). JSON: {points, correct, total, results}.
 char *duel_score(const char *questions_json, const char *answers_json);
 

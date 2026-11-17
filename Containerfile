@@ -16,7 +16,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/src/engine/target \
     cd engine && CARGO_BUILD_JOBS=2 cargo build --release && cp target/release/libduelcore.a /src/
 
-COPY server/main.c server/learn.c ./
+COPY server/main.c server/learn.c server/courses.c ./
 RUN gcc -O2 -Wall -Wextra -static -o labas main.c mongoose.c -Iengine libduelcore.a -lsqlite3 -lm \
  && strip labas
 

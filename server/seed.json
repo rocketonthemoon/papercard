@@ -1,4 +1,12 @@
 {
+  "course": {
+    "title": "Lithuanian for students",
+    "description": "Words and phrases for student life in Lithuania, from your first lecture to your first job interview. 12 themed decks, A1 to B1.",
+    "fromLang": "English",
+    "toLang": "Lithuanian",
+    "toCode": "lt",
+    "letters": "ą č ę ė į š ų ū ž"
+  },
   "units": [
     {
       "level": "A1",

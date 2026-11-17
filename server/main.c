@@ -269,7 +269,7 @@ static const char *SCHEMA =
     "CREATE INDEX IF NOT EXISTS submissions_user ON submissions(user_id);"
     "CREATE INDEX IF NOT EXISTS duels_creator ON duels(creator_id);";
 
-#define USER_JSON "json_object('id', u.id, 'name', u.name, 'picture', u.picture, 'isAdmin', json(CASE WHEN u.is_admin = 1 THEN 'true' ELSE 'false' END))"
+#define USER_JSON                                                                                                                                    "json_object('id', u.id, 'name', u.name, 'username', u.username, 'picture', u.picture, 'bio', u.bio,"                                         " 'isAdmin', json(CASE WHEN u.is_admin = 1 THEN 'true' ELSE 'false' END), 'official', json(CASE WHEN u.is_official = 1 THEN 'true' ELSE 'false' END))"
 
 /* ---------------------------------------------------------------- HTTP helpers */
 
@@ -388,6 +388,8 @@ static void start_session(struct mg_connection *c, const char *user_json) {
 
 /* Learn mode and the CMS live in learn.c (shares the helpers above). */
 #include "learn.c"
+/* Courses, profiles and follows (needs learn.c). */
+#include "courses.c"
 
 /* ---------------------------------------------------------------- word duels */
 
@@ -397,6 +399,7 @@ static char *duel_json(const char *code) {
   char *json = mc_get(key);
   if (json != NULL) return json;
   json = db_text("SELECT json_object('code', d.code, 'title', d.title, 'questions', json(d.questions_json), 'createdAt', d.created_at,"
+                 " 'course', (SELECT json_object('id', id, 'title', title, 'toLang', to_lang, 'toCode', to_code) FROM courses WHERE id = d.course_id),"
                  " 'creator', " USER_JSON ") FROM duels d JOIN users u ON u.id = d.creator_id WHERE d.code = ?",
                  "s", code);
   if (json != NULL) mc_set(key, json, 6 * 3600);
@@ -451,12 +454,15 @@ static char *body_array(struct mg_http_message *hm, const char *path) {
   return mg_mprintf("%.*s", len, hm->body.buf + off);
 }
 
-/* A new duel: DUEL_WORDS random words from the chosen decks, as multiple-choice questions. */
+/* A new duel: DUEL_WORDS random words from the chosen decks of one course, as multiple-choice questions. */
 static void create_duel(struct mg_connection *c, struct mg_http_message *hm, long long uid) {
+  long long cid = mg_json_get_long(hm->body, "$.courseId", 0);
+  if (!can_view(uid, cid)) return reply_error(c, 400, "Pick a course");
   char *units = body_array(hm, "$.unitIds");
   if (units == NULL) return reply_error(c, 400, "Pick at least one deck");
-#define IN_UNITS " IN (SELECT value FROM json_each(?1))"
-  long long words = db_int(-1, "SELECT COUNT(*) FROM words w JOIN lessons l ON l.id = w.lesson_id WHERE l.unit_id" IN_UNITS, "s", units);
+  /* Only decks of that course count. */
+#define IN_UNITS " IN (SELECT value FROM json_each(?1) WHERE value IN (SELECT id FROM units WHERE course_id = ?3))"
+  long long words = db_int(-1, "SELECT COUNT(*) FROM words w JOIN lessons l ON l.id = w.lesson_id WHERE ?2 = ?2 AND l.unit_id" IN_UNITS, "sii", units, 0LL, cid);
   if (words < 0) {
     free(units);
     return reply_error(c, 400, "Pick at least one deck");
@@ -468,19 +474,19 @@ static void create_duel(struct mg_connection *c, struct mg_http_message *hm, lon
   char *targets = db_text("SELECT json_group_array(json(x)) FROM (SELECT json_object('id', w.id, 'lt', w.lt, 'en', w.en, 'pos', w.pos, 'gender', w.gender,"
                           " 'unitId', l.unit_id) AS x FROM words w JOIN lessons l ON l.id = w.lesson_id WHERE l.unit_id" IN_UNITS
                           " ORDER BY random() LIMIT ?2)",
-                          "si", units, (long long) DUEL_WORDS);
+                          "sii", units, (long long) DUEL_WORDS, cid);
   char *title = db_text("SELECT CASE WHEN COUNT(*) = 1 THEN MAX(CASE WHEN level <> '' THEN level || ' · ' ELSE '' END || title)"
                         " ELSE COUNT(*) || ' decks' || COALESCE(' · ' || (SELECT group_concat(level, ', ') FROM (SELECT DISTINCT level FROM units"
-                        "   WHERE id" IN_UNITS " AND level <> '' ORDER BY level)), '') END FROM units WHERE id" IN_UNITS,
-                        "s", units);
+                        "   WHERE id" IN_UNITS " AND level <> '' ORDER BY level)), '') END FROM units WHERE ?2 = ?2 AND id" IN_UNITS,
+                        "sii", units, 0LL, cid);
 #undef IN_UNITS
-  char *questions = challenges_for(targets, "duel");
+  char *questions = challenges_for(targets, "duel", cid);
   char code[7];
   int rc = SQLITE_CONSTRAINT;
   for (int i = 0; i < 5 && rc == SQLITE_CONSTRAINT; i++) {
     new_code(code);
-    rc = db_exec("INSERT INTO duels (code, creator_id, title, questions_json, created_at) VALUES (?, ?, ?, ?, ?)", "sissi", code, uid,
-                 title != NULL ? title : "Word duel", questions, now_ms());
+    rc = db_exec("INSERT INTO duels (code, creator_id, title, questions_json, created_at, course_id) VALUES (?, ?, ?, ?, ?, ?)", "sissii", code, uid,
+                 title != NULL ? title : "Word duel", questions, now_ms(), cid);
   }
   if (rc != SQLITE_DONE) reply_error(c, 500, "Couldn't create the duel");
   else mg_http_reply(c, 201, "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store\r\n", "{%m:%m}", MG_ESC("code"), MG_ESC(code));
@@ -531,6 +537,7 @@ static void finish_login(struct mg_connection *c, const char *upserted, const ch
   long long uid = upserted != NULL ? mg_json_get_long(mg_str(upserted), "$.id", 0) : 0;
   if (uid == 0) return reply_error(c, 500, "Couldn't save your account");
   db_exec("UPDATE users SET is_admin = ? WHERE id = ?", "ii", (long long) admin_key_listed(admin_key), uid);
+  onboard(uid); /* a username, and the official course for new players */
   char *user = db_text("SELECT " USER_JSON " FROM users u WHERE u.id = ?", "i", uid);
   if (user == NULL) reply_error(c, 500, "Couldn't save your account");
   else start_session(c, user);
@@ -654,7 +661,7 @@ static void handle_api(struct mg_connection *c, struct mg_http_message *hm) {
   if (user == NULL) return reply_error(c, 401, "Please sign in first");
   free(user);
 
-  if (handle_learn(c, hm, uid) || handle_admin(c, hm, uid)) return;
+  if (handle_learn(c, hm, uid) || handle_studio(c, hm, uid) || handle_courses(c, hm, uid)) return;
 
   if (method_is(hm, "GET") && uri_is(hm, "/api/duels")) {
     char *list = db_text(

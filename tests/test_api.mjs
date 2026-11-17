@@ -1,5 +1,6 @@
 // End-to-end API check: lessons, grading, hearts, review, word list, the content editor and a word duel.
-// Needs a fresh running server with ALLOW_DEV_LOGIN=1 and ADMINS=dev:alice.
+// Needs a running server with ALLOW_DEV_LOGIN=1 and ADMINS=dev:alice.
+// Covers the official course, user-made courses, follows, export/import and moderation too.
 // Usage: node tests/test_api.mjs [http://localhost:8080]
 import assert from "node:assert/strict";
 
@@ -7,14 +8,15 @@ const base = process.argv[2] ?? "http://localhost:8080";
 
 function client() {
   let cookie = "";
-  return async (path, { method = "GET", body, raw } = {}) => {
+  return async (path, { method = "GET", body, raw, headers = {}, binary = false } = {}) => {
     const res = await fetch(`${base}/api${path}`, {
       method,
-      headers: { ...(body !== undefined ? { "Content-Type": raw ?? "application/json" } : {}), ...(cookie ? { Cookie: cookie } : {}) },
-      body: body !== undefined ? (typeof body === "string" ? body : JSON.stringify(body)) : undefined,
+      headers: { ...(body !== undefined ? { "Content-Type": raw ?? "application/json" } : {}), ...(cookie ? { Cookie: cookie } : {}), ...headers },
+      body: body !== undefined ? (typeof body === "string" || body instanceof Uint8Array ? body : JSON.stringify(body)) : undefined,
     });
     const set = res.headers.get("set-cookie");
     if (set) cookie = set.split(";")[0];
+    if (binary) return { status: res.status, bytes: new Uint8Array(await res.arrayBuffer()) };
     return { status: res.status, data: await res.json().catch(() => null) };
   };
 }
@@ -48,14 +50,18 @@ assert.equal(meA.isAdmin, true, "run the server with ADMINS=dev:alice");
 step("dev login sets a session cookie; alice is an admin");
 
 // The whole course, to know the answers.
-const content = (await alice("/admin/content")).data;
+const official = (await alice("/learn")).data.course;
+assert.equal(official.creator.username, "labas");
+assert.equal(official.creator.official, true);
+const cid = official.id;
+const content = (await alice(`/studio/${cid}/content`)).data;
 const words = new Map();
 for (const u of content.units) for (const l of u.lessons) for (const w of l.words) words.set(w.id, { ...w, unit: u, lesson: l });
 const byLt = (lt) => [...words.values()].find((w) => w.lt === lt);
 assert.equal(content.units.length, 12);
 assert.ok(words.size > 150, `${words.size} words`);
-assert.equal((await bob("/admin/content")).status, 403);
-step(`the starter course is loaded: ${content.units.length} decks, ${words.size} words; non-admins can't open the editor`);
+assert.equal((await bob(`/studio/${cid}/content`)).status, 403);
+step(`new players start on the official course (@labas): ${content.units.length} decks, ${words.size} words; only admins can edit it`);
 
 // ---------------------------------------------------------------- the path
 
@@ -177,31 +183,31 @@ step(`word list: ${listed.length} words, ${list.stats.learned} learned, each wit
 const board = (await bob("/leaderboard?period=week")).data;
 assert.ok(board.rows.some((x) => x.isYou && x.xp > 0));
 assert.equal((await bob(`/learn/units/${path.units[0].id}/feedback`, { method: "POST", body: { rating: 5, category: "idea", text: "Add audio!" } })).status, 201);
-assert.ok((await alice("/admin/feedback")).data.items.some((f) => f.text === "Add audio!"));
+assert.ok((await alice(`/studio/${cid}/feedback`)).data.items.some((f) => f.text === "Add audio!"));
 step("leaderboard shows your XP; deck feedback reaches the admins");
 
 // ---------------------------------------------------------------- the content editor
 
 const lessonId = content.units[0].lessons[0].id;
-let res = await alice("/admin/words", { method: "POST", body: { lessonId, lt: "Knyga", en: "a book", pos: "noun", gender: "f" } });
+let res = await alice(`/studio/${cid}/words`, { method: "POST", body: { lessonId, lt: "Knyga", en: "a book", pos: "noun", gender: "f" } });
 assert.equal(res.status, 400);
-assert.match(res.data.error, /already in the course/);
-res = await alice("/admin/words", { method: "POST", body: { lessonId, lt: `rašiklis${run}`, en: `pen ${run}`, pos: "noun", gender: "m", also: "parkeris", note: "Test word" } });
+assert.match(res.data.error, /already in this course/);
+res = await alice(`/studio/${cid}/words`, { method: "POST", body: { lessonId, lt: `rašiklis${run}`, en: `pen ${run}`, pos: "noun", gender: "m", also: "parkeris", note: "Test word" } });
 assert.equal(res.status, 200);
 const added = res.data.units[0].lessons[0].words.at(-1);
 assert.equal(added.lt, `rašiklis${run}`);
-assert.equal((await alice(`/admin/words/${added.id}`, { method: "PUT", body: { lt: `rašiklis${run}`, en: `pen ${run}`, pos: "verb", gender: "m" } })).data.units[0].lessons[0].words.at(-1).gender, "", "only nouns have a gender");
-assert.equal((await alice("/admin/words", { method: "POST", body: { lessonId, lt: "x", en: "y", pos: "adverb" } })).status, 400);
-assert.equal((await alice("/admin/move", { method: "POST", body: { kind: "word", id: added.id, dir: -1 } })).status, 200);
-assert.equal((await alice(`/admin/words/${added.id}`, { method: "DELETE" })).status, 200);
-assert.equal((await bob("/admin/words", { method: "POST", body: { lessonId, lt: "a", en: "b", pos: "noun" } })).status, 403);
+assert.equal((await alice(`/studio/${cid}/words/${added.id}`, { method: "PUT", body: { lt: `rašiklis${run}`, en: `pen ${run}`, pos: "verb", gender: "m" } })).data.units[0].lessons[0].words.at(-1).gender, "", "only nouns have a gender");
+assert.equal((await alice(`/studio/${cid}/words`, { method: "POST", body: { lessonId, lt: "x", en: "y", pos: "adverb" } })).status, 400);
+assert.equal((await alice(`/studio/${cid}/move`, { method: "POST", body: { kind: "word", id: added.id, dir: -1 } })).status, 200);
+assert.equal((await alice(`/studio/${cid}/words/${added.id}`, { method: "DELETE" })).status, 200);
+assert.equal((await bob(`/studio/${cid}/words`, { method: "POST", body: { lessonId, lt: "a", en: "b", pos: "noun" } })).status, 403);
 step("editor: duplicates and bad parts of speech are refused; add, edit, move and delete a word");
 
 // ---------------------------------------------------------------- a word duel
 
-assert.equal((await alice("/duels", { method: "POST", body: { unitIds: [] } })).status, 400);
-assert.equal((await alice("/duels", { method: "POST", body: { unitIds: "x" } })).status, 400);
-const created = await alice("/duels", { method: "POST", body: { unitIds: [content.units[2].id, content.units[3].id] } });
+assert.equal((await alice("/duels", { method: "POST", body: { courseId: cid, unitIds: [] } })).status, 400);
+assert.equal((await alice("/duels", { method: "POST", body: { courseId: cid, unitIds: "x" } })).status, 400);
+const created = await alice("/duels", { method: "POST", body: { courseId: cid, unitIds: [content.units[2].id, content.units[3].id] } });
 assert.equal(created.status, 201);
 const code = created.data.code;
 step(`created duel ${code}`);
@@ -242,5 +248,167 @@ step("bob gets 6 right and leaves 4 blank: 60 points; Alice wins; the answer key
 const mine = (await bob("/duels")).data.duels;
 assert.ok(mine.some((d) => d.code === code && d.myPoints === 60));
 step("bob's rooms list the duel with his score");
+
+// ---------------------------------------------------------------- accounts, follows and user-made courses
+
+const cara = client();
+assert.equal((await cara("/auth/dev", { method: "POST", body: { name: `Cara ${run}` } })).status, 200);
+const bobMe = (await bob("/me")).data.user;
+const caraMe = (await cara("/me")).data.user;
+assert.match(bobMe.username, /^bob\d+$/);
+assert.match(caraMe.username, /^cara\d+/);
+step(`everyone gets a username from their name: @${bobMe.username}, @${caraMe.username}`);
+
+const labas = (await cara("/users/labas")).data;
+assert.equal(labas.user.official, true);
+assert.ok(labas.courses.some((c) => c.id === cid));
+const followed = (await cara("/users/labas/follow", { method: "POST", body: {} })).data;
+assert.equal(followed.youFollow, true);
+assert.equal(followed.followers, labas.user.followers + 1);
+assert.equal((await cara(`/users/${caraMe.username}/follow`, { method: "POST", body: {} })).status, 400);
+assert.ok((await cara("/users/labas/followers")).data.users.some((u) => u.username === caraMe.username));
+step("the official account @labas has a profile with its course; following it works (but not following yourself)");
+
+assert.equal((await bob("/me", { method: "PUT", body: { username: "labas" } })).status, 400);
+assert.equal((await bob("/me", { method: "PUT", body: { username: "No Spaces!" } })).status, 400);
+const renamed = `bob_${run}`;
+assert.equal((await bob("/me", { method: "PUT", body: { username: renamed, bio: "I teach Spanish" } })).data.username, renamed);
+step(`usernames: taken and invalid ones are refused; bob is now @${renamed}`);
+
+// Bob makes a Spanish course.
+let r2 = await bob("/courses", { method: "POST", body: { title: `Spanish basics ${run}`, toLang: "Spanish", toCode: "ES", letters: "ñ á é", description: "First words" } });
+assert.equal(r2.status, 200);
+const spanish = r2.data.course;
+assert.equal(spanish.toCode, "es");
+assert.equal(spanish.creator.username, renamed);
+let studio = (await bob(`/studio/${spanish.id}/units`, { method: "POST", body: { title: "Café", level: "A1" } })).data;
+const unitId = studio.units[0].id;
+studio = (await bob(`/studio/${spanish.id}/lessons`, { method: "POST", body: { unitId, title: "Drinks" } })).data;
+const sLesson = studio.units[0].lessons[0].id;
+for (const [lt, en] of [["café", "coffee"], ["té", "tea"], ["agua", "water"], ["leche", "milk"], ["¿Cuánto cuesta?", "How much is it?"]])
+  studio = (await bob(`/studio/${spanish.id}/words`, { method: "POST", body: { lessonId: sLesson, lt, en, pos: lt.startsWith("¿") ? "phrase" : "noun" } })).data;
+assert.equal(studio.units[0].lessons[0].words.length, 5);
+assert.equal((await cara(`/studio/${spanish.id}/content`)).status, 403);
+assert.equal((await cara(`/studio/${spanish.id}/words`, { method: "POST", body: { lessonId: sLesson, lt: "x", en: "y", pos: "noun" } })).status, 403);
+assert.equal((await bob(`/studio/${spanish.id}/words`, { method: "POST", body: { lessonId: content.units[0].lessons[0].id, lt: "x", en: "y", pos: "noun" } })).status, 400, "can't add to another course's lesson");
+assert.equal((await bob(`/studio/${spanish.id}/words/${words.keys().next().value}`, { method: "DELETE" })).status, 400, "can't delete another course's word");
+assert.equal((await alice(`/studio/${spanish.id}/content`)).status, 200, "admins can edit any course");
+step("bob creates a Spanish course with a deck, a lesson and 5 words; only he (and admins) can edit it, and only inside it");
+
+// Cara follows bob, sees the course, takes it.
+await cara(`/users/${renamed}/follow`, { method: "POST", body: {} });
+assert.ok((await cara("/feed")).data.courses.some((c) => c.id === spanish.id));
+assert.ok((await cara("/courses?tab=following")).data.courses.some((c) => c.id === spanish.id));
+assert.ok((await cara("/courses?tab=popular&q=spanish")).data.courses.some((c) => c.id === spanish.id));
+const enrolled = (await cara(`/courses/${spanish.id}/enroll`, { method: "POST", body: {} })).data;
+assert.equal(enrolled.course.enrolled, true);
+assert.equal(enrolled.course.learners, 2, "bob (its creator) and cara");
+const caraPath = (await cara("/learn")).data;
+assert.equal(caraPath.course.id, spanish.id, "enrolling makes it your current course");
+assert.equal(caraPath.myCourses.length, 2);
+const sl = (await cara(`/learn/lessons/${sLesson}`)).data;
+const spanishIds = new Set(studio.units[0].lessons[0].words.map((w) => w.id));
+assert.ok(sl.challenges.every((c) => (c.options ?? []).every((o) => spanishIds.has(o.id))), "wrong options only come from the same course");
+const sType = sl.challenges.find((c) => c.kind === "type_lt" && c.prompt === "water");
+r2 = (await cara(`/learn/words/${sType.wordId}/answer`, { method: "POST", body: { kind: "type_lt", text: "Agua" } })).data;
+assert.equal(r2.correct, true);
+assert.equal(r2.stats.learned, 1, "stats are per course");
+step("cara follows bob, finds his course in her feed, Following tab and search, takes it, and learns from it");
+
+const switched = (await cara("/learn/current", { method: "POST", body: { courseId: cid } })).data;
+assert.equal(switched.course.id, cid);
+assert.equal(switched.stats.learned, 0);
+step("switching courses switches the path and the per-course stats");
+
+const sDuel = await cara("/duels", { method: "POST", body: { courseId: spanish.id, unitIds: [unitId, content.units[0].id] } });
+assert.equal(sDuel.status, 201);
+const sView = (await cara(`/duels/${sDuel.data.code}`)).data;
+assert.equal(sView.count, 5, "only the Spanish deck's words (the other course's deck is ignored)");
+assert.equal(sView.course.toLang, "Spanish");
+step("duels can use any course's decks, but only one course at a time");
+
+// Search: accents and capitals don't matter; it looks inside decks and words; every term must match; people too.
+const search = async (q, tab = "popular") => (await cara(`/courses?tab=${tab}&q=${encodeURIComponent(q)}`)).data;
+let found = await search("CAFE");
+const hit = found.courses.find((c) => c.id === spanish.id);
+assert.ok(hit, "“CAFE” finds the course with the deck (and word) “Café”");
+assert.deepEqual(hit.match, { in: "deck", text: "Café" }, "decks rank above words");
+found = await search("sasiuvinis");
+assert.deepEqual(found.courses.find((c) => c.id === cid)?.match, { in: "word", text: "sąsiuvinis" }, "no accents needed for Lithuanian words");
+assert.equal((await search("lithuanian")).courses.find((c) => c.id === cid)?.match.in, "title");
+assert.ok((await search("spanish cuanto")).courses.some((c) => c.id === spanish.id), "every term can match a different place");
+assert.ok(!(await search("spanish zzzz")).courses.some((c) => c.id === spanish.id), "but every term must match");
+assert.deepEqual((await search("LECHE")).courses.find((c) => c.id === spanish.id)?.match, { in: "word", text: "leche" }, "words inside the course count too");
+found = await search(renamed.toUpperCase());
+assert.ok(found.people.some((u) => u.username === renamed), "people are found by username");
+assert.ok(found.courses.some((c) => c.id === spanish.id && c.match.in === "creator"));
+assert.equal((await cara("/courses?q=" + encodeURIComponent("100% _x\\"))).status, 200);
+assert.ok(!(await search("b_b")).people.some((u) => u.username === renamed), "_ is a literal character, not a wildcard");
+assert.deepEqual((await search("")).people, [], "no people list without a query");
+step("search ignores accents and capitals, looks in titles, languages, creators, decks and words, needs every term, and finds people");
+
+// Any language: Cyrillic case, Romanian and Vietnamese accents, an accent typed as a separate mark.
+for (const [lt, en] of [["Привет", "hello in Russian"], ["sărbătoare", "holiday in Romanian"], ["Tiếng Việt", "Vietnamese"]])
+  studio = (await bob(`/studio/${spanish.id}/words`, { method: "POST", body: { lessonId: sLesson, lt, en, pos: "other" } })).data;
+for (const [q, word] of [["ПРИВЕТ", "Привет"], ["привет", "Привет"], ["sarbatoare", "sărbătoare"], ["SĂRBĂTOARE", "sărbătoare"], ["tieng viet", "Tiếng Việt"], ["vie\u0302\u0323t", "Tiếng Việt"], ["пр", "Привет"]]) {
+  const m = (await search(q)).courses.find((c) => c.id === spanish.id)?.match;
+  assert.deepEqual(m, { in: "word", text: word }, `“${q}” finds ${word}`);
+}
+const rWord = studio.units[0].lessons[0].words.find((w) => w.lt === "sărbătoare");
+const graded = (await cara(`/learn/words/${rWord.id}/answer`, { method: "POST", body: { kind: "type_lt", text: "sarbatoare" } })).data;
+assert.equal(graded.verdict, "accents", "grading forgives missing Romanian accents too");
+step("search and grading work in any language: Cyrillic case, Romanian and Vietnamese accents, decomposed accents, short terms");
+
+// Export and import.
+const exp = await bob(`/courses/${spanish.id}/export`, { binary: true });
+assert.equal(exp.status, 200);
+assert.equal(new TextDecoder().decode(exp.bytes.slice(0, 15)), "SQLite format 3");
+assert.equal((await cara(`/courses/${spanish.id}/export`, { binary: true })).status, 403);
+assert.equal((await cara("/courses/import", { method: "POST", body: exp.bytes, raw: "application/vnd.sqlite3" })).status, 415, "uploads need the X-Requested-With header");
+assert.equal((await cara("/courses/import", { method: "POST", body: new TextEncoder().encode("not a database at all, not at all, ".repeat(30)), raw: "application/vnd.sqlite3", headers: { "X-Requested-With": "labas" } })).status, 400);
+const imp = await cara("/courses/import", { method: "POST", body: exp.bytes, raw: "application/vnd.sqlite3", headers: { "X-Requested-With": "labas" } });
+assert.equal(imp.status, 201);
+const copy = (await cara(`/studio/${imp.data.id}/content`)).data;
+assert.equal(copy.course.creator.username, caraMe.username);
+assert.equal(copy.course.letters, "ñ á é");
+assert.deepEqual(copy.units[0].lessons[0].words.map((w) => w.lt), studio.units[0].lessons[0].words.map((w) => w.lt));
+step("bob exports his course as a SQLite file; cara imports it as her own copy (5 words, same letters); bad uploads are refused");
+
+// Moderation.
+await alice(`/courses/${spanish.id}`, { method: "PUT", body: { title: spanish.title, toLang: "Spanish", toCode: "es", letters: "ñ á é", hidden: true } });
+assert.ok(!(await cara("/courses?tab=popular")).data.courses.some((c) => c.id === spanish.id));
+assert.equal((await cara(`/learn/lessons/${sLesson}`)).status, 404);
+assert.equal((await bob(`/learn/lessons/${sLesson}`)).status, 200, "its creator still sees it");
+assert.ok((await alice("/admin/courses")).data.courses.some((c) => c.id === spanish.id && c.hidden));
+assert.equal((await bob("/admin/courses")).status, 403);
+await bob(`/courses/${spanish.id}`, { method: "PUT", body: { title: spanish.title, toLang: "Spanish", hidden: false } });
+assert.equal((await cara(`/learn/lessons/${sLesson}`)).status, 404, "only admins can unhide");
+await alice(`/courses/${spanish.id}`, { method: "PUT", body: { title: spanish.title, toLang: "Spanish", hidden: false } });
+assert.equal((await cara(`/learn/lessons/${sLesson}`)).status, 200);
+step("admins can hide a course (gone from Discover and lessons for others); only admins can unhide it");
+
+assert.equal((await cara(`/courses/${spanish.id}`, { method: "DELETE" })).status, 403);
+assert.equal((await cara(`/courses/${imp.data.id}`, { method: "DELETE" })).status, 200);
+assert.equal((await cara(`/courses/${imp.data.id}`)).status, 404);
+assert.equal((await cara(`/courses/${spanish.id}/enroll`, { method: "DELETE" })).data.course.enrolled, false);
+step("only creators delete their courses; leaving a course works");
+
+// Arrange (the Studio's drag-and-drop board).
+let arranged = (await bob(`/studio/${spanish.id}/units`, { method: "POST", body: { title: "Food", level: "A1" } })).data;
+const food = arranged.units.find((u) => u.title === "Food");
+arranged = (await bob(`/studio/${spanish.id}/lessons`, { method: "POST", body: { unitId: food.id, title: "Fruit" } })).data;
+const arrange = (who, body) => who(`/studio/${spanish.id}/arrange`, { method: "POST", body });
+arranged = (await arrange(bob, { kind: "lesson", id: sLesson, unitId: food.id, index: 0 })).data;
+assert.deepEqual(arranged.units.find((u) => u.id === food.id).lessons.map((l) => l.title), ["Drinks", "Fruit"], "a lesson moves to another deck, at the drop position");
+assert.equal(arranged.units.find((u) => u.id === unitId).lessons.length, 0);
+assert.equal(arranged.units.find((u) => u.id === food.id).lessons[0].words.length, studio.units[0].lessons[0].words.length, "its words move with it");
+arranged = (await arrange(bob, { kind: "lesson", id: sLesson, unitId: food.id, index: 99 })).data;
+assert.deepEqual(arranged.units.find((u) => u.id === food.id).lessons.map((l) => l.title), ["Fruit", "Drinks"], "an index past the end puts it last");
+arranged = (await arrange(bob, { kind: "unit", id: food.id, index: 0 })).data;
+assert.deepEqual(arranged.units.map((u) => u.title), ["Food", "Café"], "decks reorder");
+assert.equal((await arrange(cara, { kind: "unit", id: food.id, index: 1 })).status, 403);
+assert.equal((await arrange(bob, { kind: "lesson", id: sLesson, unitId: content.units[0].id, index: 0 })).status, 400, "can't move a lesson into another course");
+assert.equal((await arrange(bob, { kind: "lesson", id: content.units[0].lessons[0].id, unitId: food.id, index: 0 })).status, 400, "or take one from another course");
+step("arrange: lessons move between decks and reorder, decks reorder; only within your own course");
 
 console.log("\nall API checks passed");

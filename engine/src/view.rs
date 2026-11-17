@@ -80,6 +80,7 @@ pub fn duel_view(duel: &Value, subs: &Value, viewer_id: i64) -> Value {
     json!({
         "code": duel["code"],
         "title": duel["title"],
+        "course": duel["course"],
         "count": questions.len(),
         "maxPoints": questions.len() as i64 * POINTS_PER_ANSWER,
         "questions": public,

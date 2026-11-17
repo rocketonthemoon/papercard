@@ -62,8 +62,8 @@ try {
   await shot("1-landing");
 
   await js(`document.getElementById("dev-name").value = "Tester ${Date.now() % 1000}"; document.getElementById("dev-login").requestSubmit()`);
-  await waitFor(`!!document.querySelector(".unit-banner")`, "learn path after sign-in");
-  console.log("path:", JSON.stringify(await js(`({ levels: [...document.querySelectorAll(".level-head h2")].map((h) => h.textContent), decks: document.querySelectorAll(".unit-banner").length, review: document.querySelector(".review-card")?.innerText.length })`)));
+  await waitFor(`!!document.querySelector(".module-card")`, "dashboard after sign-in");
+  console.log("dashboard:", JSON.stringify(await js(`({ decks: document.querySelectorAll(".module-card").length, open: document.querySelectorAll(".module-card.open").length, chartDays: document.querySelectorAll(".activity-col").length, chips: document.getElementById("top-chips").textContent })`)));
   await shot("2-learn-path");
 
   // Teach the page the answers (from the word list) so the run can answer correctly.
@@ -78,7 +78,7 @@ try {
     if (document.getElementById("bank")) for (const word of w.lt.split(" ").map((x) => x.replace(/[?.!,]+$/, ""))) [...document.querySelectorAll("#bank .word-tile:not(.used)")].find((b) => b.textContent === word)?.click();
   })()`;
   // A lesson: answer exercises until we've seen every kind (pick, then type), with one deliberate mistake.
-  await js(`document.querySelector(".node.current").click()`);
+  await js(`document.querySelector(".lesson-row-link.current").click()`);
   await waitFor(`!!document.querySelector(".prompt-card")`, "lesson");
   await shot("3-lesson-pick");
   const seen = new Set();
@@ -146,8 +146,66 @@ try {
   await shot("11-results");
 
   await js(`location.hash = "#/leaderboard"`);
-  await waitFor(`!!document.querySelector(".board")`, "leaderboard");
+  await waitFor(`!!document.querySelector(".board-page .podium, .board-page .muted")`, "leaderboard");
   await shot("12-leaderboard");
+
+  // Courses and follows.
+  await js(`location.hash = "#/discover"`);
+  await waitFor(`!!document.querySelector(".pcard")`, "discover");
+  await shot("13-discover");
+  await js(`(() => { const q = document.getElementById("d-q"); q.value = "Sasiuvinis"; q.dispatchEvent(new Event("input")); })()`);
+  await waitFor(`[...document.querySelectorAll(".tag-chip")].some((t) => t.textContent.includes("sąsiuvinis"))`, "search as you type");
+  console.log("search “Sasiuvinis”:", await js(`[...document.querySelectorAll(".pcard")].map((c) => c.querySelector(".tag-chip").textContent + " / " + c.querySelector("h3").textContent).join(" | ")`));
+  await js(`(() => { const q = document.getElementById("d-q"); q.value = "tester"; q.dispatchEvent(new Event("input")); })()`);
+  await waitFor(`!document.getElementById("d-people").hidden`, "people results");
+  await shot("13b-search");
+  await js(`location.hash = "#/u/labas"`);
+  await waitFor(`!!document.querySelector(".profile-head")`, "profile");
+  await js(`document.querySelector("[data-follow]")?.click()`);
+  await waitFor(`document.querySelector("[data-follow]")?.textContent === "Following"`, "follow");
+  await shot("14-profile");
+  await js(`location.hash = "#/studio"`);
+  await waitFor(`!!document.getElementById("new-course")`, "studio");
+  await js(`document.getElementById("new-course").click(); document.getElementById("c-title").value = "Spanish for travellers"; document.getElementById("c-to").value = "Spanish"; document.getElementById("c-code").value = "es"; document.getElementById("c-letters").value = "ñ á é í ó ú"; document.getElementById("nc").requestSubmit()`);
+  await waitFor(`!!document.querySelector(".cms-tree")`, "studio editor");
+  await js(`window.prompt = (q) => (q.startsWith("Deck") ? "At the café" : q.startsWith("Level") ? "A1" : q.startsWith("Lesson") ? "Drinks" : ""); document.getElementById("add-unit").click()`);
+  await waitFor(`!!document.querySelector("[data-add-lesson]")`, "deck added");
+  await js(`document.querySelector("[data-add-lesson]").click()`);
+  await waitFor(`!!document.getElementById("add-word")`, "lesson added");
+  await js(`document.getElementById("add-word").click()`);
+  await waitFor(`!!document.getElementById("f-lt")`, "word form");
+  await js(`document.getElementById("f-lt").value = "cafe"; document.querySelector(".lt-key[data-ch='é']").click(); document.getElementById("f-en").value = "coffee"`);
+  console.log("typed with a letter key:", await js(`document.getElementById("f-lt").value`));
+  await shot("15-studio-word");
+  await js(`document.getElementById("word-form").requestSubmit()`);
+  await waitFor(`!!document.querySelector(".ch-row")`, "word saved");
+  await shot("16-studio");
+
+  // Arrange: add a deck and a lesson in place, then drag a lesson into the other deck with real mouse events.
+  await js(`document.querySelector('[data-view="arrange"]').click()`);
+  await waitFor(`!!document.getElementById("board")`, "arrange board");
+  await js(`(() => { const f = document.getElementById("board-new-deck"); f.querySelector("input").value = "Snacks"; f.requestSubmit(); })()`);
+  await waitFor(`document.querySelectorAll(".board-col[data-unit]").length === 2`, "new deck");
+  await js(`(() => { const f = document.querySelectorAll("[data-add-lesson-in]")[1]; f.querySelector("input").value = "Chips"; f.requestSubmit(); })()`);
+  await waitFor(`document.querySelectorAll(".board-card").length === 2`, "new lesson");
+  await sleep(400); // SortableJS loads and attaches
+  const rect = (sel) => js(`(() => { const r = document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2, h: r.height }; })()`);
+  const from = await rect(`.board-col:nth-child(1) .board-card`);
+  const to = await rect(`.board-col:nth-child(2) .board-card`);
+  const mouse = (type, x, y) => send("Input.dispatchMouseEvent", { type, x, y, button: "left", buttons: type === "mouseReleased" ? 0 : 1, clickCount: 1 });
+  await mouse("mousePressed", from.x, from.y);
+  for (let i = 1; i <= 12; i++) {
+    await mouse("mouseMoved", from.x + ((to.x - from.x) * i) / 12, from.y + ((to.y + to.h / 2 - from.y) * i) / 12);
+    await sleep(30);
+  }
+  await mouse("mouseReleased", to.x, to.y + to.h / 2);
+  await waitFor(`document.querySelectorAll(".board-col:nth-child(2) .board-card").length === 2`, "lesson dragged into the other deck");
+  console.log("after drag:", await js(`[...document.querySelectorAll(".board-col[data-unit]")].map((c) => c.querySelector(".board-col-head .rename").textContent + ": " + [...c.querySelectorAll(".board-card .rename")].map((x) => x.textContent).join(", ")).join(" | ")`));
+  await shot("16b-arrange");
+  await js(`location.hash = "#/learn"`);
+  await waitFor(`!!document.querySelector(".course-tiles")`, "dashboard with course tiles");
+  console.log("course tiles:", await js(`[...document.querySelectorAll(".course-tile h3, .course-tile b")].map((o) => o.textContent).join(" | ")`));
+  await shot("17-dashboard-after");
 } catch (e) {
   console.error("FAILED:", e.message);
   await shot("failure");

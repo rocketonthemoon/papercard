@@ -7,6 +7,8 @@
 //! - `build`    an English phrase; put Lithuanian word tiles in order
 
 use serde::Deserialize;
+use unicode_normalization::UnicodeNormalization;
+use unicode_normalization::char::is_combining_mark;
 use serde_json::{Value, json};
 
 #[derive(Debug, Clone, Deserialize)]
@@ -88,33 +90,49 @@ impl Rng {
     }
 }
 
-// ---------------------------------------------------------------- text normalisation
-
-/// Lowercase, punctuation removed, whitespace collapsed. Keeps Lithuanian letters as they are.
+/// Lowercase, punctuation removed, whitespace collapsed. Keeps accents, in composed form (so "é" typed as e + ◌́ matches "é").
 pub fn norm(s: &str) -> String {
-    let lowered: String = s.chars().flat_map(char::to_lowercase).map(|c| if c.is_alphanumeric() || c.is_whitespace() { c } else { '\u{0}' }).filter(|&c| c != '\u{0}').collect();
+    let lowered: String = s.nfc().flat_map(char::to_lowercase).map(|c| if c.is_alphanumeric() || c.is_whitespace() { c } else { '\u{0}' }).filter(|&c| c != '\u{0}').collect();
     lowered.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
-/// `norm`, then Lithuanian (and common Latin) diacritics folded to plain letters: ą→a, š→s, ū→u...
+/// Text folded for matching in any language: lowercase (every script), accents and other combining marks
+/// removed (ą→a, ș→s, ố→o, ά→α, Arabic vowel marks), compatibility forms unified (full-width letters, ligatures),
+/// plus letters that don't decompose (ł→l, ø→o, æ→ae, ß→ss, Greek final ς→σ), Arabic alef/ya/ta-marbuta
+/// variants, and katakana→hiragana. Punctuation is kept; `fold` also removes it, for answers.
+pub fn fold_text(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for c in s.nfkd() {
+        if is_combining_mark(c) || c == '\u{0640}' {
+            continue; // accents, vowel marks, Arabic tatweel
+        }
+        match c {
+            'ł' | 'Ł' => out.push('l'),
+            'đ' | 'Đ' | 'ð' | 'Ð' => out.push('d'),
+            'ø' | 'Ø' => out.push('o'),
+            'æ' | 'Æ' => out.push_str("ae"),
+            'œ' | 'Œ' => out.push_str("oe"),
+            'ß' | 'ẞ' => out.push_str("ss"),
+            'þ' | 'Þ' => out.push_str("th"),
+            'ı' => out.push('i'),
+            'ħ' | 'Ħ' => out.push('h'),
+            'ŧ' | 'Ŧ' => out.push('t'),
+            'ŋ' | 'Ŋ' => out.push('n'),
+            'ĸ' => out.push('k'),
+            'ς' => out.push('σ'),
+            'ٱ' => out.push('ا'),
+            'ى' => out.push('ي'),
+            'ة' => out.push('ه'),
+            '\u{30A1}'..='\u{30F6}' => out.push(char::from_u32(c as u32 - 0x60).unwrap_or(c)),
+            _ => out.extend(c.to_lowercase()),
+        }
+    }
+    out
+}
+
+/// `norm`, then `fold_text`: an answer with case, punctuation and accents ignored.
 pub fn fold(s: &str) -> String {
-    norm(s)
-        .chars()
-        .map(|c| match c {
-            'ą' | 'à' | 'á' | 'â' | 'ä' | 'ã' | 'å' | 'ā' => 'a',
-            'č' | 'ç' | 'ć' => 'c',
-            'ę' | 'ė' | 'è' | 'é' | 'ê' | 'ë' | 'ē' => 'e',
-            'į' | 'ì' | 'í' | 'î' | 'ï' | 'ī' | 'ı' => 'i',
-            'š' | 'ś' => 's',
-            'ų' | 'ū' | 'ù' | 'ú' | 'û' | 'ü' => 'u',
-            'ž' | 'ź' | 'ż' => 'z',
-            'ò' | 'ó' | 'ô' | 'ö' | 'õ' | 'ø' | 'ō' => 'o',
-            'ñ' | 'ń' => 'n',
-            'ł' => 'l',
-            'ý' | 'ÿ' => 'y',
-            other => other,
-        })
-        .collect()
+    fold_text(&norm(s))
 }
 
 fn levenshtein(a: &str, b: &str) -> usize {
@@ -347,9 +365,35 @@ mod tests {
     }
 
     #[test]
+    fn folds_every_language() {
+        for (a, b) in [
+            ("Ąžuolas ŠILUMA ūkis", "azuolas siluma ukis"),
+            ("ПРИВЕТ Мир", "привет мир"),
+            ("Ελληνικά ΤΕΛΟΣ", "ελληνικα τελοσ"),
+            ("sărbătoare Ștefan", "sarbatoare stefan"),
+            ("Tiếng Việt", "tieng viet"),
+            ("Straße Łódź Ærø", "strasse lodz aero"),
+            ("İstanbul", "istanbul"),
+            ("ＡＢＣ ﬁle", "abc file"),
+            ("كَتَبَ أحمد مدرسة", "كتب احمد مدرسه"),
+            ("カタカナ ひらがな", "かたかな ひらがな"),
+            ("中文 한국어", "中文 한국어"),
+        ] {
+            assert_eq!(fold_text(a), fold_text(b), "{a} vs {b}");
+        }
+        assert_eq!(fold_text("ПРИВЕТ"), "привет");
+        // An accent typed as a separate mark is the same as the composed letter.
+        assert_eq!(fold("cafe\u{301}"), fold("café"));
+        assert_eq!(norm("cafe\u{301}"), norm("café"));
+    }
+
+    #[test]
     fn grades_exact_accents_typos_and_wrong() {
         let acc = s(&["šaltis"]);
         assert_eq!(grade(&acc, &[], "Šaltis", true).verdict, Verdict::Exact);
+        assert_eq!(grade(&acc, &[], "s\u{30c}altis", true).verdict, Verdict::Exact, "š typed as s + ◌̌");
+        assert_eq!(grade(&s(&["Привет"]), &[], "привет", true).verdict, Verdict::Exact);
+        assert_eq!(grade(&s(&["sărbătoare"]), &[], "sarbatoare", true).verdict, Verdict::Accents);
         assert_eq!(grade(&acc, &[], "saltis", true).verdict, Verdict::Accents);
         assert_eq!(grade(&acc, &[], "šaltys", true).verdict, Verdict::Typo);
         assert_eq!(grade(&acc, &[], "šiluma", true).verdict, Verdict::Wrong);

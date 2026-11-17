@@ -67,6 +67,13 @@ pub unsafe extern "C" fn duel_accepted(lt: *const c_char, also: *const c_char) -
     guard(|| serde_json::to_string(&vocab::accepted(lt?, also.unwrap_or(""))).ok())
 }
 
+/// `s` folded for search: lowercase, accents removed, in any language (see `vocab::fold_text`). Plain string.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn duel_fold(s: *const c_char) -> *mut c_char {
+    let s = unsafe { arg(s) };
+    guard(|| Some(vocab::fold_text(s?)))
+}
+
 /// Scores a duel answer sheet: {points, correct, total, results}.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn duel_score(questions_json: *const c_char, answers_json: *const c_char) -> *mut c_char {

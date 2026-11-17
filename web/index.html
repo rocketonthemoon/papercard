@@ -8,16 +8,17 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="game.css">
+<link rel="stylesheet" href="design.css">
 <script>/* Apply the saved theme before the page draws (no flash). */ try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}</script>
 </head>
 <body>
 <!-- Shared gradients for the icons -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
-    <linearGradient id="gGreen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4be3ad"/><stop offset="1" stop-color="#1fbf86"/></linearGradient>
-    <linearGradient id="gNavy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4c5d8f"/><stop offset="1" stop-color="#2c3860"/></linearGradient>
+    <linearGradient id="gGreen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5fe0a6"/><stop offset="1" stop-color="#2fbf80"/></linearGradient>
+    <linearGradient id="gNavy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a3a44"/><stop offset="1" stop-color="#16161a"/></linearGradient>
   </defs>
 </svg>
 
@@ -27,14 +28,23 @@
       <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="2" fill="url(#gGreen)"/><rect x="15" y="1" width="12" height="12" rx="2" fill="url(#gNavy)"/><rect x="1" y="15" width="12" height="12" rx="2" fill="url(#gNavy)"/><rect x="15" y="15" width="12" height="12" rx="2" fill="url(#gGreen)"/></svg>
       <span class="brand-word">LABAS<span>!</span></span>
     </a>
-    <nav class="links" aria-label="Main">
-      <a href="#/" data-nav="home">Home</a>
-      <a href="#/how" data-nav="how">How to play</a>
-    </nav>
+    <h1 class="page-title" id="page-title"></h1>
+    <form class="top-search" id="top-search" role="search" hidden>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="m13.2 13.2 3.3 3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <input type="search" id="top-q" placeholder="Search by course, language, creator…" aria-label="Search courses">
+    </form>
+    <nav class="links" aria-label="Main"></nav>
+    <div id="top-chips" class="top-chips"></div>
     <div id="account" class="account"></div>
     <button id="theme" class="icon-btn theme-btn" type="button" aria-label="Theme"></button>
   </div>
 </header>
+
+<aside class="sidebar" id="sidebar" hidden>
+  <a class="side-brand" href="#/learn" aria-label="Labas home"><svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="3" fill="url(#gGreen)"/><rect x="15" y="1" width="12" height="12" rx="3" fill="url(#gNavy)"/><rect x="1" y="15" width="12" height="12" rx="3" fill="url(#gNavy)"/><rect x="15" y="15" width="12" height="12" rx="3" fill="url(#gGreen)"/></svg></a>
+  <nav class="side-links" id="side-links" aria-label="Main"></nav>
+  <div class="side-bottom" id="side-bottom"></div>
+</aside>
 
 <main id="app" class="app" aria-live="polite">
   <p class="muted loading">Loading…</p>
