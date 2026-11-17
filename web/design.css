@@ -1110,36 +1110,111 @@ body.shell.focus .sidebar {
 
 .discover-search {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
   width: min(540px, 100%);
-  margin-top: 10px;
+  margin-top: 14px;
 }
 
-.discover-search input {
+.search-input-wrap {
+  position: relative;
   flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrap .search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 17px;
+  height: 17px;
+  color: var(--muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.discover-search input,
+.search-input-wrap input {
+  width: 100%;
   height: 44px;
   border-radius: 999px;
   background: var(--surface);
   border: 1px solid var(--line);
-  padding: 0 20px;
-  font-size: 14.5px;
+  padding: 0 36px 0 40px;
+  font-size: 15px;
+  color: var(--text);
   box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
-.discover-search input:focus {
-  border-color: color-mix(in srgb, var(--text) 35%, var(--line));
+.discover-search input::placeholder,
+.search-input-wrap input::placeholder {
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+.discover-search input:focus,
+.search-input-wrap input:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 20%, transparent);
   background: var(--surface);
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: color-mix(in srgb, var(--muted) 25%, transparent);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.search-clear-btn:hover {
+  background: var(--muted);
+  color: var(--surface);
+}
+
+.search-clear-btn svg {
+  width: 12px;
+  height: 12px;
 }
 
 .discover-search .btn {
   height: 44px;
-  padding: 0 24px;
+  padding: 0 20px;
+  border-radius: 999px;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   font-size: 14.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .discover-main {
@@ -1544,13 +1619,35 @@ body.shell.focus .sidebar {
   }
 }
 
-@media (max-width: 440px) {
+@media (max-width: 640px) {
+  /* Prevent iOS Safari from auto-zooming when focusing inputs */
+  .discover-search input,
+  .search-input-wrap input,
+  .top-search input,
+  .words-filter input {
+    font-size: 16px;
+    height: 42px;
+    padding: 0 34px 0 38px;
+  }
+
+  .search-input-wrap .search-icon {
+    left: 12px;
+    width: 16px;
+    height: 16px;
+  }
+
   .discover-search {
-    flex-direction: column;
+    flex-direction: row !important;
+    gap: 8px;
+    width: 100%;
+    margin-top: 12px;
   }
 
   .discover-search .btn {
-    width: 100%;
+    height: 42px;
+    padding: 0 16px;
+    font-size: 14px;
+    width: auto !important;
   }
 }
 

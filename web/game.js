@@ -1830,7 +1830,14 @@ async function renderDiscover() {
         <section class="discover-hero">
           <h2>Find your next course</h2>
           <p>Courses by us and by learners like you. Follow creators to see their new courses first, or <a href="#/studio">make your own</a>.</p>
-          <form class="discover-search" id="d-form" role="search"><input type="search" id="d-q" value="${esc(f.q)}" placeholder="Search by course, language, creator…" aria-label="Search courses"><button class="btn">Search</button></form>
+          <form class="discover-search" id="d-form" role="search">
+            <div class="search-input-wrap">
+              <svg class="search-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="m13.2 13.2 3.3 3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <input type="search" id="d-q" value="${esc(f.q)}" placeholder="Search by course, language, creator…" aria-label="Search courses" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+              <button type="button" class="search-clear-btn" id="d-clear" aria-label="Clear search" ${f.q ? "" : "hidden"}>${I.close}</button>
+            </div>
+            <button class="btn search-btn">Search</button>
+          </form>
         </section>
         <section class="people-row" id="d-people" hidden></section>
         <div class="course-grid pastel" id="d-list"><p class="muted loading">Loading…</p></div>
@@ -1914,14 +1921,32 @@ async function renderDiscover() {
     draw();
   };
   wireCodeForm("discover-code");
+  const qInput = document.getElementById("d-q");
+  const clearBtn = document.getElementById("d-clear");
+  const syncClear = () => {
+    if (clearBtn) clearBtn.hidden = !qInput.value;
+  };
+
+  if (clearBtn) {
+    clearBtn.onclick = () => {
+      qInput.value = "";
+      f.q = "";
+      syncClear();
+      qInput.focus();
+      load();
+    };
+  }
+
   document.getElementById("d-form").onsubmit = (e) => {
     e.preventDefault();
-    f.q = document.getElementById("d-q").value.trim();
+    f.q = qInput.value.trim();
+    syncClear();
     load();
   };
   // Search as you type (after a short pause).
   let typing;
-  document.getElementById("d-q").oninput = (e) => {
+  qInput.oninput = (e) => {
+    syncClear();
     clearTimeout(typing);
     typing = setTimeout(() => {
       if (e.target.value.trim() === f.q) return;
@@ -1935,7 +1960,8 @@ async function renderDiscover() {
   document.getElementById("f-clear").onclick = () => {
     f.langs.clear();
     f.official = document.getElementById("f-official").checked = false;
-    f.q = document.getElementById("d-q").value = "";
+    f.q = qInput.value = "";
+    syncClear();
     load();
   };
   load();
