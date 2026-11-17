@@ -2588,3 +2588,63 @@ label.check span {
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------- word list pronunciation & animations */
+.word-list .w-lt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.word-list .w-speak {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+}
+
+.word-list li:hover .w-speak,
+.word-list .w-speak:focus-visible {
+  opacity: 1;
+}
+
+.word-list .w-speak:hover {
+  color: var(--green);
+  background: color-mix(in srgb, var(--green) 15%, transparent);
+}
+
+.word-list .w-speak svg {
+  width: 14px;
+  height: 14px;
+}
+
+.fc-speaker.speaking svg,
+.w-speak.speaking svg {
+  animation: speakPulse 0.4s ease-in-out infinite alternate;
+  color: var(--green);
+}
+
+@keyframes speakPulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.28); }
+}
+
+@keyframes fc-shuffle-flutter {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(0.97) rotate(-2.5deg) translateX(-6px); }
+  75% { transform: scale(0.97) rotate(2.5deg) translateX(6px); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.flashcard.fc-shuffling {
+  animation: fc-shuffle-flutter 0.28s ease-in-out;
+}

@@ -1331,14 +1331,91 @@ function shuffle(arr) {
 }
 
 /** Speech synthesis helper for flashcard pronunciation. */
-function speakWord(text, lang = "lt-LT") {
+function speakWord(text, lang = "lt-LT", el = null) {
   if (!window.speechSynthesis) return;
   try {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = lang;
+    if (el) {
+      el.classList.add("speaking");
+      u.onend = () => el.classList.remove("speaking");
+      u.onerror = () => el.classList.remove("speaking");
+    }
     window.speechSynthesis.speak(u);
   } catch {}
+}
+
+/** Lightweight celebratory confetti particle explosion. */
+function launchConfetti(durationMs = 2400) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const canvas = document.createElement("canvas");
+  canvas.className = "confetti-canvas";
+  canvas.style.position = "fixed";
+  canvas.style.inset = "0";
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
+  canvas.style.pointerEvents = "none";
+  canvas.style.zIndex = "99999";
+  document.body.appendChild(canvas);
+
+  const ctx = canvas.getContext("2d");
+  let w = (canvas.width = window.innerWidth);
+  let h = (canvas.height = window.innerHeight);
+
+  const colors = ["#2fbf80", "#5fe0a6", "#ffb84d", "#4da6ff", "#b388ff", "#ff6b8b"];
+  const pieces = Array.from({ length: 65 }, () => ({
+    x: w * 0.5 + (Math.random() * 200 - 100),
+    y: h * 0.45,
+    w: Math.random() * 8 + 6,
+    h: Math.random() * 6 + 4,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    vx: (Math.random() - 0.5) * 16,
+    vy: (Math.random() - 1.2) * 14,
+    rot: Math.random() * 360,
+    vrot: (Math.random() - 0.5) * 12,
+    gravity: 0.38,
+    drag: 0.96,
+  }));
+
+  const start = performance.now();
+  let rafId;
+
+  const tick = (now) => {
+    const elapsed = now - start;
+    if (elapsed > durationMs) {
+      canvas.remove();
+      return;
+    }
+    ctx.clearRect(0, 0, w, h);
+    const alpha = Math.max(0, 1 - (elapsed / durationMs) ** 2);
+    ctx.globalAlpha = alpha;
+
+    for (const p of pieces) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += p.gravity;
+      p.vx *= p.drag;
+      p.vy *= p.drag;
+      p.rot += p.vrot;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate((p.rot * Math.PI) / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+
+    rafId = requestAnimationFrame(tick);
+  };
+
+  rafId = requestAnimationFrame(tick);
+  const onResize = () => {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  };
+  window.addEventListener("resize", onResize, { once: true });
 }
 
 const FC_ICONS = {
@@ -1380,6 +1457,7 @@ function runFlashcards({ words, stats, course, now }) {
     if (index >= deck.length) {
       document.body.classList.remove("focus");
       cleanup();
+      launchConfetti();
       $app.innerHTML = `
         <section class="card finish">
           <span class="finish-icon">${I.cards}</span>
@@ -1474,7 +1552,7 @@ function runFlashcards({ words, stats, course, now }) {
             <button class="btn outline learning" id="fc-learning">Still learning</button>
             <button class="btn mastered" id="fc-mastered">Got it! ✓</button>
           </div>
-          <p class="fc-keyboard-hints">Keyboard: <b>Space</b> to flip · <b>←</b> Previous · <b>→</b> Next</p>
+          <p class="fc-keyboard-hints">Keyboard: <b>Space</b> flip · <b>1</b> Still learning · <b>2</b> Got it · <b>A</b> Audio · <b>← / →</b></p>
         </div>
       </div>`;
 
@@ -1490,7 +1568,7 @@ function runFlashcards({ words, stats, course, now }) {
 
     document.getElementById("fc-speak")?.addEventListener("click", (e) => {
       e.stopPropagation();
-      speakWord(isLtFront ? w.lt : w.en, isLtFront ? "lt-LT" : "en-US");
+      speakWord(isLtFront ? w.lt : w.en, isLtFront ? "lt-LT" : "en-US", document.getElementById("fc-speak"));
     });
 
     document.getElementById("fc-quit")?.addEventListener("click", () => {
@@ -1499,11 +1577,23 @@ function runFlashcards({ words, stats, course, now }) {
     });
 
     document.getElementById("fc-shuffle")?.addEventListener("click", () => {
-      deck = shuffle(words);
-      index = 0;
-      flipped = false;
-      toast("Cards shuffled!");
-      render();
+      const card = document.getElementById("fc-card");
+      if (card) {
+        card.classList.add("fc-shuffling");
+        setTimeout(() => {
+          deck = shuffle(words);
+          index = 0;
+          flipped = false;
+          toast("Cards shuffled!");
+          render();
+        }, 220);
+      } else {
+        deck = shuffle(words);
+        index = 0;
+        flipped = false;
+        toast("Cards shuffled!");
+        render();
+      }
     });
 
     document.getElementById("fc-dir")?.addEventListener("click", () => {
@@ -1550,6 +1640,19 @@ function runFlashcards({ words, stats, course, now }) {
     if (e.code === "Space" || e.code === "Enter" || e.code === "ArrowUp" || e.code === "ArrowDown") {
       e.preventDefault();
       toggleFlip();
+    } else if (e.key === "a" || e.key === "A" || e.key === "s" || e.key === "S") {
+      e.preventDefault();
+      const currentWord = deck[index];
+      if (currentWord) {
+        const isLt = direction === "lt-en";
+        speakWord(isLt ? currentWord.lt : currentWord.en, isLt ? "lt-LT" : "en-US", document.getElementById("fc-speak"));
+      }
+    } else if (e.key === "1" && flipped) {
+      e.preventDefault();
+      document.getElementById("fc-learning")?.click();
+    } else if (e.key === "2" && flipped) {
+      e.preventDefault();
+      document.getElementById("fc-mastered")?.click();
     } else if (e.code === "ArrowRight") {
       e.preventDefault();
       if (flipped) {
@@ -1746,6 +1849,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
 
   const finish = () => {
     sfx.done();
+    launchConfetti();
     document.body.classList.remove("focus");
     const accuracy = Math.round((100 * total) / (total + mistakes));
     $app.innerHTML = `<section class="card finish">
@@ -1905,13 +2009,20 @@ async function renderWords() {
             .map((w) => {
               const s = status(w);
               const badge = s === "new" ? `<span class="pill">not yet</span>` : s === "due" ? `<span class="pill due">due</span>` : `<span class="pill ok" title="Next review">${fmtUntil(w.dueAt, now)}</span>`;
-              return `<li class="${s}"><span class="w-lt"${L()}>${esc(w.lt)}</span><span class="w-en">${esc(w.en)}${w.note ? `<small>${esc(w.note)}</small>` : ""}</span>${w.pos !== "phrase" ? wordTag(w) : "<span></span>"}${badge}</li>`;
+              return `<li class="${s}"><span class="w-lt"${L()}><button type="button" class="icon-btn w-speak" data-text="${esc(w.lt)}" title="Listen to pronunciation" aria-label="Listen to pronunciation">${FC_ICONS.speaker}</button>${esc(w.lt)}</span><span class="w-en">${esc(w.en)}${w.note ? `<small>${esc(w.note)}</small>` : ""}</span>${w.pos !== "phrase" ? wordTag(w) : "<span></span>"}${badge}</li>`;
             })
             .join("")}</ul>
         </section>`;
       })
       .join("");
-    document.getElementById("w-list").innerHTML = html || `<section class="card picker"><p class="muted center">No words match.</p></section>`;
+    const listEl = document.getElementById("w-list");
+    listEl.innerHTML = html || `<section class="card picker"><p class="muted center">No words match.</p></section>`;
+    listEl.querySelectorAll(".w-speak").forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        speakWord(btn.dataset.text, "lt-LT", btn);
+      };
+    });
   };
   for (const b of $app.querySelectorAll("[data-f]")) {
     b.onclick = () => {
