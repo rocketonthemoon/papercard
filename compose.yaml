@@ -1,8 +1,8 @@
-# Grammar Duel: run with `podman compose up --build` (or `docker compose up --build`), then open http://localhost:8080
+# Labas (learn Lithuanian words): run with `podman compose up --build` (or `docker compose up --build`), then open http://localhost:8080
 # On a server with a domain: set DOMAIN (and BIND=127.0.0.1) in .env and run
 #   podman compose --profile https up -d --build
 # to put Caddy in front with automatic HTTPS.
-name: grammar-duel
+name: labas
 
 services:
   app:
@@ -18,7 +18,7 @@ services:
       ADMINS: ${ADMINS}
       MEMCACHED: memcached:11211
     volumes:
-      - duel-data:/data
+      - labas-data:/data
     depends_on:
       - memcached
     restart: unless-stopped
@@ -47,6 +47,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  duel-data:
+  labas-data:
   caddy-data:
   caddy-config:

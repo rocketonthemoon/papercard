@@ -1,4 +1,4 @@
-// Clicks through Grammar Duel in headless Chrome (DevTools protocol, no dependencies) and saves screenshots.
+// Clicks through Labas in headless Chrome (DevTools protocol, no dependencies) and saves screenshots.
 // Needs a server with ALLOW_DEV_LOGIN=1.  Usage: node tests/test_browser.mjs [url] [outDir] [--mobile] [--light]
 import { spawn } from "node:child_process";
 import fs from "node:fs";
@@ -46,7 +46,7 @@ const waitFor = async (expr, what) => {
 };
 const shot = async (name) => {
   const png = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true });
-  const file = path.join(outDir, `duel-${name}${flags.has("--mobile") ? "-mobile" : ""}${flags.has("--light") ? "-light" : ""}.png`);
+  const file = path.join(outDir, `labas-${name}${flags.has("--mobile") ? "-mobile" : ""}${flags.has("--light") ? "-light" : ""}.png`);
   fs.writeFileSync(file, Buffer.from(png.result.data, "base64"));
   console.log("screenshot:", file);
 };
@@ -63,45 +63,91 @@ try {
 
   await js(`document.getElementById("dev-name").value = "Tester ${Date.now() % 1000}"; document.getElementById("dev-login").requestSubmit()`);
   await waitFor(`!!document.querySelector(".unit-banner")`, "learn path after sign-in");
+  console.log("path:", JSON.stringify(await js(`({ levels: [...document.querySelectorAll(".level-head h2")].map((h) => h.textContent), decks: document.querySelectorAll(".unit-banner").length, review: document.querySelector(".review-card")?.innerText.length })`)));
   await shot("2-learn-path");
+
+  // Teach the page the answers (from the word list) so the run can answer correctly.
+  await js(`fetch("/api/learn/words").then((r) => r.json()).then((d) => { window.__w = d.units.flatMap((u) => u.lessons.flatMap((l) => l.words)); return true; })`);
+  const answerRight = `(() => {
+    const prompt = document.querySelector(".prompt-word").textContent;
+    const q = document.querySelector(".q").textContent;
+    const w = window.__w.find((x) => (q.startsWith("What does") ? x.lt : x.en) === prompt);
+    if (document.querySelector(".option")) [...document.querySelectorAll(".option")].find((o) => o.textContent.slice(1) === (q.startsWith("What does") ? w.en : w.lt))?.click();
+    const t = document.getElementById("typed");
+    if (t) { t.value = w.lt.replace(/[ąčęėįšųūž]/g, (c) => "aceeisuuz"["ąčęėįšųūž".indexOf(c)]); t.oninput(); }
+    if (document.getElementById("bank")) for (const word of w.lt.split(" ").map((x) => x.replace(/[?.!,]+$/, ""))) [...document.querySelectorAll("#bank .word-tile:not(.used)")].find((b) => b.textContent === word)?.click();
+  })()`;
+  // A lesson: answer exercises until we've seen every kind (pick, then type), with one deliberate mistake.
+  await js(`document.querySelector(".node.current").click()`);
+  await waitFor(`!!document.querySelector(".prompt-card")`, "lesson");
+  await shot("3-lesson-pick");
+  const seen = new Set();
+  for (let i = 0; i < 40 && (await js(`!!document.getElementById("stage")`)); i++) {
+    const kind = await js(`document.querySelector(".option") ? "pick" : document.getElementById("typed") ? "type" : document.getElementById("bank") ? "build" : "?"`);
+    seen.add(kind);
+    if (i === 1) await js(`[...document.querySelectorAll(".option")].at(-1).click()`); // one deliberate mistake
+    else await js(answerRight);
+    if (kind === "type" && !seen.has("typeShot")) {
+      seen.add("typeShot");
+      await shot("4-lesson-type");
+    }
+    await js(`document.getElementById("action").click()`);
+    await waitFor(`/right|wrong/.test(document.getElementById("foot").className) || !!document.querySelector(".modal-back")`, "feedback");
+    if (await js(`!!document.querySelector(".modal-back")`)) break; // out of hearts
+    if (i === 1) await shot("5-lesson-feedback");
+    await js(`document.getElementById("action").click()`);
+    await sleep(120);
+  }
+  console.log("lesson finished:", await js(`document.querySelector(".finish h1")?.textContent ?? "no"`));
+  console.log("exercise kinds seen:", [...seen].filter((k) => !k.endsWith("Shot")).join(", "));
+  if (await js(`!!document.querySelector(".modal-back")`)) await shot("5b-out-of-hearts");
+
+  // A phrase lesson (build from tiles).
+  const phraseLesson = await js(`fetch("/api/learn").then((r) => r.json()).then((d) => d.units[0].lessons.at(-1).id)`);
+  await js(`location.hash = "#/learn/lesson/${phraseLesson}"`);
+  await waitFor(`!!document.querySelector(".prompt-card")`, "phrase lesson");
+  for (let i = 0; i < 12 && !(await js(`!!document.getElementById("bank")`)); i++) {
+    await js(answerRight);
+    await js(`document.getElementById("action").click()`);
+    await waitFor(`/right|wrong/.test(document.getElementById("foot").className) || !!document.querySelector(".modal-back")`, "feedback");
+    if (await js(`!!document.querySelector(".modal-back")`)) break;
+    await js(`document.getElementById("action").click()`);
+    await sleep(120);
+  }
+  if (await js(`!!document.getElementById("bank")`)) {
+    await js(answerRight);
+    await shot("6-lesson-build");
+    await js(`document.getElementById("action").click()`);
+    await waitFor(`/right|wrong/.test(document.getElementById("foot").className)`, "build feedback");
+    console.log("build feedback:", await js(`document.getElementById("foot").className + " / " + document.querySelector("#feedback b").textContent`));
+  }
+
+  await js(`location.hash = "#/learn/review"`);
+  await waitFor(`!!document.querySelector(".finish, .prompt-card")`, "review");
+  await shot("7-review");
+  await js(`location.hash = "#/learn/words"`);
+  await waitFor(`!!document.querySelector(".word-list")`, "word list");
+  await shot("8-words");
+
   await js(`location.hash = "#/play"`);
-  await waitFor(`!!document.getElementById("create") && document.getElementById("r-text").textContent !== "Loading…"`, "play hub");
-  await shot("2-play");
-
+  await waitFor(`!!document.querySelector(".deck-chip")`, "play hub");
+  await shot("9-play");
   await js(`document.getElementById("create").click()`);
-  await waitFor(`!!document.getElementById("answer")`, "duel page");
-  await waitFor(`document.querySelectorAll("#marks mark").length > 0`, "underlined mistakes");
-  console.log("duel opened, underlined mistakes:", await js(`document.querySelectorAll("#marks mark").length`));
-  // Fix one obvious mistake per kind we know is in every random text: just tidy "alot" and "could of" if present.
-  await js(`(() => { const a = document.getElementById("answer"); a.value = a.value.replace(/\\balot\\b/g, "a lot").replace(/could of/g, "could have").replace(/\\bwas\\b/, "were"); a.dispatchEvent(new Event("input")); })()`);
-  await shot("3-play");
-
+  await waitFor(`!!document.querySelector("#qcard .option")`, "duel page");
+  for (let i = 0; i < 10; i++) {
+    await js(`document.querySelectorAll("#qcard .option")[${i % 4}].click()`);
+    await sleep(320);
+    if (i === 3) await shot("10-duel");
+  }
   await js(`window.confirm = () => true; document.getElementById("submit").click()`);
   await waitFor(`!!document.querySelector(".score b")`, "results");
-  const result = await js(`({ score: document.querySelector(".score b").textContent, max: document.querySelector(".score .muted").textContent, board: document.querySelectorAll(".people li").length, answers: document.querySelectorAll(".rows .answer").length })`);
-  console.log("results:", JSON.stringify(result));
-  await shot("4-results");
+  const result = await js(`({ score: document.querySelector(".score b").textContent, max: document.querySelector(".score .muted").textContent, key: document.querySelectorAll(".rows .answer").length })`);
+  console.log("duel results:", JSON.stringify(result));
+  await shot("11-results");
 
-  // Free practice: load a text, fix one mistake, check, open a hint.
-  await js(`location.hash = "#/learn/free"`);
-  await waitFor(`document.querySelectorAll("#l-list .answer").length > 0 && document.querySelectorAll("#l-marks mark").length > 0`, "learn text");
-  const before = await js(`document.querySelectorAll("#l-marks mark").length`);
-  await js(`(() => { const t = document.getElementById("l-answer"); const w = document.querySelector("#l-marks mark").textContent; const at = t.value.indexOf(w); t.value = t.value.slice(0, at) + "XX" + t.value.slice(at + w.length); t.dispatchEvent(new Event("input")); document.getElementById("l-check").click(); })()`);
-  await waitFor(`/fixed|new/.test(document.getElementById("l-status").textContent)`, "learn check");
-  await js(`document.querySelector("#l-list [data-show=hint]")?.click()`);
-  const learn = await js(`({ underlinedBefore: ${before}, status: document.getElementById("l-status").textContent.trim(), hintShown: !!document.querySelector("#l-list [data-hint]:not([hidden])") })`);
-  console.log("learn:", JSON.stringify(learn));
-  await shot("5-free-practice");
-
-  // A Learn lesson: answer the first challenge (any option, or Harper's answer for a fix).
-  await js(`location.hash = "#/learn"`);
-  await waitFor(`!!document.querySelector(".node.current")`, "path");
-  await js(`document.querySelector(".node.current").click()`);
-  await waitFor(`!!(document.querySelector(".option") || document.getElementById("ltext"))`, "lesson");
-  await js(`(document.querySelector(".option") ?? null)?.click(); const t = document.getElementById("ltext"); if (t) { t.value = "Xx " + t.value; t.dispatchEvent(new Event("input")); } document.getElementById("action").click();`);
-  await waitFor(`/right|wrong/.test(document.getElementById("foot").className)`, "lesson feedback");
-  console.log("lesson feedback:", await js(`document.getElementById("feedback").textContent.trim().slice(0, 80)`));
-  await shot("6-lesson");
+  await js(`location.hash = "#/leaderboard"`);
+  await waitFor(`!!document.querySelector(".board")`, "leaderboard");
+  await shot("12-leaderboard");
 } catch (e) {
   console.error("FAILED:", e.message);
   await shot("failure");

@@ -1,5 +1,6 @@
-// End-to-end API check: two players duel over a random text.
-// Needs a running server with ALLOW_DEV_LOGIN=1.  Usage: node tests/test_api.mjs [http://localhost:8080]
+// End-to-end API check: lessons, grading, hearts, review, word list, the content editor and a word duel.
+// Needs a fresh running server with ALLOW_DEV_LOGIN=1 and ADMINS=dev:alice.
+// Usage: node tests/test_api.mjs [http://localhost:8080]
 import assert from "node:assert/strict";
 
 const base = process.argv[2] ?? "http://localhost:8080";
@@ -25,12 +26,14 @@ for (let i = 0; i < 60; i++) {
   await new Promise((r) => setTimeout(r, 500));
 }
 
+const run = Date.now() % 100000;
 const alice = client();
 const bob = client();
 const anon = client();
 const step = (name) => console.log(`ok  ${name}`);
 
 assert.equal((await anon("/config")).status, 200);
+assert.equal((await anon("/learn")).status, 401);
 assert.equal((await anon("/duels")).status, 401);
 step("signed-out users are turned away");
 
@@ -38,168 +41,206 @@ assert.equal((await alice("/auth/dev", { method: "POST", body: "name=x", raw: "a
 step("non-JSON posts are rejected (CSRF guard)");
 
 assert.equal((await alice("/auth/dev", { method: "POST", body: { name: "Alice" } })).status, 200);
-assert.equal((await bob("/auth/dev", { method: "POST", body: { name: "Bob" } })).status, 200);
-assert.equal((await alice("/me")).data.user.name, "Alice");
-step("dev login sets a session cookie");
+assert.equal((await bob("/auth/dev", { method: "POST", body: { name: `Bob${run}` } })).status, 200);
+const meA = (await alice("/me")).data.user;
+assert.equal(meA.name, "Alice");
+assert.equal(meA.isAdmin, true, "run the server with ADMINS=dev:alice");
+step("dev login sets a session cookie; alice is an admin");
 
-assert.equal((await anon("/check", { method: "POST", body: { text: "We was late." } })).status, 401);
-const checked = (await alice("/check", { method: "POST", body: { text: "We was late and it rained alot." } })).data;
-assert.ok(checked.lints.some((l) => l.text === "was") && checked.lints.some((l) => l.text === "alot"));
-assert.equal((await alice("/check", { method: "POST", body: { text: "This sentence is fine." } })).data.lints.length, 0);
-step("Learn: /api/check finds mistakes (and none in a correct sentence)");
+// The whole course, to know the answers.
+const content = (await alice("/admin/content")).data;
+const words = new Map();
+for (const u of content.units) for (const l of u.lessons) for (const w of l.words) words.set(w.id, { ...w, unit: u, lesson: l });
+const byLt = (lt) => [...words.values()].find((w) => w.lt === lt);
+assert.equal(content.units.length, 12);
+assert.ok(words.size > 150, `${words.size} words`);
+assert.equal((await bob("/admin/content")).status, 403);
+step(`the starter course is loaded: ${content.units.length} decks, ${words.size} words; non-admins can't open the editor`);
 
-const passage = (await alice("/random")).data;
-const created = await alice("/duels", { method: "POST", body: { source: "random", passageId: passage.id } });
-assert.equal(created.status, 201);
-const code = created.data.code;
-step(`created duel ${code} (${passage.title})`);
+// ---------------------------------------------------------------- the path
 
-assert.equal((await alice("/duels", { method: "POST", body: { source: "custom", text: "This sentence is perfectly fine and has no errors." } })).status, 400);
-step("a custom text with no mistakes is refused");
+const path = (await bob("/learn")).data;
+assert.deepEqual([...new Set(path.units.map((u) => u.level))], ["A1", "A2", "B1"]);
+const firstLesson = path.units[0].lessons[0];
+assert.equal(firstLesson.done, 0);
+assert.ok(firstLesson.total >= 5);
+assert.equal(path.stats.hearts, 5);
+assert.equal(path.stats.learned, 0);
+assert.equal(path.stats.due, 0);
+step("Learn path: decks by level, lessons with word counts, full hearts");
 
-const view = (await alice(`/duels/${code}`)).data;
-assert.equal(view.you.submitted, false);
-assert.equal(view.answers, null, "answers stay hidden before playing");
-assert.equal(view.marks.length, view.issueCount, "every mistake is underlined");
-assert.ok(view.marks.every((m) => Object.keys(m).sort().join() === "end16,start16"), "marks carry positions only");
-assert.ok(view.issueCount >= 4);
-step(`duel has ${view.issueCount} issues, answers hidden`);
+// ---------------------------------------------------------------- a lesson
 
-// Alice applies Harper's own first suggestion for each issue (back to front so offsets stay valid).
-const key = (await bob(`/duels/${code}`)).data; // Bob opens it too (starts his clock)
-assert.equal(key.answers, null);
-const lints = JSON.parse(JSON.stringify((await (async () => {
-  // Peek at the answer key through a throwaway player who submits the text unchanged.
-  const peek = client();
-  await peek("/auth/dev", { method: "POST", body: { name: "Peeker" } });
-  await peek(`/duels/${code}`);
-  return (await peek(`/duels/${code}/submit`, { method: "POST", body: { text: view.text } })).data.answers;
-})())));
-let fixed = view.text;
-for (const l of [...lints].sort((a, b) => b.start16 - a.start16)) {
-  const s = l.suggestions[0];
-  if (!s) continue;
-  fixed = s.kind === "InsertAfter" ? fixed.slice(0, l.end16) + s.text + fixed.slice(l.end16) : fixed.slice(0, l.start16) + (s.kind === "Remove" ? "" : s.text) + fixed.slice(l.end16);
+const lesson = (await bob(`/learn/lessons/${firstLesson.id}`)).data;
+const ch = lesson.challenges;
+assert.equal(ch.length, firstLesson.total * 2, "each word: recognise, then produce");
+assert.ok(ch.slice(0, firstLesson.total).every((c) => c.kind.startsWith("pick")));
+assert.ok(ch.slice(firstLesson.total).every((c) => c.kind === "type_lt"));
+assert.ok(ch.every((c) => c.answerId === undefined), "answers are never sent with a lesson");
+for (const c of ch.filter((c) => c.kind.startsWith("pick"))) {
+  assert.equal(c.options.length, 4);
+  assert.ok(c.options.some((o) => o.id === c.wordId));
+  assert.equal(new Set(c.options.map((o) => o.text)).size, 4);
 }
-const a = await alice(`/duels/${code}/submit`, { method: "POST", body: { text: fixed } });
-assert.equal(a.status, 200);
-assert.ok(a.data.you.points > 0);
-assert.ok(Array.isArray(a.data.answers));
-step(`Alice scored ${a.data.you.points}/${a.data.maxPoints} (fixed ${a.data.you.result.fixed}/${a.data.you.result.total})`);
+step("a lesson asks you to pick each word, then type it; 4 distinct options with the answer among them");
 
-assert.equal((await alice(`/duels/${code}/submit`, { method: "POST", body: { text: fixed } })).status, 409);
-step("a second submission is refused");
-
-const b = await bob(`/duels/${code}/submit`, { method: "POST", body: { text: "Short." } });
-assert.equal(b.data.you.points, 0, "deleting the text scores nothing");
-step(`Bob deleted everything and scored ${b.data.you.points}`);
-
-const final = (await alice(`/duels/${code}`)).data;
-assert.equal(final.winner, "Alice");
-assert.equal(final.players.length, 3);
-step(`winner: ${final.winner}; board: ${final.players.map((p) => `${p.name} ${p.points}`).join(", ")}`);
-
-const mine = (await alice("/duels")).data.duels;
-assert.ok(mine.some((d) => d.code === code));
-step("the duel is in Alice's list");
-
-// ---------------------------------------------------------------- Learn (needs the starter content)
-// A brand-new player, so earlier runs' progress doesn't matter.
-const learner = client();
-const learnerName = `Learner ${Date.now() % 1e6}`;
-assert.equal((await learner("/auth/dev", { method: "POST", body: { name: learnerName } })).status, 200);
-const learnPath = (await learner("/learn")).data;
-assert.ok(learnPath.units.length > 0 && learnPath.units[0].lessons.length > 0, "starter content is loaded");
-const startStats = learnPath.stats;
-const lessonId = learnPath.units[0].lessons[0].id;
-const lesson = (await learner(`/learn/lessons/${lessonId}`)).data.lesson;
-const fixCh = lesson.challenges.find((c) => c.type === "fix");
-const chooseCh = lesson.challenges.find((c) => c.type === "choose");
-assert.ok(chooseCh.options.every((o) => !("correct" in o)), "lessons don't reveal the answers");
-assert.ok(fixCh.marks.length > 0, "fix challenges come with underlines");
-step(`lesson "${lesson.title}" has ${lesson.challenges.length} challenges, answers hidden`);
-
-let r = (await learner(`/learn/challenges/${fixCh.id}/answer`, { method: "POST", body: { text: fixCh.text } })).data;
+const answer = (who, c, extra) => who(`/learn/words/${c.wordId}/answer`, { method: "POST", body: { kind: c.kind, ...extra } });
+const pick = ch[0];
+let r = (await answer(bob, pick, { optionId: pick.options.find((o) => o.id !== pick.wordId).id })).data;
 assert.equal(r.correct, false);
-assert.equal(r.stats.hearts, startStats.hearts - 1, "a wrong answer costs a heart");
-assert.ok(r.remaining.length > 0 && r.solution && r.solution !== fixCh.text);
-r = (await learner(`/learn/challenges/${fixCh.id}/answer`, { method: "POST", body: { text: r.solution } })).data;
+assert.equal(r.stats.hearts, 4);
+assert.equal(r.correctOptionId, pick.wordId);
+assert.equal(r.word.lt, words.get(pick.wordId).lt);
+r = (await answer(bob, pick, { optionId: pick.wordId })).data;
 assert.equal(r.correct, true);
 assert.equal(r.xp, 10);
-assert.equal(r.stats.xp, startStats.xp + 10);
-step(`fix challenge: wrong costs a heart, Harper's answer earns 10 XP (hearts ${r.stats.hearts})`);
+assert.equal(r.learned, false, "picking isn't enough to learn a word");
+step("pick: wrong costs a heart and shows the answer; right earns 10 XP");
 
-r = (await learner(`/learn/challenges/${chooseCh.id}/answer`, { method: "POST", body: { optionId: chooseCh.options[0].id } })).data;
-const rightOption = r.correctOptionId;
-r = (await learner(`/learn/challenges/${chooseCh.id}/answer`, { method: "POST", body: { optionId: rightOption } })).data;
+const typeCh = ch.find((c) => c.kind === "type_lt" && c.wordId === pick.wordId);
+const target = words.get(typeCh.wordId);
+r = (await answer(bob, typeCh, { text: `  ${target.lt.toUpperCase()}! ` })).data;
 assert.equal(r.correct, true);
-const heartsBefore = r.stats.hearts;
-r = (await learner(`/learn/challenges/${chooseCh.id}/answer`, { method: "POST", body: { optionId: rightOption } })).data;
-assert.equal(r.practice, true);
-assert.equal(r.stats.hearts, Math.min(5, heartsBefore + 1), "practising a finished challenge earns a heart");
-assert.ok(r.stats.streak >= 1, "earning XP starts a streak");
-step(`choose challenge works; practice gives a heart back; streak ${r.stats.streak}`);
+assert.equal(r.verdict, "exact");
+assert.equal(r.learned, true);
+assert.equal(r.stats.learned, 1);
+assert.equal(r.stats.due, 0, "first review is tomorrow");
+step(`type: "${target.lt.toUpperCase()}!" counts as exact (case and punctuation ignored) and marks the word learned`);
 
-// A second new player runs out of hearts.
-const drained = client();
-await drained("/auth/dev", { method: "POST", body: { name: `Drained ${Date.now() % 1e6}` } });
-const bobLesson = (await drained(`/learn/lessons/${lessonId}`)).data.lesson;
-const bobFix = bobLesson.challenges.find((c) => c.type === "fix");
-let last;
-for (let i = 0; i < 6; i++) last = await drained(`/learn/challenges/${bobFix.id}/answer`, { method: "POST", body: { text: bobFix.text } });
-assert.equal(last.status, 403, "no answers without hearts");
-assert.equal((await drained("/learn")).data.stats.hearts, 0);
-step("out of hearts: answers are refused until a heart comes back");
+const accented = byLt("tvarkaraštis");
+r = (await bob(`/learn/words/${accented.id}/answer`, { method: "POST", body: { kind: "type_lt", text: "tvarkarastis" } })).data;
+assert.equal(r.correct, true);
+assert.equal(r.verdict, "accents");
+assert.equal(r.expected, "tvarkaraštis");
+r = (await bob(`/learn/words/${byLt("profesorius").id}/answer`, { method: "POST", body: { kind: "type_lt", text: "profesorus" } })).data;
+assert.equal(r.verdict, "typo");
+assert.equal(r.correct, true);
+r = (await bob(`/learn/words/${byLt("dalytis").id}/answer`, { method: "POST", body: { kind: "type_lt", text: "dalintis" } })).data;
+assert.equal(r.verdict, "exact", "alternative answers are accepted");
+step("type: missing accents and small typos still count (with the right spelling); alternatives are accepted");
 
-const board = (await learner("/leaderboard?period=week")).data;
-assert.ok(board.rows.some((row) => row.isYou && row.xp >= 20), "the learner is on the weekly leaderboard");
-assert.ok((await learner("/leaderboard?period=all")).data.rows.length >= 1);
-step(`leaderboard: ${board.rows.map((row) => `#${row.rank} ${row.name} ${row.xp} XP`).join(", ")}`);
+const hearts = r.stats.hearts;
+r = (await bob(`/learn/words/${byLt("įlipti").id}/answer`, { method: "POST", body: { kind: "type_lt", text: "islipti" } })).data;
+assert.equal(r.correct, false);
+assert.deepEqual(r.confused, { lt: "išlipti", en: "to get off" });
+assert.equal(r.stats.hearts, hearts - 1);
+step("type: another course word (išlipti for įlipti) is a mistake, not a typo, and says what it means");
 
-// ---------------------------------------------------------------- unit feedback
-const fbUnit = learnPath.units[0];
-assert.equal((await learner(`/learn/units/${fbUnit.id}/feedback`, { method: "POST", body: { text: "   " } })).status, 400, "an empty suggestion is refused");
-assert.equal((await learner(`/learn/units/${fbUnit.id}/feedback`, { method: "POST", body: { rating: 4, category: "too-easy", text: "More examples with than/then, please." } })).status, 201);
-assert.equal((await learner("/learn")).data.units[0].feedbackSent, true, "the path remembers the suggestion");
-for (let i = 0; i < 4; i++) await learner(`/learn/units/${fbUnit.id}/feedback`, { method: "POST", body: { text: `More ideas ${i}` } });
-assert.equal((await learner(`/learn/units/${fbUnit.id}/feedback`, { method: "POST", body: { text: "One too many" } })).status, 429, "at most 5 per unit per day");
-assert.equal((await bob("/admin/feedback")).status, 403, "only admins can read suggestions");
-let fb = (await alice("/admin/feedback?status=new")).data;
-const sent = fb.items.find((f) => f.text === "More examples with than/then, please.");
-assert.ok(sent && sent.rating === 4 && sent.category === "too-easy" && sent.unitTitle === fbUnit.title && sent.user === learnerName);
-assert.ok((await alice("/admin/content")).data.units.find((u) => u.id === fbUnit.id).newFeedback >= 5, "the editor shows new suggestions per unit");
-assert.equal((await alice(`/admin/feedback/${sent.id}`, { method: "PUT", body: { status: "done" } })).status, 200);
-assert.ok(!(await alice("/admin/feedback?status=new")).data.items.some((f) => f.id === sent.id), "done suggestions leave the New list");
-assert.ok((await alice("/admin/feedback?status=done")).data.items.some((f) => f.id === sent.id));
-assert.equal((await alice(`/admin/feedback/${sent.id}`, { method: "DELETE" })).status, 200);
-assert.ok(!(await alice("/admin/feedback?status=all")).data.items.some((f) => f.id === sent.id), "deleting works");
-step(`unit feedback: players suggest changes (rating, category, text, spam limit); admins review, mark done and delete`);
+const phrase = byLt("Kur yra biblioteka?");
+const phraseLesson = (await bob(`/learn/lessons/${phrase.lesson.id}`)).data;
+const build = phraseLesson.challenges.find((c) => c.kind === "build" && c.wordId === phrase.id);
+for (const t of ["Kur", "yra", "biblioteka"]) assert.ok(build.tiles.includes(t), `tile ${t}`);
+assert.ok(build.tiles.length > 3, "decoy tiles");
+r = (await answer(bob, build, { text: "yra Kur biblioteka" })).data;
+assert.equal(r.correct, false);
+r = (await answer(bob, build, { text: "Kur yra biblioteka" })).data;
+assert.equal(r.correct, true);
+assert.equal(r.learned, true);
+step("build: phrase tiles include decoys; order matters");
 
-// ---------------------------------------------------------------- CMS
-assert.equal((await bob("/admin/content")).status, 403, "only admins can open the CMS");
-const adminUser = (await alice("/me")).data.user;
-assert.equal(adminUser.isAdmin, true, "ADMINS=dev:alice makes alice an admin");
-let content = (await alice("/admin/units", { method: "POST", body: { title: "Test unit", description: "Made by the API test" } })).data;
-const unit = content.units.find((u) => u.title === "Test unit");
-content = (await alice("/admin/lessons", { method: "POST", body: { unitId: unit.id, title: "Test lesson" } })).data;
-const tLesson = content.units.find((u) => u.id === unit.id).lessons[0];
-assert.equal((await alice("/admin/challenges", { method: "POST", body: { lessonId: tLesson.id, type: "fix", question: "Fix it.", text: "This sentence is fine." } })).status, 400, "a fix text without mistakes is refused");
-assert.equal((await alice("/admin/challenges", { method: "POST", body: { lessonId: tLesson.id, type: "choose", question: "Pick", options: [{ text: "a", correct: true }, { text: "b", correct: true }] } })).status, 400, "exactly one correct option");
-content = (await alice("/admin/challenges", { method: "POST", body: { lessonId: tLesson.id, type: "fix", question: "Fix it.", text: "We was late." } })).data;
-content = (await alice("/admin/challenges", { method: "POST", body: { lessonId: tLesson.id, type: "choose", question: "We ___ late.", options: [{ text: "was", correct: false }, { text: "were", correct: true }] } })).data;
-let chs = content.units.find((u) => u.id === unit.id).lessons[0].challenges;
-assert.deepEqual(chs.map((c) => c.type), ["fix", "choose"]);
-assert.equal(chs[0].lints.length, 1, "Harper's issues are stored with the challenge");
-content = (await alice("/admin/move", { method: "POST", body: { kind: "challenge", id: chs[1].id, dir: -1 } })).data;
-chs = content.units.find((u) => u.id === unit.id).lessons[0].challenges;
-assert.deepEqual(chs.map((c) => c.type), ["choose", "fix"], "reordering works");
-content = (await alice(`/admin/challenges/${chs[0].id}`, { method: "PUT", body: { type: "choose", question: "We ___ late yesterday.", options: [{ text: "were", correct: true }, { text: "was", correct: false }, { text: "be", correct: false }] } })).data;
-assert.equal(content.units.find((u) => u.id === unit.id).lessons[0].challenges[0].options.length, 3, "editing works");
-content = (await alice(`/admin/units/${unit.id}`, { method: "DELETE" })).data;
-assert.ok(!content.units.some((u) => u.id === unit.id), "deleting a unit removes it");
-step("CMS: admins only; units, lessons and challenges can be created, validated, reordered, edited and deleted");
+assert.equal((await bob(`/learn/words/${phrase.id}/answer`, { method: "POST", body: { kind: "nope" } })).status, 400);
+assert.equal((await bob(`/learn/words/999999/answer`, { method: "POST", body: { kind: "pick_en", optionId: 1 } })).status, 404);
+step("unknown exercises and words are refused");
 
-assert.equal((await alice("/auth/logout", { method: "POST", body: {} })).status, 200);
-assert.equal((await alice("/me")).data.user, null);
-step("logout ends the session");
-console.log("All API checks passed.");
+// ---------------------------------------------------------------- hearts run out; practice and review don't need them
+
+let st = (await bob("/learn")).data.stats;
+const fresh = [...words.values()].filter((w) => w.unit.level === "B1" && w.pos !== "phrase");
+for (let i = 0; i < st.hearts; i++) await bob(`/learn/words/${fresh[i].id}/answer`, { method: "POST", body: { kind: "type_lt", text: "zzz" } });
+const out = await bob(`/learn/words/${fresh[10].id}/answer`, { method: "POST", body: { kind: "type_lt", text: "zzz" } });
+assert.equal(out.status, 403);
+assert.match(out.data.error, /out of hearts/);
+r = (await answer(bob, typeCh, { text: target.lt })).data;
+assert.equal(r.practice, true, "a learned word is practice");
+assert.equal(r.stats.hearts, 1, "practice earns a heart back");
+step("out of hearts: new words are refused; practising a learned word earns a heart back");
+
+// ---------------------------------------------------------------- review
+
+const review = (await bob("/learn/review")).data;
+assert.equal(review.challenges.length, 0, "nothing is due on the day you learn it");
+r = (await bob(`/learn/words/${target.id}/answer`, { method: "POST", body: { kind: "type_lt", text: target.lt, review: true } })).data;
+assert.equal(r.correct, true);
+assert.equal(r.xp, 0, "no XP for reviewing a word before it's due");
+assert.equal((await bob(`/learn/words/${byLt("knyga").id}/answer`, { method: "POST", body: { kind: "type_lt", text: "knyga", review: true } })).status, 400);
+step("review: nothing due yet; early reviews earn nothing; unlearned words can't be reviewed");
+
+const list = (await bob("/learn/words")).data;
+const listed = list.units.flatMap((u) => u.lessons.flatMap((l) => l.words));
+assert.equal(listed.length, words.size);
+assert.equal(listed.filter((w) => w.learned).length, list.stats.learned);
+assert.ok(listed.find((w) => w.id === target.id).dueAt > list.now);
+step(`word list: ${listed.length} words, ${list.stats.learned} learned, each with its next review`);
+
+// ---------------------------------------------------------------- leaderboard and feedback
+
+const board = (await bob("/leaderboard?period=week")).data;
+assert.ok(board.rows.some((x) => x.isYou && x.xp > 0));
+assert.equal((await bob(`/learn/units/${path.units[0].id}/feedback`, { method: "POST", body: { rating: 5, category: "idea", text: "Add audio!" } })).status, 201);
+assert.ok((await alice("/admin/feedback")).data.items.some((f) => f.text === "Add audio!"));
+step("leaderboard shows your XP; deck feedback reaches the admins");
+
+// ---------------------------------------------------------------- the content editor
+
+const lessonId = content.units[0].lessons[0].id;
+let res = await alice("/admin/words", { method: "POST", body: { lessonId, lt: "Knyga", en: "a book", pos: "noun", gender: "f" } });
+assert.equal(res.status, 400);
+assert.match(res.data.error, /already in the course/);
+res = await alice("/admin/words", { method: "POST", body: { lessonId, lt: `rašiklis${run}`, en: `pen ${run}`, pos: "noun", gender: "m", also: "parkeris", note: "Test word" } });
+assert.equal(res.status, 200);
+const added = res.data.units[0].lessons[0].words.at(-1);
+assert.equal(added.lt, `rašiklis${run}`);
+assert.equal((await alice(`/admin/words/${added.id}`, { method: "PUT", body: { lt: `rašiklis${run}`, en: `pen ${run}`, pos: "verb", gender: "m" } })).data.units[0].lessons[0].words.at(-1).gender, "", "only nouns have a gender");
+assert.equal((await alice("/admin/words", { method: "POST", body: { lessonId, lt: "x", en: "y", pos: "adverb" } })).status, 400);
+assert.equal((await alice("/admin/move", { method: "POST", body: { kind: "word", id: added.id, dir: -1 } })).status, 200);
+assert.equal((await alice(`/admin/words/${added.id}`, { method: "DELETE" })).status, 200);
+assert.equal((await bob("/admin/words", { method: "POST", body: { lessonId, lt: "a", en: "b", pos: "noun" } })).status, 403);
+step("editor: duplicates and bad parts of speech are refused; add, edit, move and delete a word");
+
+// ---------------------------------------------------------------- a word duel
+
+assert.equal((await alice("/duels", { method: "POST", body: { unitIds: [] } })).status, 400);
+assert.equal((await alice("/duels", { method: "POST", body: { unitIds: "x" } })).status, 400);
+const created = await alice("/duels", { method: "POST", body: { unitIds: [content.units[2].id, content.units[3].id] } });
+assert.equal(created.status, 201);
+const code = created.data.code;
+step(`created duel ${code}`);
+
+const view = (await alice(`/duels/${code}`)).data;
+assert.equal(view.count, 10);
+assert.equal(view.maxPoints, 100);
+assert.match(view.title, /^2 decks · A1$/);
+assert.equal(view.key, null);
+assert.ok(view.questions.every((q) => q.options.length === 4 && q.answerId === undefined));
+const deckIds = new Set([content.units[2].id, content.units[3].id]);
+const rightAnswer = (q) =>
+  q.options.find((o) => {
+    const w = words.get(o.id);
+    return deckIds.has(w.unit.id) && (q.kind === "pick_en" ? w.lt === q.prompt : w.en === q.prompt);
+  }).id;
+step("the duel has 10 four-option questions from the chosen decks, without answers");
+
+const aliceAnswers = view.questions.map(rightAnswer);
+const after = (await alice(`/duels/${code}/submit`, { method: "POST", body: { answers: aliceAnswers } })).data;
+assert.equal(after.you.points, 100);
+assert.equal(after.you.correct, 10);
+assert.ok(after.key.every((k) => k.right));
+assert.equal(after.winner, null, "no winner until a second player");
+assert.equal((await alice(`/duels/${code}/submit`, { method: "POST", body: { answers: aliceAnswers } })).status, 409);
+step("alice answers everything right: 100 points; she can't play twice");
+
+const bobView = (await bob(`/duels/${code}`)).data;
+assert.equal(bobView.players[0].points, undefined, "scores stay hidden until you play");
+const bobAnswers = bobView.questions.map((q, i) => (i < 6 ? rightAnswer(q) : null));
+const bobAfter = (await bob(`/duels/${code}/submit`, { method: "POST", body: { answers: bobAnswers } })).data;
+assert.equal(bobAfter.you.points, 60);
+assert.equal(bobAfter.winner, "Alice");
+assert.equal(bobAfter.key[7].yours, null);
+assert.equal(bobAfter.key[7].right, false);
+step("bob gets 6 right and leaves 4 blank: 60 points; Alice wins; the answer key shows his blanks");
+
+const mine = (await bob("/duels")).data.duels;
+assert.ok(mine.some((d) => d.code === code && d.myPoints === 60));
+step("bob's rooms list the duel with his score");
+
+console.log("\nall API checks passed");

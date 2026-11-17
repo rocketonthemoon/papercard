@@ -1,15 +1,11 @@
-//! Grammar Duel engine, called from the Mongoose (C) server through the functions below.
+//! Labas engine, called from the Mongoose (C) server through the functions below.
 //! Every function returning `char *` hands over a heap string (JSON unless noted) that the
 //! caller frees with `duel_free`, or NULL on failure. See `duelcore.h`.
 
-pub mod engine;
-pub mod extras;
 pub mod google;
-pub mod passages;
-pub mod scoring;
 pub mod view;
+pub mod vocab;
 
-use std::cell::RefCell;
 use std::ffi::{CStr, CString, c_char};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 
@@ -17,19 +13,6 @@ use base64::Engine as _;
 use serde_json::{Value, json};
 use sha1::Sha1;
 use sha2::{Digest, Sha256};
-
-pub use engine::{Engine, LintOut};
-
-thread_local! {
-    static ENGINE: RefCell<Option<Engine>> = const { RefCell::new(None) };
-}
-
-fn with_engine<T>(f: impl FnOnce(&mut Engine) -> T) -> T {
-    ENGINE.with(|cell| {
-        let mut slot = cell.borrow_mut();
-        f(slot.get_or_insert_with(Engine::new))
-    })
-}
 
 unsafe fn arg<'a>(p: *const c_char) -> Option<&'a str> {
     if p.is_null() {
@@ -50,34 +33,48 @@ fn guard(f: impl FnOnce() -> Option<String>) -> *mut c_char {
     }
 }
 
-/// Builds Harper's dictionary and rules. Returns 0 on success.
+/// Exercises for `targets_json` (words to practise), with options and tiles drawn from `pool_json`
+/// (every word). `mode`: "lesson", "review" or "duel". Returns a JSON array of challenges.
 #[unsafe(no_mangle)]
-pub extern "C" fn duel_init() -> i32 {
-    match catch_unwind(|| with_engine(|_| ())) {
-        Ok(()) => 0,
-        Err(_) => 1,
-    }
-}
-
-/// Harper's issues in `text`, as a JSON array.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn duel_lint(text: *const c_char) -> *mut c_char {
-    let text = unsafe { arg(text) };
+pub unsafe extern "C" fn duel_challenges(targets_json: *const c_char, pool_json: *const c_char, mode: *const c_char) -> *mut c_char {
+    let (targets, pool, mode) = unsafe { (arg(targets_json), arg(pool_json), arg(mode)) };
     guard(|| {
-        let text = text?;
-        serde_json::to_string(&with_engine(|e| e.lint(text))).ok()
+        let targets: Vec<vocab::Word> = serde_json::from_str(targets?).ok()?;
+        let pool: Vec<vocab::Word> = serde_json::from_str(pool?).ok()?;
+        let mode = vocab::Mode::parse(mode?)?;
+        let list = vocab::build(&targets, &pool, mode, &mut vocab::Rng::from_os());
+        serde_json::to_string(&list).ok()
     })
 }
 
-/// Scores `submission` against `original` (whose issues are `orig_lints_json`). Returns the result JSON.
+/// Grades a typed answer. `accepted_json`: ["main answer", "alternative", ...]; `others_json`: the other
+/// Lithuanian words in the course. Returns {verdict: exact|accents|typo|wrong, correct, expected, confused}.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn duel_score(original: *const c_char, orig_lints_json: *const c_char, submission: *const c_char) -> *mut c_char {
-    let (original, orig, submission) = unsafe { (arg(original), arg(orig_lints_json), arg(submission)) };
+pub unsafe extern "C" fn duel_grade(accepted_json: *const c_char, others_json: *const c_char, answer: *const c_char, allow_typos: i32) -> *mut c_char {
+    let (accepted, others, answer) = unsafe { (arg(accepted_json), arg(others_json), arg(answer)) };
     guard(|| {
-        let (original, submission) = (original?, submission?);
-        let orig: Vec<LintOut> = serde_json::from_str(orig?).ok()?;
-        let sub = with_engine(|e| e.lint(submission));
-        serde_json::to_string(&scoring::score(original, &orig, submission, &sub)).ok()
+        let accepted: Vec<String> = serde_json::from_str(accepted?).ok()?;
+        let others: Vec<String> = serde_json::from_str(others.unwrap_or("[]")).unwrap_or_default();
+        let g = vocab::grade(&accepted, &others, answer?, allow_typos != 0);
+        Some(json!({ "verdict": g.verdict.as_str(), "correct": g.verdict.correct(), "expected": g.expected, "confused": g.confused }).to_string())
+    })
+}
+
+/// Accepted answers for a word as a JSON array: `lt` plus the `;`-separated `also`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn duel_accepted(lt: *const c_char, also: *const c_char) -> *mut c_char {
+    let (lt, also) = unsafe { (arg(lt), arg(also)) };
+    guard(|| serde_json::to_string(&vocab::accepted(lt?, also.unwrap_or(""))).ok())
+}
+
+/// Scores a duel answer sheet: {points, correct, total, results}.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn duel_score(questions_json: *const c_char, answers_json: *const c_char) -> *mut c_char {
+    let (questions, answers) = unsafe { (arg(questions_json), arg(answers_json)) };
+    guard(|| {
+        let questions: Value = serde_json::from_str(questions?).ok()?;
+        let answers: Value = serde_json::from_str(answers?).ok()?;
+        Some(view::score(&questions, &answers).to_string())
     })
 }
 
@@ -101,15 +98,6 @@ pub unsafe extern "C" fn duel_verify_google(token: *const c_char, client_id: *co
             Ok(c) => serde_json::to_string(&c).ok()?,
             Err(e) => json!({ "error": e }).to_string(),
         })
-    })
-}
-
-/// The random duel texts: [{"id","title","text"}].
-#[unsafe(no_mangle)]
-pub extern "C" fn duel_passages() -> *mut c_char {
-    guard(|| {
-        let list: Vec<Value> = passages::PASSAGES.iter().enumerate().map(|(id, p)| json!({ "id": id, "title": p.title, "text": p.text })).collect();
-        Some(Value::Array(list).to_string())
     })
 }
 
@@ -143,16 +131,6 @@ pub unsafe extern "C" fn duel_free(s: *mut c_char) {
     if !s.is_null() {
         drop(unsafe { CString::from_raw(s) });
     }
-}
-
-/// `text` with the first suggestion of every lint in `lints_json` applied (the "answer" for Learn mode). Plain string.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn duel_solution(text: *const c_char, lints_json: *const c_char) -> *mut c_char {
-    let (text, lints) = unsafe { (arg(text), arg(lints_json)) };
-    guard(|| {
-        let lints: Vec<LintOut> = serde_json::from_str(lints?).ok()?;
-        Some(scoring::apply_fixes(text?, &lints))
-    })
 }
 
 fn hex(bytes: &[u8]) -> String {

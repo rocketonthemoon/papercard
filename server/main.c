@@ -1,11 +1,11 @@
-// Grammar Duel server: one Mongoose (C) program, no Node.js.
+// Labas server (learn Lithuanian words): one Mongoose (C) program, no Node.js.
 //   - serves the game from WEB_ROOT
-//   - the /api/* JSON API: Google sign-in, sessions, duels, scoring
-//   - SQLite is the source of truth (users, sessions, duels, submissions); SQLite builds the JSON
-//   - memcached caches sessions, duels, scoreboards and Harper results (optional: misses fall back to SQLite)
-//   - Harper (Rust) + the Harper.px extras, scoring and Google token checks live in libduelcore (duelcore.h)
+//   - the /api/* JSON API: Google sign-in, sessions, Learn (learn.c), word duels
+//   - SQLite is the source of truth (users, sessions, course, progress, duels); SQLite builds the JSON
+//   - memcached caches sessions and duels (optional: misses fall back to SQLite)
+//   - exercises, answer grading, duel scoring and Google token checks live in libduelcore (Rust, duelcore.h)
 //
-// Environment: LISTEN (http://0.0.0.0:8000), WEB_ROOT (/srv/web), DB_FILE (/data/duel.sqlite),
+// Environment: LISTEN (http://0.0.0.0:8000), WEB_ROOT (/srv/web), DB_FILE (/data/labas.sqlite),
 //              MEMCACHED (memcached:11211, empty to disable), GOOGLE_CLIENT_ID, ALLOW_DEV_LOGIN=1, COOKIE_SECURE=1
 #include <errno.h>
 #include <fcntl.h>
@@ -27,16 +27,14 @@
 #include "mongoose.h"
 
 #define SESSION_DAYS 30
-#define MAX_TEXT 2000 /* characters */
-#define MIN_TEXT 20
 #define MAX_BODY (64 * 1024)
+#define DUEL_WORDS 10
+#define SESSION_COOKIE "labas_session"
 
 static const char *s_listen, *s_web_root, *s_db_file, *s_client_id;
 static char s_mc_host[128], s_mc_port[16];
 static int s_dev_login, s_cookie_secure, s_stop;
 static sqlite3 *s_db;
-static char *s_passages; /* JSON array from the engine */
-static int s_passage_count;
 
 static void on_signal(int sig) {
   (void) sig;
@@ -257,15 +255,16 @@ static const char *SCHEMA =
     "CREATE TABLE IF NOT EXISTS sessions ("
     "  token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,"
     "  expires_at INTEGER NOT NULL);"
+    /* A word duel: the same questions (with their answers, never sent before you play) for every player. */
     "CREATE TABLE IF NOT EXISTS duels ("
-    "  code TEXT PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES users(id), source TEXT NOT NULL,"
-    "  title TEXT, text TEXT NOT NULL, lints_json TEXT NOT NULL, created_at INTEGER NOT NULL);"
+    "  code TEXT PRIMARY KEY, creator_id INTEGER NOT NULL REFERENCES users(id), title TEXT NOT NULL,"
+    "  questions_json TEXT NOT NULL, created_at INTEGER NOT NULL);"
     "CREATE TABLE IF NOT EXISTS duel_views ("
     "  code TEXT NOT NULL REFERENCES duels(code) ON DELETE CASCADE, user_id INTEGER NOT NULL REFERENCES users(id),"
     "  opened_at INTEGER NOT NULL, PRIMARY KEY (code, user_id));"
     "CREATE TABLE IF NOT EXISTS submissions ("
     "  code TEXT NOT NULL REFERENCES duels(code) ON DELETE CASCADE, user_id INTEGER NOT NULL REFERENCES users(id),"
-    "  text TEXT NOT NULL, points INTEGER NOT NULL, result_json TEXT NOT NULL, elapsed_ms INTEGER NOT NULL,"
+    "  answers_json TEXT NOT NULL, points INTEGER NOT NULL, correct INTEGER NOT NULL, elapsed_ms INTEGER NOT NULL,"
     "  created_at INTEGER NOT NULL, PRIMARY KEY (code, user_id));"
     "CREATE INDEX IF NOT EXISTS submissions_user ON submissions(user_id);"
     "CREATE INDEX IF NOT EXISTS duels_creator ON duels(creator_id);";
@@ -346,7 +345,7 @@ static void utf8_truncate(char *s, size_t max_chars) {
 static char *current_user(struct mg_http_message *hm, long long *uid) {
   struct mg_str *cookie = mg_http_get_header(hm, "Cookie");
   if (cookie == NULL) return NULL;
-  struct mg_str tok = mg_http_get_header_var(*cookie, mg_str("duel_session"));
+  struct mg_str tok = mg_http_get_header_var(*cookie, mg_str(SESSION_COOKIE));
   if (tok.len == 0 || tok.len > 100) return NULL;
   char token[101];
   memcpy(token, tok.buf, tok.len);
@@ -376,7 +375,7 @@ static void start_session(struct mg_connection *c, const char *user_json) {
   } else {
     char *headers = mg_mprintf(
         "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store\r\n"
-        "Set-Cookie: duel_session=%s; Path=/; HttpOnly; SameSite=Lax; Max-Age=%d%s\r\n",
+        "Set-Cookie: " SESSION_COOKIE "=%s; Path=/; HttpOnly; SameSite=Lax; Max-Age=%d%s\r\n",
         token, SESSION_DAYS * 86400, s_cookie_secure ? "; Secure" : "");
     char *body = mg_mprintf("{\"user\":%s}", user_json);
     reply_json(c, 200, body, headers);
@@ -387,34 +386,19 @@ static void start_session(struct mg_connection *c, const char *user_json) {
   duel_free(token);
 }
 
-/* ---------------------------------------------------------------- duels */
+/* Learn mode and the CMS live in learn.c (shares the helpers above). */
+#include "learn.c"
 
-/* Harper's issues for `text` as malloc'd JSON (free with free()), cached in memcached. */
-static char *lint_cached(const char *text) {
-  char *sha = duel_sha1_hex(text);
-  if (sha == NULL) return NULL;
-  char key[64];
-  snprintf(key, sizeof(key), "lint:%s", sha);
-  duel_free(sha);
-  char *hit = mc_get(key);
-  if (hit != NULL) return hit;
-  char *lints = duel_lint(text);
-  if (lints == NULL) return NULL;
-  mc_set(key, lints, 86400);
-  char *out = strdup(lints);
-  duel_free(lints);
-  return out;
-}
+/* ---------------------------------------------------------------- word duels */
 
 static char *duel_json(const char *code) {
   char key[32];
   snprintf(key, sizeof(key), "duel:%s", code);
   char *json = mc_get(key);
   if (json != NULL) return json;
-  json = db_text(
-      "SELECT json_object('code', d.code, 'title', d.title, 'source', d.source, 'text', d.text, 'lints', json(d.lints_json),"
-      " 'createdAt', d.created_at, 'creator', " USER_JSON ") FROM duels d JOIN users u ON u.id = d.creator_id WHERE d.code = ?",
-      "s", code);
+  json = db_text("SELECT json_object('code', d.code, 'title', d.title, 'questions', json(d.questions_json), 'createdAt', d.created_at,"
+                 " 'creator', " USER_JSON ") FROM duels d JOIN users u ON u.id = d.creator_id WHERE d.code = ?",
+                 "s", code);
   if (json != NULL) mc_set(key, json, 6 * 3600);
   return json;
 }
@@ -426,7 +410,7 @@ static char *subs_json(const char *code) {
   if (json != NULL) return json;
   json = db_text(
       "SELECT json_group_array(json(x)) FROM (SELECT json_object('userId', s.user_id, 'name', u.name, 'picture', u.picture,"
-      " 'text', s.text, 'points', s.points, 'elapsedMs', s.elapsed_ms, 'result', json(s.result_json)) AS x"
+      " 'answers', json(s.answers_json), 'points', s.points, 'correct', s.correct, 'elapsedMs', s.elapsed_ms) AS x"
       " FROM submissions s JOIN users u ON u.id = s.user_id WHERE s.code = ?"
       " ORDER BY s.points DESC, s.elapsed_ms ASC, s.created_at ASC)",
       "s", code);
@@ -459,97 +443,77 @@ static int valid_code(struct mg_str s) {
   return 1;
 }
 
-/* The passage with index `id` as a malloc'd JSON object, or NULL. */
-static char *passage(long id) {
-  if (id < 0 || id >= s_passage_count) return NULL;
-  char path[32];
-  snprintf(path, sizeof(path), "$[%ld]", id);
+/* The JSON array at `path` in the request body as a malloc'd string, or NULL. */
+static char *body_array(struct mg_http_message *hm, const char *path) {
   int len = 0;
-  int off = mg_json_get(mg_str(s_passages), path, &len);
-  return off < 0 ? NULL : mg_mprintf("%.*s", len, s_passages + off);
+  int off = mg_json_get(hm->body, path, &len);
+  if (off < 0 || hm->body.buf[off] != '[') return NULL;
+  return mg_mprintf("%.*s", len, hm->body.buf + off);
 }
 
+/* A new duel: DUEL_WORDS random words from the chosen decks, as multiple-choice questions. */
 static void create_duel(struct mg_connection *c, struct mg_http_message *hm, long long uid) {
-  char *source = mg_json_get_str(hm->body, "$.source");
-  char *text = NULL, *title = NULL;
-  const char *kind = "custom";
-  if (source != NULL && strcmp(source, "random") == 0) {
-    char *p = passage(mg_json_get_long(hm->body, "$.passageId", -1));
-    if (p == NULL) {
-      free(source);
-      return reply_error(c, 400, "Unknown text");
-    }
-    text = mg_json_get_str(mg_str(p), "$.text");
-    title = mg_json_get_str(mg_str(p), "$.title");
-    kind = "random";
-    free(p);
-  } else {
-    text = mg_json_get_str(hm->body, "$.text");
-    title = mg_json_get_str(hm->body, "$.title");
-    if (text == NULL) text = strdup("");
-    clean_text(text);
-    if (title != NULL) {
-      clean_text(title);
-      utf8_truncate(title, 60);
-    }
-    if (title == NULL || title[0] == '\0') {
-      free(title);
-      title = strdup("Custom text");
-    }
+  char *units = body_array(hm, "$.unitIds");
+  if (units == NULL) return reply_error(c, 400, "Pick at least one deck");
+#define IN_UNITS " IN (SELECT value FROM json_each(?1))"
+  long long words = db_int(-1, "SELECT COUNT(*) FROM words w JOIN lessons l ON l.id = w.lesson_id WHERE l.unit_id" IN_UNITS, "s", units);
+  if (words < 0) {
+    free(units);
+    return reply_error(c, 400, "Pick at least one deck");
   }
-  free(source);
-  const char *err = NULL;
-  size_t n = utf8_len(text);
-  if (n < MIN_TEXT) err = "Write at least 20 characters";
-  else if (n > MAX_TEXT) err = "Keep it under 2000 characters";
-  char *lints = err == NULL ? lint_cached(text) : NULL;
-  if (err == NULL && lints == NULL) err = "Couldn't check that text";
-  if (err == NULL && strcmp(lints, "[]") == 0) err = "Harper found no mistakes in that text, so there's nothing to fix. Add a few!";
-  if (err != NULL) {
-    reply_error(c, 400, err);
-  } else {
-    char code[7];
-    int rc = SQLITE_CONSTRAINT;
-    for (int i = 0; i < 5 && rc == SQLITE_CONSTRAINT; i++) {
-      new_code(code);
-      rc = db_exec("INSERT INTO duels (code, creator_id, source, title, text, lints_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)", "sissssi", code, uid,
-                   kind, title, text, lints, now_ms());
-    }
-    if (rc != SQLITE_DONE) reply_error(c, 500, "Couldn't create the duel");
-    else mg_http_reply(c, 201, "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store\r\n", "{%m:%m}", MG_ESC("code"), MG_ESC(code));
+  if (words < 4) {
+    free(units);
+    return reply_error(c, 400, "Pick decks with at least 4 words between them");
   }
-  free(lints);
-  free(text);
+  char *targets = db_text("SELECT json_group_array(json(x)) FROM (SELECT json_object('id', w.id, 'lt', w.lt, 'en', w.en, 'pos', w.pos, 'gender', w.gender,"
+                          " 'unitId', l.unit_id) AS x FROM words w JOIN lessons l ON l.id = w.lesson_id WHERE l.unit_id" IN_UNITS
+                          " ORDER BY random() LIMIT ?2)",
+                          "si", units, (long long) DUEL_WORDS);
+  char *title = db_text("SELECT CASE WHEN COUNT(*) = 1 THEN MAX(CASE WHEN level <> '' THEN level || ' · ' ELSE '' END || title)"
+                        " ELSE COUNT(*) || ' decks' || COALESCE(' · ' || (SELECT group_concat(level, ', ') FROM (SELECT DISTINCT level FROM units"
+                        "   WHERE id" IN_UNITS " AND level <> '' ORDER BY level)), '') END FROM units WHERE id" IN_UNITS,
+                        "s", units);
+#undef IN_UNITS
+  char *questions = challenges_for(targets, "duel");
+  char code[7];
+  int rc = SQLITE_CONSTRAINT;
+  for (int i = 0; i < 5 && rc == SQLITE_CONSTRAINT; i++) {
+    new_code(code);
+    rc = db_exec("INSERT INTO duels (code, creator_id, title, questions_json, created_at) VALUES (?, ?, ?, ?, ?)", "sissi", code, uid,
+                 title != NULL ? title : "Word duel", questions, now_ms());
+  }
+  if (rc != SQLITE_DONE) reply_error(c, 500, "Couldn't create the duel");
+  else mg_http_reply(c, 201, "Content-Type: application/json; charset=utf-8\r\nCache-Control: no-store\r\n", "{%m:%m}", MG_ESC("code"), MG_ESC(code));
+  free(questions);
   free(title);
+  free(targets);
+  free(units);
 }
 
 static void submit_answer(struct mg_connection *c, struct mg_http_message *hm, const char *code, const char *duel, long long uid) {
-  char *text = mg_json_get_str(hm->body, "$.text");
-  if (text == NULL || clean_text(text)[0] == '\0') {
-    free(text);
-    return reply_error(c, 400, "Your text is empty");
-  }
-  if (utf8_len(text) > MAX_TEXT * 2) {
-    free(text);
-    return reply_error(c, 400, "That text is far too long");
-  }
-  char *original = mg_json_get_str(mg_str(duel), "$.text");
-  int lints_len = 0;
-  int lints_off = mg_json_get(mg_str(duel), "$.lints", &lints_len);
-  char *orig_lints = lints_off < 0 ? NULL : mg_mprintf("%.*s", lints_len, duel + lints_off);
-  char *result = (original != NULL && orig_lints != NULL) ? duel_score(original, orig_lints, text) : NULL;
-  if (result == NULL) {
-    reply_error(c, 500, "Couldn't score your answer");
+  char *answers = body_array(hm, "$.answers");
+  if (answers == NULL) return reply_error(c, 400, "Send your answers");
+  int qlen = 0;
+  int qoff = mg_json_get(mg_str(duel), "$.questions", &qlen);
+  char *questions = qoff < 0 ? NULL : mg_mprintf("%.*s", qlen, duel + qoff);
+  char *result = questions != NULL ? duel_score(questions, answers) : NULL;
+  int alen = 0;
+  int aoff = result != NULL ? mg_json_get(mg_str(result), "$.answers", &alen) : -1;
+  if (result == NULL || aoff < 0) {
+    reply_error(c, 500, "Couldn't score your answers");
   } else {
+    char *clean = mg_mprintf("%.*s", alen, result + aoff);
     long long now = now_ms();
     long long opened = db_int(now, "SELECT opened_at FROM duel_views WHERE code = ? AND user_id = ?", "si", code, uid);
     long long points = mg_json_get_long(mg_str(result), "$.points", 0);
-    int rc = db_exec("INSERT INTO submissions (code, user_id, text, points, result_json, elapsed_ms, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)", "sisisii",
-                     code, uid, text, points, result, now - opened, now);
+    long long correct = mg_json_get_long(mg_str(result), "$.correct", 0);
+    int rc = db_exec("INSERT INTO submissions (code, user_id, answers_json, points, correct, elapsed_ms, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)", "sisiiii",
+                     code, uid, clean, points, correct, now - opened, now);
+    free(clean);
     if (rc == SQLITE_CONSTRAINT) {
       reply_error(c, 409, "You already played this duel");
     } else if (rc != SQLITE_DONE) {
-      reply_error(c, 500, "Couldn't save your answer");
+      reply_error(c, 500, "Couldn't save your answers");
     } else {
       char key[32];
       snprintf(key, sizeof(key), "subs:%s", code);
@@ -558,13 +522,9 @@ static void submit_answer(struct mg_connection *c, struct mg_http_message *hm, c
     }
   }
   duel_free(result);
-  free(orig_lints);
-  free(original);
-  free(text);
+  free(questions);
+  free(answers);
 }
-
-/* Learn mode and the CMS live in learn.c (shares the helpers above). */
-#include "learn.c"
 
 /* After an upsert: mark admins (ADMINS env), then start a session with the full user JSON. */
 static void finish_login(struct mg_connection *c, const char *upserted, const char *admin_key) {
@@ -665,7 +625,7 @@ static void handle_api(struct mg_connection *c, struct mg_http_message *hm) {
 
   if (method_is(hm, "POST") && uri_is(hm, "/api/auth/logout")) {
     struct mg_str *cookie = mg_http_get_header(hm, "Cookie");
-    struct mg_str tok = cookie != NULL ? mg_http_get_header_var(*cookie, mg_str("duel_session")) : mg_str("");
+    struct mg_str tok = cookie != NULL ? mg_http_get_header_var(*cookie, mg_str(SESSION_COOKIE)) : mg_str("");
     if (tok.len > 0 && tok.len <= 100) {
       char token[101];
       memcpy(token, tok.buf, tok.len);
@@ -681,26 +641,10 @@ static void handle_api(struct mg_connection *c, struct mg_http_message *hm) {
     }
     char *headers = mg_mprintf(
         "Content-Type: application/json\r\nCache-Control: no-store\r\n"
-        "Set-Cookie: duel_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0%s\r\n",
+        "Set-Cookie: " SESSION_COOKIE "=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0%s\r\n",
         s_cookie_secure ? "; Secure" : "");
     reply_json(c, 200, "{\"ok\":true}", headers);
     free(headers);
-    return;
-  }
-
-  if (method_is(hm, "GET") && uri_is(hm, "/api/random")) {
-    char notbuf[16] = "";
-    mg_http_get_var(&hm->query, "not", notbuf, sizeof(notbuf));
-    long exclude = notbuf[0] ? strtol(notbuf, NULL, 10) : -1;
-    unsigned char r[4];
-    long id;
-    do {
-      random_bytes(r, sizeof(r));
-      id = (long) (((unsigned) r[0] << 24 | (unsigned) r[1] << 16 | (unsigned) r[2] << 8 | r[3]) % (unsigned) s_passage_count);
-    } while (s_passage_count > 1 && id == exclude);
-    char *p = passage(id);
-    reply_json(c, 200, p != NULL ? p : "{}", NULL);
-    free(p);
     return;
   }
 
@@ -712,32 +656,10 @@ static void handle_api(struct mg_connection *c, struct mg_http_message *hm) {
 
   if (handle_learn(c, hm, uid) || handle_admin(c, hm, uid)) return;
 
-  /* Learn mode: Harper's issues in any text (not stored). */
-  if (method_is(hm, "POST") && uri_is(hm, "/api/check")) {
-    if (!require_json(c, hm)) return;
-    char *text = mg_json_get_str(hm->body, "$.text");
-    if (text == NULL || clean_text(text)[0] == '\0') {
-      free(text);
-      return reply_error(c, 400, "Type or paste some text first");
-    }
-    if (utf8_len(text) > MAX_TEXT) {
-      free(text);
-      return reply_error(c, 400, "Keep it under 2000 characters");
-    }
-    char *lints = lint_cached(text);
-    free(text);
-    if (lints == NULL) return reply_error(c, 500, "Couldn't check that text");
-    char *body = mg_mprintf("{\"lints\":%s}", lints);
-    reply_json(c, 200, body, NULL);
-    free(body);
-    free(lints);
-    return;
-  }
-
   if (method_is(hm, "GET") && uri_is(hm, "/api/duels")) {
     char *list = db_text(
         "SELECT json_object('duels', json_group_array(json(x))) FROM (SELECT json_object('code', d.code, 'title', d.title,"
-        " 'source', d.source, 'createdAt', d.created_at, 'creator', u.name,"
+        " 'createdAt', d.created_at, 'creator', u.name,"
         " 'players', (SELECT COUNT(*) FROM submissions s WHERE s.code = d.code),"
         " 'myPoints', (SELECT points FROM submissions s WHERE s.code = d.code AND s.user_id = ?1)) AS x"
         " FROM duels d JOIN users u ON u.id = d.creator_id"
@@ -801,7 +723,7 @@ static void http_fn(struct mg_connection *c, int ev, void *ev_data) {
 int main(void) {
   s_listen = env_or("LISTEN", "http://0.0.0.0:8000");
   s_web_root = env_or("WEB_ROOT", "/srv/web");
-  s_db_file = env_or("DB_FILE", "/data/duel.sqlite");
+  s_db_file = env_or("DB_FILE", "/data/labas.sqlite");
   s_client_id = env_or("GOOGLE_CLIENT_ID", "");
   s_dev_login = strcmp(env_or("ALLOW_DEV_LOGIN", "0"), "1") == 0;
   s_cookie_secure = strcmp(env_or("COOKIE_SECURE", "0"), "1") == 0;
@@ -814,19 +736,6 @@ int main(void) {
   signal(SIGPIPE, SIG_IGN); /* a dropped memcached connection must not kill us */
 
   mg_log_set(MG_LL_INFO);
-  long long t0 = now_ms();
-  if (duel_init() != 0) {
-    MG_ERROR(("couldn't load Harper"));
-    return 1;
-  }
-  s_passages = duel_passages();
-  for (s_passage_count = 0;; s_passage_count++) {
-    char path[32];
-    snprintf(path, sizeof(path), "$[%d]", s_passage_count);
-    if (mg_json_get(mg_str(s_passages), path, NULL) < 0) break;
-  }
-  MG_INFO(("Harper ready in %lld ms, %d random texts", now_ms() - t0, s_passage_count));
-
   if (sqlite3_open(s_db_file, &s_db) != SQLITE_OK || sqlite3_exec(s_db, SCHEMA, NULL, NULL, NULL) != SQLITE_OK) {
     MG_ERROR(("database %s: %s", s_db_file, sqlite3_errmsg(s_db)));
     return 1;
@@ -841,13 +750,13 @@ int main(void) {
     MG_ERROR(("cannot listen on %s", s_listen));
     return 1;
   }
-  MG_INFO(("Grammar Duel on %s (web %s, db %s, memcached %s%s%s)%s%s", s_listen, s_web_root, s_db_file, s_mc_host[0] ? s_mc_host : "off",
+  MG_INFO(("Labas on %s (web %s, db %s, memcached %s%s%s)%s%s", s_listen, s_web_root, s_db_file, s_mc_host[0] ? s_mc_host : "off",
            s_mc_host[0] ? ":" : "", s_mc_port, s_client_id[0] ? "" : " [Google sign-in not configured]", s_dev_login ? " [dev login ON]" : ""));
   signal(SIGINT, on_signal);
   signal(SIGTERM, on_signal);
   while (!s_stop) mg_mgr_poll(&mgr, 500);
   mg_mgr_free(&mgr);
   sqlite3_close(s_db);
-  duel_free(s_passages);
+  pool_reset();
   return 0;
 }

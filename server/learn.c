@@ -1,40 +1,48 @@
-/* Grammar Duel: Learn mode (Duolingo-style path, hearts, XP, streaks, leaderboard) and the content CMS.
- * Included from main.c, so it shares its helpers (db_*, reply_*, lint_cached, ...).
+/* Labas: Learn mode (Duolingo-style path, hearts, XP, streaks, spaced-repetition review, leaderboard) and the content CMS.
+ * Included from main.c, so it shares its helpers (db_*, reply_*, ...).
  *
- * Content: units -> lessons -> challenges. A challenge is either
- *   "fix"    a text with mistakes; Harper checks the answer (its issues are stored when the challenge is saved)
- *   "choose" a question with options, exactly one correct
+ * Content: units (decks, each with a CEFR level) -> lessons -> words. Exercises are generated from the words
+ * by the engine (duel_challenges):
+ *   pick_en  a Lithuanian word; pick its meaning      pick_lt  an English word; pick the Lithuanian one
+ *   type_lt  an English word; type the Lithuanian    build    an English phrase; put Lithuanian tiles in order
+ * A lesson first asks you to recognise each word (pick), then to produce it (type or build). A word counts as
+ * learned once you've produced it, and from then on it is scheduled for review (SM-2).
  */
 
 #define MAX_HEARTS 5
 #define HEART_REGEN_MS (30LL * 60 * 1000) /* one heart back every 30 minutes */
 #define XP_PER_CHALLENGE 10
+#define DAY_MS 86400000LL
+#define REVIEW_BATCH "15" /* words per review session */
 
 static const char *LEARN_SCHEMA =
     "CREATE TABLE IF NOT EXISTS units ("
-    "  id INTEGER PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', position INTEGER NOT NULL DEFAULT 0);"
+    "  id INTEGER PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', level TEXT NOT NULL DEFAULT '',"
+    "  position INTEGER NOT NULL DEFAULT 0);"
     "CREATE TABLE IF NOT EXISTS lessons ("
     "  id INTEGER PRIMARY KEY, unit_id INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE, title TEXT NOT NULL,"
     "  position INTEGER NOT NULL DEFAULT 0);"
-    "CREATE TABLE IF NOT EXISTS challenges ("
+    "CREATE TABLE IF NOT EXISTS words ("
     "  id INTEGER PRIMARY KEY, lesson_id INTEGER NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,"
-    "  type TEXT NOT NULL CHECK (type IN ('fix', 'choose')), question TEXT NOT NULL, text TEXT, lints_json TEXT,"
-    "  position INTEGER NOT NULL DEFAULT 0);"
-    "CREATE TABLE IF NOT EXISTS challenge_options ("
-    "  id INTEGER PRIMARY KEY, challenge_id INTEGER NOT NULL REFERENCES challenges(id) ON DELETE CASCADE, text TEXT NOT NULL,"
-    "  correct INTEGER NOT NULL DEFAULT 0, position INTEGER NOT NULL DEFAULT 0);"
-    "CREATE TABLE IF NOT EXISTS challenge_progress ("
+    "  lt TEXT NOT NULL, en TEXT NOT NULL,"
+    "  pos TEXT NOT NULL DEFAULT 'noun' CHECK (pos IN ('noun', 'verb', 'phrase', 'other')),"
+    "  gender TEXT NOT NULL DEFAULT '' CHECK (gender IN ('', 'm', 'f', 'mpl', 'fpl')),"
+    "  also TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', position INTEGER NOT NULL DEFAULT 0);"
+    /* Spaced repetition (SM-2): a row exists once the word is learned. ease is a percentage (250 = 2.5). */
+    "CREATE TABLE IF NOT EXISTS word_progress ("
     "  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,"
-    "  challenge_id INTEGER NOT NULL REFERENCES challenges(id) ON DELETE CASCADE,"
-    "  completed_at INTEGER NOT NULL, PRIMARY KEY (user_id, challenge_id));"
+    "  word_id INTEGER NOT NULL REFERENCES words(id) ON DELETE CASCADE,"
+    "  learned_at INTEGER NOT NULL, reps INTEGER NOT NULL DEFAULT 1, interval_days INTEGER NOT NULL DEFAULT 1,"
+    "  ease INTEGER NOT NULL DEFAULT 250, lapses INTEGER NOT NULL DEFAULT 0, due_at INTEGER NOT NULL, reviewed_at INTEGER,"
+    "  PRIMARY KEY (user_id, word_id));"
     "CREATE TABLE IF NOT EXISTS xp_events ("
     "  id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, xp INTEGER NOT NULL,"
     "  at INTEGER NOT NULL);"
     "CREATE INDEX IF NOT EXISTS xp_events_user_at ON xp_events(user_id, at);"
     "CREATE INDEX IF NOT EXISTS xp_events_at ON xp_events(at);"
     "CREATE INDEX IF NOT EXISTS lessons_unit ON lessons(unit_id);"
-    "CREATE INDEX IF NOT EXISTS challenges_lesson ON challenges(lesson_id);"
-    "CREATE INDEX IF NOT EXISTS options_challenge ON challenge_options(challenge_id);"
+    "CREATE INDEX IF NOT EXISTS words_lesson ON words(lesson_id);"
+    "CREATE INDEX IF NOT EXISTS word_progress_due ON word_progress(user_id, due_at);"
     "CREATE TABLE IF NOT EXISTS unit_feedback ("
     "  id INTEGER PRIMARY KEY, unit_id INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,"
     "  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, rating INTEGER, category TEXT, text TEXT NOT NULL,"
@@ -48,7 +56,16 @@ static const char *USER_COLUMNS[] = {
     "ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0",
 };
 
+static const char *POS_VALUES[] = {"noun", "verb", "phrase", "other"};
+static const char *GENDER_VALUES[] = {"", "m", "f", "mpl", "fpl"};
+
 static char s_admins[1024]; /* comma-separated, lowercase: emails, or dev:<name> for guest logins */
+static char *s_pool;        /* every word as engine JSON (wrong options, decoy tiles); rebuilt after content edits */
+
+/* A word as the engine wants it. `?2` must be bound to the user id (for "completed"). */
+#define WORD_JSON                                                                                                                                  \
+  "json_object('id', w.id, 'lt', w.lt, 'en', w.en, 'pos', w.pos, 'gender', w.gender, 'unitId', l.unit_id, 'completed',"                       \
+  " json(CASE WHEN EXISTS (SELECT 1 FROM word_progress p WHERE p.word_id = w.id AND p.user_id = ?2) THEN 'true' ELSE 'false' END))"
 
 /* ---------------------------------------------------------------- setup */
 
@@ -68,17 +85,35 @@ static char *read_file(const char *path) {
   return buf;
 }
 
-/* Harper's issues for a "fix" text, as malloc'd JSON, or NULL if there are none (the text can't be graded). */
-static char *fix_lints(const char *text) {
-  char *lints = lint_cached(text);
-  if (lints != NULL && strcmp(lints, "[]") == 0) {
-    free(lints);
-    return NULL;
-  }
-  return lints;
+static int in_list(const char *s, const char **list, size_t n) {
+  for (size_t i = 0; s != NULL && i < n; i++)
+    if (strcmp(s, list[i]) == 0) return 1;
+  return 0;
+}
+#define IN(s, arr) in_list((s), (arr), sizeof(arr) / sizeof((arr)[0]))
+
+static void pool_reset(void) {
+  free(s_pool);
+  s_pool = NULL;
 }
 
-/* Loads the starter content the first time the server runs (when there are no units). */
+static const char *pool_json(void) {
+  if (s_pool == NULL)
+    s_pool = db_text("SELECT json_group_array(json_object('id', w.id, 'lt', w.lt, 'en', w.en, 'pos', w.pos, 'gender', w.gender, 'unitId', l.unit_id))"
+                     " FROM words w JOIN lessons l ON l.id = w.lesson_id",
+                     "");
+  return s_pool != NULL ? s_pool : "[]";
+}
+
+/* Exercises for the words in `targets` (engine JSON), as a malloc'd JSON array. */
+static char *challenges_for(const char *targets, const char *mode) {
+  char *list = duel_challenges(targets != NULL ? targets : "[]", pool_json(), mode);
+  char *out = strdup(list != NULL ? list : "[]");
+  duel_free(list);
+  return out;
+}
+
+/* Loads the starter course the first time the server runs (when there are no units). */
 static void learn_seed(const char *path) {
   if (db_int(0, "SELECT COUNT(*) FROM units", "") > 0) return;
   char *json = read_file(path);
@@ -87,19 +122,24 @@ static void learn_seed(const char *path) {
     return;
   }
   struct mg_str s = mg_str(json);
-  int units = 0, challenges = 0;
+  int units = 0, words = 0;
   char p[160];
+  sqlite3_exec(s_db, "BEGIN", NULL, NULL, NULL);
   for (int u = 0;; u++) {
     snprintf(p, sizeof(p), "$.units[%d].title", u);
     char *title = mg_json_get_str(s, p);
     if (title == NULL) break;
     snprintf(p, sizeof(p), "$.units[%d].description", u);
     char *desc = mg_json_get_str(s, p);
-    db_exec("INSERT INTO units (title, description, position) VALUES (?, ?, ?)", "ssi", title, desc != NULL ? desc : "", (long long) u);
+    snprintf(p, sizeof(p), "$.units[%d].level", u);
+    char *level = mg_json_get_str(s, p);
+    db_exec("INSERT INTO units (title, description, level, position) VALUES (?, ?, ?, ?)", "sssi", title, desc != NULL ? desc : "",
+            level != NULL ? level : "", (long long) u);
     long long unit_id = sqlite3_last_insert_rowid(s_db);
     units++;
     free(title);
     free(desc);
+    free(level);
     for (int l = 0;; l++) {
       snprintf(p, sizeof(p), "$.units[%d].lessons[%d].title", u, l);
       char *ltitle = mg_json_get_str(s, p);
@@ -108,42 +148,29 @@ static void learn_seed(const char *path) {
       long long lesson_id = sqlite3_last_insert_rowid(s_db);
       free(ltitle);
       for (int k = 0;; k++) {
-        snprintf(p, sizeof(p), "$.units[%d].lessons[%d].challenges[%d].type", u, l, k);
-        char *type = mg_json_get_str(s, p);
-        if (type == NULL) break;
-        snprintf(p, sizeof(p), "$.units[%d].lessons[%d].challenges[%d].question", u, l, k);
-        char *question = mg_json_get_str(s, p);
-        snprintf(p, sizeof(p), "$.units[%d].lessons[%d].challenges[%d].text", u, l, k);
-        char *text = mg_json_get_str(s, p);
-        char *lints = (strcmp(type, "fix") == 0 && text != NULL) ? fix_lints(text) : NULL;
-        if (strcmp(type, "fix") == 0 && lints == NULL) {
-          MG_ERROR(("seed: Harper finds nothing to fix in \"%s\", skipped", text != NULL ? text : ""));
-        } else {
-          db_exec("INSERT INTO challenges (lesson_id, type, question, text, lints_json, position) VALUES (?, ?, ?, ?, ?, ?)", "issssi", lesson_id, type,
-                  question != NULL ? question : "", text, lints, (long long) k);
-          long long challenge_id = sqlite3_last_insert_rowid(s_db);
-          challenges++;
-          for (int o = 0; strcmp(type, "choose") == 0; o++) {
-            snprintf(p, sizeof(p), "$.units[%d].lessons[%d].challenges[%d].options[%d].text", u, l, k, o);
-            char *otext = mg_json_get_str(s, p);
-            if (otext == NULL) break;
-            snprintf(p, sizeof(p), "$.units[%d].lessons[%d].challenges[%d].options[%d].correct", u, l, k, o);
-            bool correct = false;
-            mg_json_get_bool(s, p, &correct);
-            db_exec("INSERT INTO challenge_options (challenge_id, text, correct, position) VALUES (?, ?, ?, ?)", "isii", challenge_id, otext,
-                    (long long) correct, (long long) o);
-            free(otext);
-          }
+        char *f[6];
+        static const char *names[6] = {"lt", "en", "pos", "gender", "also", "note"};
+        for (int i = 0; i < 6; i++) {
+          snprintf(p, sizeof(p), "$.units[%d].lessons[%d].words[%d].%s", u, l, k, names[i]);
+          f[i] = mg_json_get_str(s, p);
         }
-        free(type);
-        free(question);
-        free(text);
-        free(lints);
+        int done = f[0] == NULL;
+        if (!done) {
+          int rc = db_exec("INSERT INTO words (lesson_id, lt, en, pos, gender, also, note, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", "issssssi", lesson_id,
+                           f[0], f[1] != NULL ? f[1] : "", f[2] != NULL ? f[2] : "noun", f[3] != NULL ? f[3] : "", f[4] != NULL ? f[4] : "",
+                           f[5] != NULL ? f[5] : "", (long long) k);
+          if (rc == SQLITE_DONE) words++;
+          else MG_ERROR(("seed: couldn't add \"%s\"", f[0]));
+        }
+        for (int i = 0; i < 6; i++) free(f[i]);
+        if (done) break;
       }
     }
   }
+  sqlite3_exec(s_db, "COMMIT", NULL, NULL, NULL);
   free(json);
-  MG_INFO(("loaded starter content: %d units, %d challenges", units, challenges));
+  pool_reset();
+  MG_INFO(("loaded starter course: %d units, %d words", units, words));
 }
 
 static void learn_init(const char *seed_path, const char *admins) {
@@ -236,21 +263,62 @@ static char *stats_json(long long uid) {
   int hearts = hearts_now(uid, &next);
   long long xp = db_int(0, "SELECT COALESCE(SUM(xp), 0) FROM xp_events WHERE user_id = ?", "i", uid);
   long long week = db_int(0, "SELECT COALESCE(SUM(xp), 0) FROM xp_events WHERE user_id = ? AND at >= " WEEK_START_MS, "i", uid);
-  return mg_mprintf("{\"xp\":%lld,\"weekXp\":%lld,\"hearts\":%d,\"maxHearts\":%d,\"nextHeartMs\":%lld,\"streak\":%d}", xp, week, hearts, MAX_HEARTS,
-                    next, streak_days(uid));
+  long long learned = db_int(0, "SELECT COUNT(*) FROM word_progress WHERE user_id = ?", "i", uid);
+  long long due = db_int(0, "SELECT COUNT(*) FROM word_progress WHERE user_id = ? AND due_at <= ?", "ii", uid, now_ms());
+  long long next_due = db_int(0, "SELECT MIN(due_at) FROM word_progress WHERE user_id = ? AND due_at > ?", "ii", uid, now_ms());
+  return mg_mprintf("{\"xp\":%lld,\"weekXp\":%lld,\"hearts\":%d,\"maxHearts\":%d,\"nextHeartMs\":%lld,\"streak\":%d,\"learned\":%lld,\"due\":%lld,"
+                    "\"nextDueAt\":%lld}",
+                    xp, week, hearts, MAX_HEARTS, next, streak_days(uid), learned, due, next_due);
+}
+
+/* ---------------------------------------------------------------- spaced repetition (SM-2) */
+
+/* The first time a word is produced correctly in a lesson: first review tomorrow. */
+static void srs_learn(long long uid, long long wid) {
+  long long now = now_ms();
+  db_exec("INSERT OR IGNORE INTO word_progress (user_id, word_id, learned_at, reps, interval_days, ease, lapses, due_at) VALUES (?, ?, ?, 1, 1, 250, 0, ?)",
+          "iiii", uid, wid, now, now + DAY_MS);
+}
+
+/* A review answer. `quality`: 5 perfect, 4 right, 3 right with a slip (accents, typo), 0 wrong. */
+static void srs_review(long long uid, long long wid, int quality) {
+  long long reps = db_int(0, "SELECT reps FROM word_progress WHERE user_id = ? AND word_id = ?", "ii", uid, wid);
+  long long interval = db_int(1, "SELECT interval_days FROM word_progress WHERE user_id = ? AND word_id = ?", "ii", uid, wid);
+  long long ease = db_int(250, "SELECT ease FROM word_progress WHERE user_id = ? AND word_id = ?", "ii", uid, wid);
+  long long now = now_ms(), due;
+  if (quality < 3) {
+    /* Forgotten: back to the start, and it stays due so it comes round again this session. */
+    ease = ease - 20 < 130 ? 130 : ease - 20;
+    db_exec("UPDATE word_progress SET reps = 0, interval_days = 0, ease = ?, lapses = lapses + 1, due_at = ?, reviewed_at = ? WHERE user_id = ? AND word_id = ?",
+            "iiiii", ease, now, now, uid, wid);
+    return;
+  }
+  int q = quality > 5 ? 5 : quality;
+  ease += 10 - (5 - q) * (8 + (5 - q) * 2);
+  if (ease < 130) ease = 130;
+  reps++;
+  if (reps == 1) interval = 1;
+  else if (reps == 2) interval = 3;
+  else {
+    long long next = (interval * ease + 50) / 100;
+    interval = next > interval ? next : interval + 1;
+  }
+  if (interval > 365) interval = 365;
+  due = now + interval * DAY_MS;
+  db_exec("UPDATE word_progress SET reps = ?, interval_days = ?, ease = ?, due_at = ?, reviewed_at = ? WHERE user_id = ? AND word_id = ?", "iiiiiii", reps,
+          interval, ease, due, now, uid, wid);
 }
 
 /* ---------------------------------------------------------------- learner API */
 
 static void reply_learn_path(struct mg_connection *c, long long uid) {
   char *units = db_text(
-      "SELECT json_group_array(json(x)) FROM (SELECT json_object('id', u.id, 'title', u.title, 'description', u.description,"
+      "SELECT json_group_array(json(x)) FROM (SELECT json_object('id', u.id, 'title', u.title, 'description', u.description, 'level', u.level,"
       "  'feedbackSent', json(CASE WHEN EXISTS (SELECT 1 FROM unit_feedback f WHERE f.unit_id = u.id AND f.user_id = ?1) THEN 'true' ELSE 'false' END),"
       "  'lessons',"
       "  (SELECT json_group_array(json(y)) FROM (SELECT json_object('id', l.id, 'title', l.title,"
-      "     'total', (SELECT COUNT(*) FROM challenges c WHERE c.lesson_id = l.id),"
-      "     'done', (SELECT COUNT(*) FROM challenges c JOIN challenge_progress p ON p.challenge_id = c.id AND p.user_id = ?1"
-      "              WHERE c.lesson_id = l.id)) AS y"
+      "     'total', (SELECT COUNT(*) FROM words w WHERE w.lesson_id = l.id),"
+      "     'done', (SELECT COUNT(*) FROM words w JOIN word_progress p ON p.word_id = w.id AND p.user_id = ?1 WHERE w.lesson_id = l.id)) AS y"
       "   FROM lessons l WHERE l.unit_id = u.id ORDER BY l.position, l.id))) AS x"
       " FROM units u ORDER BY u.position, u.id)",
       "i", uid);
@@ -263,101 +331,153 @@ static void reply_learn_path(struct mg_connection *c, long long uid) {
 }
 
 static void reply_lesson(struct mg_connection *c, long long uid, long long lesson_id) {
-  char *lesson = db_text(
-      "SELECT json_object('id', l.id, 'title', l.title, 'unitId', u.id, 'unitTitle', u.title, 'challenges',"
-      "  (SELECT json_group_array(json(x)) FROM (SELECT json_object('id', c.id, 'type', c.type, 'question', c.question, 'text', c.text,"
-      "     'marks', (SELECT json_group_array(json_object('start16', json_extract(v.value, '$.start16'), 'end16', json_extract(v.value, '$.end16')))"
-      "               FROM json_each(COALESCE(c.lints_json, '[]')) v),"
-      "     'options', (SELECT json_group_array(json_object('id', o.id, 'text', o.text))"
-      "                 FROM (SELECT * FROM challenge_options o WHERE o.challenge_id = c.id ORDER BY o.position, o.id) o),"
-      "     'completed', json(CASE WHEN EXISTS (SELECT 1 FROM challenge_progress p WHERE p.challenge_id = c.id AND p.user_id = ?2)"
-      "                         THEN 'true' ELSE 'false' END)) AS x"
-      "   FROM challenges c WHERE c.lesson_id = l.id ORDER BY c.position, c.id)))"
-      " FROM lessons l JOIN units u ON u.id = l.unit_id WHERE l.id = ?1",
-      "ii", lesson_id, uid);
+  char *lesson = db_text("SELECT json_object('id', l.id, 'title', l.title, 'unitId', u.id, 'unitTitle', u.title, 'level', u.level)"
+                         " FROM lessons l JOIN units u ON u.id = l.unit_id WHERE l.id = ?",
+                         "i", lesson_id);
   if (lesson == NULL) return reply_error(c, 404, "No such lesson");
+  char *targets = db_text("SELECT json_group_array(json(x)) FROM (SELECT " WORD_JSON " AS x FROM words w JOIN lessons l ON l.id = w.lesson_id"
+                          " WHERE w.lesson_id = ?1 ORDER BY w.position, w.id)",
+                          "ii", lesson_id, uid);
+  char *challenges = challenges_for(targets, "lesson");
   char *stats = stats_json(uid);
-  char *body = mg_mprintf("{\"lesson\":%s,\"stats\":%s}", lesson, stats);
+  char *body = mg_mprintf("{\"lesson\":%s,\"challenges\":%s,\"stats\":%s}", lesson, challenges, stats);
   reply_json(c, 200, body, NULL);
   free(body);
   free(stats);
+  free(challenges);
+  free(targets);
   free(lesson);
 }
 
-/* Checks one answer. Correct: +XP (and +1 heart when practising a finished challenge). Wrong: -1 heart. */
-static void answer_challenge(struct mg_connection *c, struct mg_http_message *hm, long long uid, long long cid) {
-  char *type = db_text("SELECT type FROM challenges WHERE id = ?", "i", cid);
-  if (type == NULL) return reply_error(c, 404, "No such challenge");
-  int practice = db_int(0, "SELECT 1 FROM challenge_progress WHERE user_id = ? AND challenge_id = ?", "ii", uid, cid) == 1;
-  int hearts = hearts_now(uid, NULL);
-  if (!practice && hearts <= 0) {
-    free(type);
-    return mg_http_reply(c, 403, "Content-Type: application/json\r\nCache-Control: no-store\r\n", "{%m:%m,%m:0}", MG_ESC("error"),
-                         MG_ESC("You're out of hearts. Practise a finished lesson or wait for a heart to come back."), MG_ESC("hearts"));
-  }
-
-  int correct = 0;
-  char *extra = NULL; /* type-specific feedback fields, as ,"key":value pairs */
-  if (strcmp(type, "choose") == 0) {
-    long long chosen = mg_json_get_long(hm->body, "$.optionId", -1);
-    correct = db_int(0, "SELECT correct FROM challenge_options WHERE id = ? AND challenge_id = ?", "ii", chosen, cid) == 1;
-    long long right = db_int(-1, "SELECT id FROM challenge_options WHERE challenge_id = ? AND correct = 1", "i", cid);
-    extra = mg_mprintf(",\"correctOptionId\":%lld", right);
-  } else {
-    char *answer = mg_json_get_str(hm->body, "$.text");
-    char *original = db_text("SELECT text FROM challenges WHERE id = ?", "i", cid);
-    char *lints = db_text("SELECT lints_json FROM challenges WHERE id = ?", "i", cid);
-    if (answer == NULL || original == NULL || lints == NULL || utf8_len(answer) > MAX_TEXT) {
-      free(answer);
-      free(original);
-      free(lints);
-      free(type);
-      return reply_error(c, 400, "Send your corrected text");
-    }
-    clean_text(answer);
-    char *result = duel_score(original, lints, answer);
-    char *solution = duel_solution(original, lints);
-    if (result == NULL || solution == NULL) {
-      duel_free(result);
-      duel_free(solution);
-      free(answer);
-      free(original);
-      free(lints);
-      free(type);
-      return reply_error(c, 500, "Couldn't check your answer");
-    }
-    long total = mg_json_get_long(mg_str(result), "$.total", 0);
-    long fixed = mg_json_get_long(mg_str(result), "$.fixed", 0);
-    int rlen = 0, ilen = 0;
-    int roff = mg_json_get(mg_str(result), "$.remaining", &rlen);
-    int ioff = mg_json_get(mg_str(result), "$.introduced", &ilen);
-    correct = fixed == total && ilen <= 2; /* "[]" */
-    extra = mg_mprintf(",\"fixed\":%ld,\"total\":%ld,\"remaining\":%.*s,\"introduced\":%.*s,%m:%m", fixed, total, roff < 0 ? 2 : rlen,
-                       roff < 0 ? "[]" : result + roff, ioff < 0 ? 2 : ilen, ioff < 0 ? "[]" : result + ioff, MG_ESC("solution"), MG_ESC(solution));
-    duel_free(result);
-    duel_free(solution);
-    free(answer);
-    free(original);
-    free(lints);
-  }
-
-  int xp = 0;
-  if (correct) {
-    xp = XP_PER_CHALLENGE;
-    db_exec("INSERT OR IGNORE INTO challenge_progress (user_id, challenge_id, completed_at) VALUES (?, ?, ?)", "iii", uid, cid, now_ms());
-    db_exec("INSERT INTO xp_events (user_id, xp, at) VALUES (?, ?, ?)", "iii", uid, (long long) xp, now_ms());
-    if (practice) set_hearts(uid, hearts + 1);
-  } else if (!practice) {
-    set_hearts(uid, hearts - 1);
-  }
+/* A review session: the words that are due, most overdue first. */
+static void reply_review(struct mg_connection *c, long long uid) {
+  char *targets = db_text("SELECT json_group_array(json(x)) FROM (SELECT " WORD_JSON " AS x FROM word_progress p0"
+                          " JOIN words w ON w.id = p0.word_id JOIN lessons l ON l.id = w.lesson_id"
+                          " WHERE p0.user_id = ?2 AND p0.due_at <= ?1 ORDER BY p0.due_at, w.id LIMIT " REVIEW_BATCH ")",
+                          "ii", now_ms(), uid);
+  char *challenges = challenges_for(targets, "review");
   char *stats = stats_json(uid);
-  char *body = mg_mprintf("{\"correct\":%s,\"practice\":%s,\"xp\":%d,\"stats\":%s%s}", correct ? "true" : "false", practice ? "true" : "false", xp,
-                          stats, extra != NULL ? extra : "");
+  char *body = mg_mprintf("{\"challenges\":%s,\"stats\":%s}", challenges, stats);
   reply_json(c, 200, body, NULL);
   free(body);
   free(stats);
-  free(extra);
-  free(type);
+  free(challenges);
+  free(targets);
+}
+
+/* Every word in the course, with your progress on it. */
+static void reply_words(struct mg_connection *c, long long uid) {
+  char *units = db_text(
+      "SELECT json_group_array(json(x)) FROM (SELECT json_object('id', u.id, 'title', u.title, 'level', u.level, 'lessons',"
+      "  (SELECT json_group_array(json(y)) FROM (SELECT json_object('id', l.id, 'title', l.title, 'words',"
+      "     (SELECT json_group_array(json(z)) FROM (SELECT json_object('id', w.id, 'lt', w.lt, 'en', w.en, 'pos', w.pos, 'gender', w.gender,"
+      "        'note', w.note, 'learned', json(CASE WHEN p.word_id IS NULL THEN 'false' ELSE 'true' END), 'dueAt', p.due_at, 'reps', p.reps) AS z"
+      "      FROM words w LEFT JOIN word_progress p ON p.word_id = w.id AND p.user_id = ?1 WHERE w.lesson_id = l.id ORDER BY w.position, w.id))) AS y"
+      "   FROM lessons l WHERE l.unit_id = u.id ORDER BY l.position, l.id))) AS x"
+      " FROM units u ORDER BY u.position, u.id)",
+      "i", uid);
+  char *stats = stats_json(uid);
+  char *body = mg_mprintf("{\"units\":%s,\"stats\":%s,\"now\":%lld}", units != NULL ? units : "[]", stats, now_ms());
+  reply_json(c, 200, body, NULL);
+  free(body);
+  free(stats);
+  free(units);
+}
+
+/* Checks one answer. Lessons: correct = +XP (and +1 heart when practising a learned word); wrong = -1 heart.
+ * Producing a word correctly (type or build) for the first time marks it learned. Reviews cost no hearts:
+ * they reschedule the word, and earn XP only when it was due. */
+static void answer_word(struct mg_connection *c, struct mg_http_message *hm, long long uid, long long wid) {
+  if (db_int(0, "SELECT COUNT(*) FROM words WHERE id = ?", "i", wid) == 0) return reply_error(c, 404, "No such word");
+  char kind[12] = "";
+  char *k = mg_json_get_str(hm->body, "$.kind");
+  if (k != NULL) snprintf(kind, sizeof(kind), "%s", k);
+  free(k);
+  int is_pick = strcmp(kind, "pick_en") == 0 || strcmp(kind, "pick_lt") == 0;
+  int is_text = strcmp(kind, "type_lt") == 0 || strcmp(kind, "build") == 0;
+  if (!is_pick && !is_text) return reply_error(c, 400, "Unknown exercise");
+  bool review = false;
+  mg_json_get_bool(hm->body, "$.review", &review);
+  int learned = db_int(0, "SELECT 1 FROM word_progress WHERE user_id = ? AND word_id = ?", "ii", uid, wid) == 1;
+  if (review && !learned) return reply_error(c, 400, "You haven't learned this word yet");
+  int practice = learned && !review;
+  int hearts = hearts_now(uid, NULL);
+  if (!review && !practice && hearts <= 0)
+    return mg_http_reply(c, 403, "Content-Type: application/json\r\nCache-Control: no-store\r\n", "{%m:%m,%m:0}", MG_ESC("error"),
+                         MG_ESC("You're out of hearts. Review your words, practise a finished lesson or wait for a heart to come back."), MG_ESC("hearts"));
+
+  int correct = 0, quality = 0;
+  const char *verdict = "wrong";
+  char *grade = NULL, *confused = NULL;
+  if (is_pick) {
+    long long chosen = mg_json_get_long(hm->body, "$.optionId", -1);
+    /* Right if the chosen word means the same (another row with identical text counts too). */
+    correct = db_int(0,
+                     strcmp(kind, "pick_en") == 0 ? "SELECT c.id = w.id OR lower(c.en) = lower(w.en) FROM words c, words w WHERE c.id = ? AND w.id = ?"
+                                                  : "SELECT c.id = w.id OR c.lt = w.lt FROM words c, words w WHERE c.id = ? AND w.id = ?",
+                     "ii", chosen, wid) == 1;
+    verdict = correct ? "exact" : "wrong";
+    quality = correct ? 4 : 0;
+  } else {
+    char *answer = mg_json_get_str(hm->body, "$.text");
+    if (answer == NULL || utf8_len(answer) > 300) {
+      free(answer);
+      return reply_error(c, 400, "Send your answer");
+    }
+    char *lt = db_text("SELECT lt FROM words WHERE id = ?", "i", wid);
+    char *also = db_text("SELECT also FROM words WHERE id = ?", "i", wid);
+    char *accepted = duel_accepted(lt != NULL ? lt : "", also != NULL ? also : "");
+    char *others = db_text("SELECT json_group_array(lt) FROM words WHERE id <> ?", "i", wid);
+    grade = duel_grade(accepted != NULL ? accepted : "[]", others != NULL ? others : "[]", answer, strcmp(kind, "type_lt") == 0);
+    free(answer);
+    free(lt);
+    free(also);
+    duel_free(accepted);
+    free(others);
+    if (grade == NULL) return reply_error(c, 500, "Couldn't check your answer");
+    bool ok = false;
+    mg_json_get_bool(mg_str(grade), "$.correct", &ok);
+    correct = ok;
+    char *v = mg_json_get_str(mg_str(grade), "$.verdict");
+    verdict = v == NULL ? "wrong" : strcmp(v, "exact") == 0 ? "exact" : strcmp(v, "accents") == 0 ? "accents" : strcmp(v, "typo") == 0 ? "typo" : "wrong";
+    free(v);
+    quality = !correct ? 0 : strcmp(verdict, "exact") == 0 ? 5 : 3;
+    char *conf = mg_json_get_str(mg_str(grade), "$.confused");
+    if (conf != NULL) confused = db_text("SELECT json_object('lt', lt, 'en', en) FROM words WHERE lt = ? LIMIT 1", "s", conf);
+    free(conf);
+  }
+
+  int xp = 0;
+  if (review) {
+    int due = db_int(0, "SELECT due_at <= ? FROM word_progress WHERE user_id = ? AND word_id = ?", "iii", now_ms(), uid, wid) == 1;
+    if (due) {
+      srs_review(uid, wid, quality);
+      if (correct) xp = XP_PER_CHALLENGE;
+    }
+  } else if (correct) {
+    xp = XP_PER_CHALLENGE;
+    if (practice) set_hearts(uid, hearts + 1);
+    else if (is_text) srs_learn(uid, wid);
+  } else if (!practice) {
+    set_hearts(uid, hearts - 1);
+  }
+  if (xp > 0) db_exec("INSERT INTO xp_events (user_id, xp, at) VALUES (?, ?, ?)", "iii", uid, (long long) xp, now_ms());
+
+  char *word = db_text("SELECT json_object('id', id, 'lt', lt, 'en', en, 'pos', pos, 'gender', gender, 'note', note) FROM words WHERE id = ?", "i", wid);
+  char *expected = grade != NULL ? mg_json_get_str(mg_str(grade), "$.expected") : NULL;
+  char *stats = stats_json(uid);
+  char *body = mg_mprintf("{\"correct\":%s,\"verdict\":%m,\"practice\":%s,\"review\":%s,\"learned\":%s,\"xp\":%d,\"stats\":%s,\"word\":%s,"
+                          "\"correctOptionId\":%lld,\"expected\":%m,\"confused\":%s}",
+                          correct ? "true" : "false", MG_ESC(verdict), practice ? "true" : "false", review ? "true" : "false",
+                          db_int(0, "SELECT 1 FROM word_progress WHERE user_id = ? AND word_id = ?", "ii", uid, wid) == 1 ? "true" : "false", xp, stats,
+                          word != NULL ? word : "null", wid, MG_ESC(expected != NULL ? expected : ""), confused != NULL ? confused : "null");
+  reply_json(c, 200, body, NULL);
+  free(body);
+  free(stats);
+  free(expected);
+  free(word);
+  free(confused);
+  duel_free(grade);
 }
 
 static void reply_leaderboard(struct mg_connection *c, struct mg_http_message *hm, long long uid) {
@@ -384,14 +504,13 @@ static const char *FEEDBACK_CATEGORIES[] = {"too-easy", "too-hard", "mistake", "
 static void send_feedback(struct mg_connection *c, struct mg_http_message *hm, long long uid, long long unit_id) {
   if (db_int(0, "SELECT COUNT(*) FROM units WHERE id = ?", "i", unit_id) == 0) return reply_error(c, 404, "No such unit");
   /* A light limit against spam: 5 suggestions per unit per player per day. */
-  if (db_int(0, "SELECT COUNT(*) FROM unit_feedback WHERE unit_id = ? AND user_id = ? AND created_at > ?", "iii", unit_id, uid, now_ms() - 86400000LL) >= 5)
+  if (db_int(0, "SELECT COUNT(*) FROM unit_feedback WHERE unit_id = ? AND user_id = ? AND created_at > ?", "iii", unit_id, uid, now_ms() - DAY_MS) >= 5)
     return reply_error(c, 429, "Thanks! You've sent a lot of suggestions for this unit today. Try again tomorrow.");
   char *text = body_str(hm, "$.text", 1000);
   if (text == NULL) return reply_error(c, 400, "Tell us what should change");
   long long rating = mg_json_get_long(hm->body, "$.rating", 0);
   char *category = body_str(hm, "$.category", 20);
-  int known = 0;
-  for (size_t i = 0; category != NULL && i < sizeof(FEEDBACK_CATEGORIES) / sizeof(FEEDBACK_CATEGORIES[0]); i++) known |= strcmp(category, FEEDBACK_CATEGORIES[i]) == 0;
+  int known = IN(category, FEEDBACK_CATEGORIES);
   db_exec("INSERT INTO unit_feedback (unit_id, user_id, rating, category, text, created_at) VALUES (?, ?, NULLIF(?, 0), ?, ?, ?)", "iiissi", unit_id, uid,
           rating >= 1 && rating <= 5 ? rating : 0LL, known ? category : NULL, text, now_ms());
   free(text);
@@ -406,6 +525,14 @@ static int handle_learn(struct mg_connection *c, struct mg_http_message *hm, lon
     reply_learn_path(c, uid);
     return 1;
   }
+  if (method_is(hm, "GET") && uri_is(hm, "/api/learn/review")) {
+    reply_review(c, uid);
+    return 1;
+  }
+  if (method_is(hm, "GET") && uri_is(hm, "/api/learn/words")) {
+    reply_words(c, uid);
+    return 1;
+  }
   if (method_is(hm, "GET") && uri_is(hm, "/api/leaderboard")) {
     reply_leaderboard(c, hm, uid);
     return 1;
@@ -418,8 +545,8 @@ static int handle_learn(struct mg_connection *c, struct mg_http_message *hm, lon
     if (require_json(c, hm)) send_feedback(c, hm, uid, strtoll(caps[0].buf, NULL, 10));
     return 1;
   }
-  if (method_is(hm, "POST") && mg_match(hm->uri, mg_str("/api/learn/challenges/*/answer"), caps)) {
-    if (require_json(c, hm)) answer_challenge(c, hm, uid, strtoll(caps[0].buf, NULL, 10));
+  if (method_is(hm, "POST") && mg_match(hm->uri, mg_str("/api/learn/words/*/answer"), caps)) {
+    if (require_json(c, hm)) answer_word(c, hm, uid, strtoll(caps[0].buf, NULL, 10));
     return 1;
   }
   return 0;
@@ -429,14 +556,11 @@ static int handle_learn(struct mg_connection *c, struct mg_http_message *hm, lon
 
 static char *admin_content_json(void) {
   return db_text(
-      "SELECT json_object('units', (SELECT json_group_array(json(x)) FROM (SELECT json_object('id', u.id, 'title', u.title,"
+      "SELECT json_object('units', (SELECT json_group_array(json(x)) FROM (SELECT json_object('id', u.id, 'title', u.title, 'level', u.level,"
       " 'newFeedback', (SELECT COUNT(*) FROM unit_feedback f WHERE f.unit_id = u.id AND f.status = 'new'),"
       " 'description', u.description, 'lessons', (SELECT json_group_array(json(y)) FROM (SELECT json_object('id', l.id, 'title', l.title,"
-      "   'challenges', (SELECT json_group_array(json(z)) FROM (SELECT json_object('id', c.id, 'type', c.type, 'question', c.question,"
-      "     'text', c.text, 'lints', json(COALESCE(c.lints_json, '[]')),"
-      "     'options', (SELECT json_group_array(json_object('id', o.id, 'text', o.text, 'correct', json(CASE WHEN o.correct THEN 'true' ELSE 'false' END)))"
-      "                 FROM (SELECT * FROM challenge_options o WHERE o.challenge_id = c.id ORDER BY o.position, o.id) o)) AS z"
-      "     FROM challenges c WHERE c.lesson_id = l.id ORDER BY c.position, c.id))) AS y"
+      "   'words', (SELECT json_group_array(json(z)) FROM (SELECT json_object('id', w.id, 'lt', w.lt, 'en', w.en, 'pos', w.pos, 'gender', w.gender,"
+      "     'also', w.also, 'note', w.note) AS z FROM words w WHERE w.lesson_id = l.id ORDER BY w.position, w.id))) AS y"
       "   FROM lessons l WHERE l.unit_id = u.id ORDER BY l.position, l.id))) AS x FROM units u ORDER BY u.position, u.id)),"
       " 'newFeedback', (SELECT COUNT(*) FROM unit_feedback WHERE status = 'new'),"
       " 'players', (SELECT COUNT(*) FROM users), 'xpToday', (SELECT COALESCE(SUM(xp), 0) FROM xp_events WHERE at >= CAST(strftime('%s', date('now')) AS INTEGER) * 1000))",
@@ -467,7 +591,7 @@ static const char *move_item(const char *kind, long long id, long long dir) {
   const char *table, *parent;
   if (strcmp(kind, "unit") == 0) table = "units", parent = NULL;
   else if (strcmp(kind, "lesson") == 0) table = "lessons", parent = "unit_id";
-  else if (strcmp(kind, "challenge") == 0) table = "challenges", parent = "lesson_id";
+  else if (strcmp(kind, "word") == 0) table = "words", parent = "lesson_id";
   else return "Unknown kind";
   char sql[600];
   long long pid = 0;
@@ -500,69 +624,49 @@ static const char *move_item(const char *kind, long long id, long long dir) {
   return NULL;
 }
 
-/* Saves a challenge from the request body (insert when id < 0). Returns an error message or NULL. */
-static const char *save_challenge(struct mg_http_message *hm, long long id) {
-  char *type = body_str(hm, "$.type", 10);
-  char *question = body_str(hm, "$.question", 200);
-  long long lesson_id = id < 0 ? mg_json_get_long(hm->body, "$.lessonId", -1) : db_int(-1, "SELECT lesson_id FROM challenges WHERE id = ?", "i", id);
+/* Saves a word from the request body (insert when id < 0). Returns an error message or NULL. */
+static const char *save_word(struct mg_http_message *hm, long long id) {
+  static char msg[200];
+  char *lt = body_str(hm, "$.lt", 100);
+  char *en = body_str(hm, "$.en", 100);
+  char *pos = body_str(hm, "$.pos", 10);
+  char *gender = body_str(hm, "$.gender", 4);
+  char *also = body_str(hm, "$.also", 200);
+  char *note = body_str(hm, "$.note", 200);
+  long long lesson_id = id < 0 ? mg_json_get_long(hm->body, "$.lessonId", -1) : db_int(-1, "SELECT lesson_id FROM words WHERE id = ?", "i", id);
   const char *err = NULL;
-  char *text = NULL, *lints = NULL;
-  if (type == NULL || (strcmp(type, "fix") != 0 && strcmp(type, "choose") != 0)) err = "Pick a challenge type";
-  else if (question == NULL) err = "Write the question or instruction";
+  if (lt == NULL) err = "Write the Lithuanian word or phrase";
+  else if (en == NULL) err = "Write what it means in English";
+  else if (!IN(pos, POS_VALUES)) err = "Pick a part of speech";
+  else if (gender != NULL && !IN(gender, GENDER_VALUES)) err = "Pick a gender";
   else if (db_int(0, "SELECT COUNT(*) FROM lessons WHERE id = ?", "i", lesson_id) == 0) err = "That lesson doesn't exist";
-  int noptions = 0, ncorrect = 0;
-  if (err == NULL && strcmp(type, "fix") == 0) {
-    text = body_str(hm, "$.text", 1000);
-    if (text == NULL || utf8_len(text) < 3) err = "Write the text with mistakes in it";
-    else if ((lints = fix_lints(text)) == NULL) err = "Harper finds no mistakes in this text, so there's nothing to fix. Add a mistake Harper catches.";
-  } else if (err == NULL) {
-    char p[64];
-    for (int o = 0; o < 8; o++) {
-      snprintf(p, sizeof(p), "$.options[%d].text", o);
-      char *t = body_str(hm, p, 200);
-      if (t == NULL) {
-        snprintf(p, sizeof(p), "$.options[%d]", o);
-        if (mg_json_get(hm->body, p, NULL) < 0) break;
-        err = "Options can't be empty";
-        break;
-      }
-      noptions++;
-      snprintf(p, sizeof(p), "$.options[%d].correct", o);
-      bool b = false;
-      mg_json_get_bool(hm->body, p, &b);
-      ncorrect += b;
-      free(t);
+  else {
+    char *where = db_text("SELECT u.title || ' › ' || l.title FROM words w JOIN lessons l ON l.id = w.lesson_id JOIN units u ON u.id = l.unit_id"
+                          " WHERE lower(w.lt) = lower(?) AND w.id <> ? LIMIT 1",
+                          "si", lt, id);
+    if (where != NULL) {
+      snprintf(msg, sizeof(msg), "“%s” is already in the course (%s). Each word should appear once.", lt, where);
+      err = msg;
     }
-    if (err == NULL && noptions < 2) err = "Add at least two options";
-    else if (err == NULL && ncorrect != 1) err = "Mark exactly one option as correct";
+    free(where);
   }
   if (err == NULL) {
+    const char *g = gender != NULL && strcmp(pos, "noun") == 0 ? gender : "";
     if (id < 0) {
-      long long pos = db_int(0, "SELECT COALESCE(MAX(position), -1) + 1 FROM challenges WHERE lesson_id = ?", "i", lesson_id);
-      db_exec("INSERT INTO challenges (lesson_id, type, question, text, lints_json, position) VALUES (?, ?, ?, ?, ?, ?)", "issssi", lesson_id, type,
-              question, text, lints, pos);
-      id = sqlite3_last_insert_rowid(s_db);
+      db_exec("INSERT INTO words (lesson_id, lt, en, pos, gender, also, note, position)"
+              " VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, (SELECT COALESCE(MAX(position), -1) + 1 FROM words WHERE lesson_id = ?1))",
+              "issssss", lesson_id, lt, en, pos, g, also != NULL ? also : "", note != NULL ? note : "");
     } else {
-      db_exec("UPDATE challenges SET type = ?, question = ?, text = ?, lints_json = ? WHERE id = ?", "ssssi", type, question, text, lints, id);
-      db_exec("DELETE FROM challenge_options WHERE challenge_id = ?", "i", id);
-    }
-    if (strcmp(type, "choose") == 0) {
-      char p[64];
-      for (int o = 0; o < noptions; o++) {
-        snprintf(p, sizeof(p), "$.options[%d].text", o);
-        char *t = body_str(hm, p, 200);
-        snprintf(p, sizeof(p), "$.options[%d].correct", o);
-        bool b = false;
-        mg_json_get_bool(hm->body, p, &b);
-        db_exec("INSERT INTO challenge_options (challenge_id, text, correct, position) VALUES (?, ?, ?, ?)", "isii", id, t, (long long) b, (long long) o);
-        free(t);
-      }
+      db_exec("UPDATE words SET lt = ?, en = ?, pos = ?, gender = ?, also = ?, note = ? WHERE id = ?", "ssssssi", lt, en, pos, g, also != NULL ? also : "",
+              note != NULL ? note : "", id);
     }
   }
-  free(type);
-  free(question);
-  free(text);
-  free(lints);
+  free(lt);
+  free(en);
+  free(pos);
+  free(gender);
+  free(also);
+  free(note);
   return err;
 }
 
@@ -580,18 +684,6 @@ static int handle_admin(struct mg_connection *c, struct mg_http_message *hm, lon
 
   if (is_get && uri_is(hm, "/api/admin/content")) {
     reply_content(c, 200);
-    return 1;
-  }
-
-  /* Preview: what Harper underlines in a draft "fix" text. */
-  if (is_post && uri_is(hm, "/api/admin/preview")) {
-    char *text = body_str(hm, "$.text", 1000);
-    char *lints = text != NULL ? lint_cached(text) : NULL;
-    char *body = mg_mprintf("{\"lints\":%s}", lints != NULL ? lints : "[]");
-    reply_json(c, 200, body, NULL);
-    free(body);
-    free(lints);
-    free(text);
     return 1;
   }
 
@@ -629,28 +721,32 @@ static int handle_admin(struct mg_connection *c, struct mg_http_message *hm, lon
   if (is_post && uri_is(hm, "/api/admin/units")) {
     char *title = body_str(hm, "$.title", 80);
     char *desc = body_str(hm, "$.description", 200);
-    if (title == NULL) err = "Give the unit a title";
+    char *level = body_str(hm, "$.level", 6);
+    if (title == NULL) err = "Give the deck a title";
     else
-      db_exec("INSERT INTO units (title, description, position) VALUES (?, ?, (SELECT COALESCE(MAX(position), -1) + 1 FROM units))", "ss", title,
-              desc != NULL ? desc : "");
+      db_exec("INSERT INTO units (title, description, level, position) VALUES (?, ?, ?, (SELECT COALESCE(MAX(position), -1) + 1 FROM units))", "sss", title,
+              desc != NULL ? desc : "", level != NULL ? level : "");
     free(title);
     free(desc);
+    free(level);
   } else if ((is_put || is_del) && mg_match(hm->uri, mg_str("/api/admin/units/*"), caps)) {
     long long id = strtoll(caps[0].buf, NULL, 10);
     if (is_del) db_exec("DELETE FROM units WHERE id = ?", "i", id);
     else {
       char *title = body_str(hm, "$.title", 80);
       char *desc = body_str(hm, "$.description", 200);
-      if (title == NULL) err = "Give the unit a title";
-      else db_exec("UPDATE units SET title = ?, description = ? WHERE id = ?", "ssi", title, desc != NULL ? desc : "", id);
+      char *level = body_str(hm, "$.level", 6);
+      if (title == NULL) err = "Give the deck a title";
+      else db_exec("UPDATE units SET title = ?, description = ?, level = ? WHERE id = ?", "sssi", title, desc != NULL ? desc : "", level != NULL ? level : "", id);
       free(title);
       free(desc);
+      free(level);
     }
   } else if (is_post && uri_is(hm, "/api/admin/lessons")) {
     char *title = body_str(hm, "$.title", 80);
     long long unit_id = mg_json_get_long(hm->body, "$.unitId", -1);
     if (title == NULL) err = "Give the lesson a title";
-    else if (db_int(0, "SELECT COUNT(*) FROM units WHERE id = ?", "i", unit_id) == 0) err = "That unit doesn't exist";
+    else if (db_int(0, "SELECT COUNT(*) FROM units WHERE id = ?", "i", unit_id) == 0) err = "That deck doesn't exist";
     else
       db_exec("INSERT INTO lessons (unit_id, title, position) VALUES (?1, ?2, (SELECT COALESCE(MAX(position), -1) + 1 FROM lessons WHERE unit_id = ?1))", "is",
               unit_id, title);
@@ -664,13 +760,13 @@ static int handle_admin(struct mg_connection *c, struct mg_http_message *hm, lon
       else db_exec("UPDATE lessons SET title = ? WHERE id = ?", "si", title, id);
       free(title);
     }
-  } else if (is_post && uri_is(hm, "/api/admin/challenges")) {
-    err = save_challenge(hm, -1);
-  } else if ((is_put || is_del) && mg_match(hm->uri, mg_str("/api/admin/challenges/*"), caps)) {
+  } else if (is_post && uri_is(hm, "/api/admin/words")) {
+    err = save_word(hm, -1);
+  } else if ((is_put || is_del) && mg_match(hm->uri, mg_str("/api/admin/words/*"), caps)) {
     long long id = strtoll(caps[0].buf, NULL, 10);
-    if (is_del) db_exec("DELETE FROM challenges WHERE id = ?", "i", id);
-    else if (db_int(0, "SELECT COUNT(*) FROM challenges WHERE id = ?", "i", id) == 0) err = "That challenge doesn't exist";
-    else err = save_challenge(hm, id);
+    if (is_del) db_exec("DELETE FROM words WHERE id = ?", "i", id);
+    else if (db_int(0, "SELECT COUNT(*) FROM words WHERE id = ?", "i", id) == 0) err = "That word doesn't exist";
+    else err = save_word(hm, id);
   } else if (is_post && uri_is(hm, "/api/admin/move")) {
     char *kind = body_str(hm, "$.kind", 20);
     long long dir = mg_json_get_long(hm->body, "$.dir", 0);
@@ -680,6 +776,7 @@ static int handle_admin(struct mg_connection *c, struct mg_http_message *hm, lon
     reply_error(c, 404, "Not found");
     return 1;
   }
+  pool_reset(); /* words may have changed: rebuild the option pool on next use */
   if (err != NULL) reply_error(c, 400, err);
   else reply_content(c, 200);
   return 1;
