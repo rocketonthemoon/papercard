@@ -1,0 +1,13 @@
+# HTTPS in front of Grammar Duel. Caddy gets and renews a free certificate (Let's Encrypt) for DOMAIN.
+# Used by `podman compose --profile https up -d`. DOMAIN must point at this server (DNS A/AAAA record),
+# and ports 80 and 443 must be reachable from the internet for the certificate check.
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:8000
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}

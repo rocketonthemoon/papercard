@@ -1,0 +1,28 @@
+[package]
+name = "duelcore"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+description = "Grammar Duel engine: Harper (Rust) + Harper.px extra rules, scoring and Google sign-in, with a C API for the Mongoose server."
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+harper-core = { path = "vendor/harper-core", default-features = false }
+harper-brill = { path = "vendor/harper-brill" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+jsonwebtoken = "9.3"
+ureq = { version = "2.10", features = ["json"] }
+sha2 = "0.10"
+sha1 = "0.10"
+base64 = "0.22"
+getrandom = "0.2"
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+
+[workspace]

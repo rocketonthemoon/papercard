@@ -1,0 +1,192 @@
+{
+  "units": [
+    {
+      "title": "Everyday mix-ups",
+      "description": "There, their, they're, your, you're, its, it's and friends.",
+      "lessons": [
+        {
+          "title": "There, their, they're",
+          "challenges": [
+            { "type": "choose", "question": "Which sentence is correct?", "options": [
+              { "text": "Their going to the park.", "correct": false },
+              { "text": "They're going to the park.", "correct": true },
+              { "text": "There going to the park.", "correct": false } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "Their going to win the game tomorrow." },
+            { "type": "choose", "question": "___ is a cat on the roof.", "options": [
+              { "text": "There", "correct": true },
+              { "text": "Their", "correct": false },
+              { "text": "They're", "correct": false } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "Their was mud everywhere after the storm." }
+          ]
+        },
+        {
+          "title": "Your, you're, its, it's",
+          "challenges": [
+            { "type": "choose", "question": "What do you say after “thank you”?", "options": [
+              { "text": "Your welcome!", "correct": false },
+              { "text": "You're welcome!", "correct": true },
+              { "text": "Yore welcome!", "correct": false } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "Your welcome! Come back any time." },
+            { "type": "choose", "question": "Which sentence is correct?", "options": [
+              { "text": "Its a nice day.", "correct": false },
+              { "text": "It's a nice day.", "correct": true },
+              { "text": "Its' a nice day.", "correct": false } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "Its a nice day for a walk in the park." }
+          ]
+        },
+        {
+          "title": "Then, than and a lot",
+          "challenges": [
+            { "type": "choose", "question": "He is taller ___ his brother.", "options": [
+              { "text": "than", "correct": true },
+              { "text": "then", "correct": false } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "He is better then me at chess." },
+            { "type": "choose", "question": "Which spelling is correct?", "options": [
+              { "text": "It rained alot.", "correct": false },
+              { "text": "It rained a lot.", "correct": true },
+              { "text": "It rained allot.", "correct": false } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "It rained alot last weekend." }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Verbs",
+      "description": "Agreement, helping verbs and past forms.",
+      "lessons": [
+        {
+          "title": "Was and were",
+          "challenges": [
+            { "type": "choose", "question": "We ___ late for school.", "options": [
+              { "text": "was", "correct": false },
+              { "text": "were", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "We was late for school again." },
+            { "type": "choose", "question": "Which sentence is correct?", "options": [
+              { "text": "They was here.", "correct": false },
+              { "text": "They were here.", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "They was happy to see us." }
+          ]
+        },
+        {
+          "title": "Don't, doesn't, has, have",
+          "challenges": [
+            { "type": "choose", "question": "He ___ like broccoli.", "options": [
+              { "text": "don't", "correct": false },
+              { "text": "doesn't", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "He don't care about the weather." },
+            { "type": "choose", "question": "She ___ a dog.", "options": [
+              { "text": "have", "correct": false },
+              { "text": "has", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "She have a dog and two cats." }
+          ]
+        },
+        {
+          "title": "Could have, saw, went",
+          "challenges": [
+            { "type": "choose", "question": "I ___ stayed home.", "options": [
+              { "text": "could of", "correct": false },
+              { "text": "could have", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "I could of stayed home." },
+            { "type": "choose", "question": "I ___ him yesterday.", "options": [
+              { "text": "seen", "correct": false },
+              { "text": "saw", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "I seen him at the shop yesterday." },
+            { "type": "fix", "question": "Fix the mistake.", "text": "She didn't went home after school." }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Pronouns",
+      "description": "Me or I, who or whom, has or have.",
+      "lessons": [
+        {
+          "title": "Me or I",
+          "challenges": [
+            { "type": "choose", "question": "___ went to the park.", "options": [
+              { "text": "Me and him", "correct": false },
+              { "text": "He and I", "correct": true },
+              { "text": "Him and me", "correct": false } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "Me and him went to the park." },
+            { "type": "choose", "question": "This is between you and ___.", "options": [
+              { "text": "I", "correct": false },
+              { "text": "me", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "This secret is between you and I." }
+          ]
+        },
+        {
+          "title": "Who or whom",
+          "challenges": [
+            { "type": "choose", "question": "I know ___ I am.", "options": [
+              { "text": "who", "correct": true },
+              { "text": "whom", "correct": false } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "I know whom I am." },
+            { "type": "choose", "question": "___ is coming tonight?", "options": [
+              { "text": "Who", "correct": true },
+              { "text": "Whom", "correct": false } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "Whom is coming to dinner tonight?" }
+          ]
+        },
+        {
+          "title": "Each and everyone",
+          "challenges": [
+            { "type": "choose", "question": "Each of the students ___ a book.", "options": [
+              { "text": "have", "correct": false },
+              { "text": "has", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "Each of the students have a book." },
+            { "type": "choose", "question": "Everyone ___ their own opinion.", "options": [
+              { "text": "have", "correct": false },
+              { "text": "has", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "Everyone have their own opinion." }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Word choice",
+      "description": "Less or fewer, affect or effect, and idioms people mishear.",
+      "lessons": [
+        {
+          "title": "Less or fewer",
+          "challenges": [
+            { "type": "choose", "question": "There were ___ people than expected.", "options": [
+              { "text": "less", "correct": false },
+              { "text": "fewer", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "There were less people than expected." },
+            { "type": "choose", "question": "There ___ many reasons to stay.", "options": [
+              { "text": "is", "correct": false },
+              { "text": "are", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "There is many reasons to stay." }
+          ]
+        },
+        {
+          "title": "Affect, effect, lose, loose",
+          "challenges": [
+            { "type": "choose", "question": "The ___ of the medicine was strong.", "options": [
+              { "text": "affect", "correct": false },
+              { "text": "effect", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "The affect of the medicine was strong." },
+            { "type": "choose", "question": "Don't ___ your keys.", "options": [
+              { "text": "loose", "correct": false },
+              { "text": "lose", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "I don't want to loose the game." }
+          ]
+        },
+        {
+          "title": "Idioms",
+          "challenges": [
+            { "type": "choose", "question": "Which is the correct idiom?", "options": [
+              { "text": "tow the line", "correct": false },
+              { "text": "toe the line", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "They always tow the line at work." },
+            { "type": "choose", "question": "Honestly, I ___ care less.", "options": [
+              { "text": "could", "correct": false },
+              { "text": "couldn't", "correct": true } ] },
+            { "type": "fix", "question": "Fix the mistake.", "text": "Honestly, I could care less about the score." },
+            { "type": "fix", "question": "Fix the redundant phrase.", "text": "It was a free gift from the shop." }
+          ]
+        }
+      ]
+    }
+  ]
+}

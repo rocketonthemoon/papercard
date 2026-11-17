@@ -1,0 +1,4 @@
+engine/target/
+.env
+*.sqlite*
+tests/
