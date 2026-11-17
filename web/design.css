@@ -2303,3 +2303,266 @@ label.check span {
     text-align: center;
   }
 }
+
+/* ---------------------------------------------------------------- flashcards review */
+.fc-review {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 16px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: calc(100vh - 120px);
+}
+
+.fc-top {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.fc-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.fc-counter {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.fc-counter b {
+  color: var(--green);
+}
+
+.fc-top .progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  width: 100%;
+}
+
+.fc-top-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.fc-stage {
+  perspective: 1200px;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.flashcard {
+  position: relative;
+  width: 100%;
+  min-height: 340px;
+  border-radius: calc(var(--radius) + 4px);
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.flashcard.flipped {
+  transform: rotateY(180deg);
+}
+
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: calc(var(--radius) + 4px);
+  padding: 24px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 0.1);
+  box-sizing: border-box;
+}
+
+.flashcard:hover .flashcard-face {
+  border-color: color-mix(in srgb, var(--green) 40%, var(--line));
+}
+
+.flashcard-front {
+  background: var(--surface);
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+  background: color-mix(in srgb, var(--surface) 93%, var(--green-soft));
+  border-color: color-mix(in srgb, var(--green) 45%, var(--line));
+}
+
+.fc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.fc-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  padding: 24px 8px;
+  flex: 1;
+}
+
+.fc-word {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--text);
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.fc-lang {
+  font-size: 13.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.fc-speaker {
+  margin-top: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 15%, transparent);
+}
+
+.fc-speaker:hover {
+  color: var(--green);
+  background: color-mix(in srgb, var(--green) 15%, transparent);
+}
+
+.fc-speaker svg {
+  width: 18px;
+  height: 18px;
+}
+
+.fc-note {
+  font-size: 15px;
+  color: var(--muted);
+  max-width: 85%;
+  line-height: 1.45;
+  margin: 4px 0 0;
+}
+
+.fc-foot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.fc-foot svg {
+  width: 15px;
+  height: 15px;
+}
+
+.fc-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fc-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.fc-actions .btn {
+  flex: 1;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.fc-actions .btn.fc-flip {
+  flex: 2;
+}
+
+.fc-rate-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.fc-rate-row .btn {
+  flex: 1;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: var(--radius);
+}
+
+.fc-rate-row .btn.learning {
+  background: transparent;
+  border-color: #ffaa33;
+  color: #ffaa33;
+}
+
+.fc-rate-row .btn.learning:hover {
+  background: color-mix(in srgb, #ffaa33 15%, transparent);
+}
+
+.fc-rate-row .btn.mastered {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+.fc-rate-row .btn.mastered:hover {
+  filter: brightness(1.08);
+}
+
+.fc-keyboard-hints {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 480px) {
+  .fc-word {
+    font-size: 28px;
+  }
+  .flashcard {
+    min-height: 290px;
+  }
+  .fc-keyboard-hints {
+    display: none;
+  }
+}

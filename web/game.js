@@ -1320,30 +1320,283 @@ async function renderLesson(id) {
   runPlayer({ mode: practice ? "practice" : "lesson", queue, stats: data.stats, lesson: data.lesson });
 }
 
+/** Fisher-Yates array shuffle. */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** Speech synthesis helper for flashcard pronunciation. */
+function speakWord(text, lang = "lt-LT") {
+  if (!window.speechSynthesis) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    window.speechSynthesis.speak(u);
+  } catch {}
+}
+
+const FC_ICONS = {
+  shuffle: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h3v3M3.5 16.5l4-4 2 2 4 4h3M16.5 13.5v3h-3M3.5 3.5l6 6M12 12l4.5 4.5"/></svg>`,
+  flip: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11a3 3 0 0 1 3 3v1M6 4 3 7l3 3M17 13H6a3 3 0 0 1-3-3V9M14 16l3-3-3-3"/></svg>`,
+  speaker: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4.5 4.5 8H2v4h2.5L9 15.5V4.5z"/><path d="M13 7a4 4 0 0 1 0 6"/><path d="M15.5 4.5a7.5 7.5 0 0 1 0 11"/></svg>`,
+};
+
+/** Interactive Flashcards session for learned words in shuffled order. */
+function runFlashcards({ words, stats, course, now }) {
+  document.body.classList.add("focus");
+  let deck = shuffle(words);
+  let index = 0;
+  let flipped = false;
+  let direction = "lt-en"; // "lt-en": Target language on front, English on back
+  const mastered = new Set();
+  const stillLearning = new Set();
+
+  const toLanguageName = course?.toLang || "Lithuanian";
+  const fromLanguageName = course?.fromLang || "English";
+  const courseBack = course?.id ? `#/learn/course/${course.id}` : "#/learn";
+
+  const render = () => {
+    if (index >= deck.length) {
+      document.body.classList.remove("focus");
+      cleanup();
+      $app.innerHTML = `
+        <section class="card finish">
+          <span class="finish-icon">${I.cards}</span>
+          <h1>Review complete!</h1>
+          <p class="muted">You reviewed all ${words.length} learned words in shuffled order.</p>
+          <div class="finish-stats">
+            <div class="fstat xp"><span>Mastered</span><b>${mastered.size}</b></div>
+            <div class="fstat acc"><span>Practiced</span><b>${stillLearning.size}</b></div>
+            <div class="fstat hp"><span>Cards</span><b>${words.length}</b></div>
+          </div>
+          <div class="row" style="justify-content:center">
+            <button class="btn big" id="fc-again">${FC_ICONS.shuffle} Shuffle & Review again</button>
+            <a class="btn big outline" href="${courseBack}">Done</a>
+          </div>
+          <a class="small" href="#/learn/words">${I.list} All your words</a>
+        </section>`;
+      document.getElementById("fc-again")?.addEventListener("click", () => {
+        runFlashcards({ words, stats, course, now });
+      });
+      return;
+    }
+
+    const w = deck[index];
+    const isLtFront = direction === "lt-en";
+    const frontText = isLtFront ? w.lt : w.en;
+    const backText = isLtFront ? w.en : w.lt;
+    const frontLang = isLtFront ? toLanguageName : fromLanguageName;
+    const backLang = isLtFront ? fromLanguageName : toLanguageName;
+    const progressPct = Math.round(((index) / deck.length) * 100);
+
+    $app.innerHTML = `
+      <div class="fc-review">
+        <header class="fc-top">
+          <div class="fc-top-bar">
+            <button class="icon-btn" id="fc-quit" aria-label="Quit review">${I.close}</button>
+            <div class="fc-counter">Card <b>${index + 1}</b> / ${deck.length}</div>
+            <div class="fc-top-actions">
+              <button class="btn outline small" id="fc-shuffle" title="Reshuffle deck">${FC_ICONS.shuffle} Shuffle</button>
+              <button class="btn outline small" id="fc-dir" title="Change card direction">${isLtFront ? `${toLanguageName.slice(0, 2).toUpperCase()} → ${fromLanguageName.slice(0, 2).toUpperCase()}` : `${fromLanguageName.slice(0, 2).toUpperCase()} → ${toLanguageName.slice(0, 2).toUpperCase()}`}</button>
+            </div>
+          </div>
+          <div class="progress" role="progressbar" aria-valuenow="${index + 1}" aria-valuemin="1" aria-valuemax="${deck.length}">
+            <i style="width: ${progressPct}%"></i>
+          </div>
+        </header>
+
+        <div class="fc-stage">
+          <div class="flashcard ${flipped ? "flipped" : ""}" id="fc-card" tabindex="0" role="button" aria-label="Flashcard: ${esc(frontText)}. Click or press space to flip.">
+            <!-- Front -->
+            <div class="flashcard-face flashcard-front">
+              <div class="fc-head">
+                <span class="tag-chip">${w.pos ? esc(w.pos) : "Word"}</span>
+                ${w.gender ? `<span class="pill">${esc(w.gender)}</span>` : ""}
+                ${w.dueAt && w.dueAt <= now ? `<span class="pill due">Due for review</span>` : `<span class="pill ok">Learned</span>`}
+              </div>
+              <div class="fc-body">
+                <h2 class="fc-word"${isLtFront ? L() : ""}>${esc(frontText)}</h2>
+                <span class="fc-lang">${esc(frontLang)}</span>
+                <button type="button" class="icon-btn fc-speaker" id="fc-speak" title="Listen" aria-label="Listen to pronunciation">${FC_ICONS.speaker}</button>
+              </div>
+              <div class="fc-foot">
+                <span>${FC_ICONS.flip} Tap card or press <b>Space</b> to flip</span>
+              </div>
+            </div>
+
+            <!-- Back -->
+            <div class="flashcard-face flashcard-back">
+              <div class="fc-head">
+                <span class="tag-chip">${esc(w.pos || "Meaning")}</span>
+                <span class="pill ok">Answer</span>
+              </div>
+              <div class="fc-body">
+                <h2 class="fc-word"${!isLtFront ? L() : ""}>${esc(backText)}</h2>
+                <span class="fc-lang">${esc(backLang)}</span>
+                ${w.note ? `<p class="fc-note">${esc(w.note)}</p>` : ""}
+                ${w.also ? `<p class="fc-also muted small">Also accepted: ${esc(w.also)}</p>` : ""}
+              </div>
+              <div class="fc-foot">
+                <span>Did you recall this correctly?</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fc-controls">
+          ${
+            flipped
+              ? `<div class="fc-rate-row">
+                  <button class="btn outline learning" id="fc-learning">Still learning</button>
+                  <button class="btn mastered" id="fc-mastered">Got it! ✓</button>
+                </div>`
+              : `<div class="fc-actions">
+                  <button class="btn outline" id="fc-prev" ${index === 0 ? "disabled" : ""}>← Previous</button>
+                  <button class="btn fc-flip" id="fc-flip-btn">${FC_ICONS.flip} Flip card</button>
+                  <button class="btn outline" id="fc-skip">Skip →</button>
+                </div>`
+          }
+          <p class="fc-keyboard-hints">Keyboard: <b>Space</b> to flip · <b>←</b> Previous · <b>→</b> Next</p>
+        </div>
+      </div>`;
+
+    document.getElementById("fc-card")?.addEventListener("click", () => {
+      flipped = !flipped;
+      render();
+    });
+
+    document.getElementById("fc-flip-btn")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      flipped = true;
+      render();
+    });
+
+    document.getElementById("fc-speak")?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      speakWord(isLtFront ? w.lt : w.en, isLtFront ? "lt-LT" : "en-US");
+    });
+
+    document.getElementById("fc-quit")?.addEventListener("click", () => {
+      cleanup();
+      location.hash = courseBack;
+    });
+
+    document.getElementById("fc-shuffle")?.addEventListener("click", () => {
+      deck = shuffle(words);
+      index = 0;
+      flipped = false;
+      toast("Cards shuffled!");
+      render();
+    });
+
+    document.getElementById("fc-dir")?.addEventListener("click", () => {
+      direction = direction === "lt-en" ? "en-lt" : "lt-en";
+      flipped = false;
+      render();
+    });
+
+    document.getElementById("fc-prev")?.addEventListener("click", () => {
+      if (index > 0) {
+        index--;
+        flipped = false;
+        render();
+      }
+    });
+
+    document.getElementById("fc-skip")?.addEventListener("click", () => {
+      index++;
+      flipped = false;
+      render();
+    });
+
+    document.getElementById("fc-learning")?.addEventListener("click", () => {
+      stillLearning.add(w.id);
+      deck.push(w);
+      index++;
+      flipped = false;
+      render();
+    });
+
+    document.getElementById("fc-mastered")?.addEventListener("click", () => {
+      mastered.add(w.id);
+      if (w.dueAt && w.dueAt <= now) {
+        api(`/learn/words/${w.id}/answer`, { method: "POST", body: { review: true, text: w.lt, kind: "type_lt" } }).catch(() => {});
+      }
+      index++;
+      flipped = false;
+      render();
+    });
+  };
+
+  const onKey = (e) => {
+    if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
+    if (e.code === "Space" || e.code === "Enter" || e.code === "ArrowUp" || e.code === "ArrowDown") {
+      e.preventDefault();
+      flipped = !flipped;
+      render();
+    } else if (e.code === "ArrowRight") {
+      e.preventDefault();
+      if (flipped) {
+        mastered.add(deck[index]?.id);
+        index++;
+        flipped = false;
+        render();
+      } else {
+        index++;
+        flipped = false;
+        render();
+      }
+    } else if (e.code === "ArrowLeft" && index > 0) {
+      e.preventDefault();
+      index--;
+      flipped = false;
+      render();
+    }
+  };
+
+  window.addEventListener("keydown", onKey);
+  const cleanup = () => {
+    window.removeEventListener("keydown", onKey);
+  };
+  addEventListener("hashchange", cleanup, { once: true });
+
+  render();
+}
+
 async function renderReview() {
   document.body.classList.add("focus");
-  $app.innerHTML = `<p class="muted loading">Loading your review…</p>`;
-  let data;
+  $app.innerHTML = `<p class="muted loading">Loading your review flashcards…</p>`;
+  let wordsData;
   try {
-    data = await api("/learn/review");
+    wordsData = await api("/learn/words");
   } catch (x) {
     document.body.classList.remove("focus");
     $app.innerHTML = errorCard(x.message);
     return;
   }
-  course = data.course;
-  if (!data.challenges.length) {
+  course = wordsData.course;
+  const { units, stats, now } = wordsData;
+  const learnedWords = (units || []).flatMap((u) => (u.lessons || []).flatMap((l) => l.words || [])).filter((w) => w.learned);
+
+  if (!learnedWords.length) {
     document.body.classList.remove("focus");
-    const s = data.stats;
+    const s = stats || {};
     $app.innerHTML = `<section class="card finish">
       <span class="finish-icon">${I.cards}</span>
-      <h1>${s.learned ? "All caught up!" : "Nothing to review yet"}</h1>
-      <p class="muted">${s.learned ? `You've reviewed everything that's due. Next review ${fmtUntil(s.nextDueAt)}.` : "Finish a lesson first. The words you learn come back here a day later, then at longer and longer gaps."}</p>
-      <div class="row" style="justify-content:center"><a class="btn outline" href="#/learn/words">${I.list} Your words</a><a class="btn" href="#/learn">Back to Learn</a></div>
+      <h1>${s.learned ? "No learned words yet" : "Nothing to review yet"}</h1>
+      <p class="muted">${s.learned ? "Finish a lesson first to unlock flashcard review." : "Complete your first lesson! Words you learn will appear here as shuffled flashcards."}</p>
+      <div class="row" style="justify-content:center"><a class="btn" href="${course?.id ? `#/learn/course/${course.id}` : '#/learn'}">Start a lesson</a></div>
     </section>`;
     return;
   }
-  runPlayer({ mode: "review", queue: data.challenges, stats: data.stats });
+
+  runFlashcards({ words: learnedWords, stats, course, now });
 }
 
 /**
