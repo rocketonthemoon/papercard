@@ -13,7 +13,9 @@
  *   GET    /api/users/<username>/followers    (and /following) the lists
  *   PUT    /api/me                            your username and bio
  *   GET    /api/feed                          new and updated courses from people you follow
+ *   POST   /api/redeem                        redeem an access code {code}: opens its (locked) course, once
  *   GET    /api/admin/courses                 every course, for moderation (admins)
+ *   PUT    /api/admin/courses/<id>            hide or unhide a course {hidden} (admins; they can't edit others' courses)
  */
 
 #define MAX_COURSES_PER_USER 20
@@ -176,6 +178,8 @@ static const char *save_course(struct mg_http_message *hm, long long uid, long l
     db_exec("UPDATE courses SET title = ?, description = ?, from_lang = ?, to_lang = ?, to_code = ?, letters = ?, updated_at = ? WHERE id = ?", "ssssssii", title,
             desc != NULL ? desc : "", from != NULL ? from : "English", to, code != NULL ? code : "", letters != NULL ? letters : "", now_ms(), *cid);
   }
+  bool locked = false;
+  if (err == NULL && mg_json_get_bool(hm->body, "$.locked", &locked)) db_exec("UPDATE courses SET locked = ? WHERE id = ?", "ii", (long long) locked, *cid);
   free(title);
   free(desc);
   free(from);
@@ -380,6 +384,34 @@ static void import_course(struct mg_connection *c, struct mg_http_message *hm, l
   free(body);
 }
 
+/* ---------------------------------------------------------------- access codes */
+
+/* Redeems an access code: marks it used (atomically, so it works exactly once) and enrolls you in its course.
+ * Wrong codes are limited to 10 per 10 minutes per person. */
+static void redeem(struct mg_connection *c, struct mg_http_message *hm, long long uid) {
+  long long now = now_ms();
+  if (db_int(0, "SELECT COUNT(*) FROM redeem_failures WHERE user_id = ? AND at > ?", "ii", uid, now - 10 * 60 * 1000LL) >= 10)
+    return reply_error(c, 429, "Too many wrong codes. Wait a few minutes and try again.");
+  char *typed = mg_json_get_str(hm->body, "$.code");
+  char code[TOKEN_GROUPS * (TOKEN_GROUP_LEN + 1)] = "";
+  if (typed != NULL && strlen(typed) < 80) canonical_token(typed, code);
+  free(typed);
+  long long cid = code[0] ? db_int(0, "SELECT course_id FROM course_tokens WHERE code = ?", "s", code) : 0;
+  if (cid == 0 || !can_view(uid, cid)) {
+    db_exec("INSERT INTO redeem_failures (user_id, at) VALUES (?, ?)", "ii", uid, now);
+    db_exec("DELETE FROM redeem_failures WHERE at < ?", "i", now - 24 * 3600 * 1000LL);
+    return reply_error(c, 400, "That code isn't valid. Check it and try again.");
+  }
+  if (db_int(0, "SELECT used_at IS NOT NULL FROM course_tokens WHERE code = ?", "s", code) == 1)
+    return reply_error(c, 400, "That code has already been used.");
+  if (has_access(uid, cid))
+    return reply_error(c, 409, "You already have this course, so the code wasn't used. Keep it for someone else.");
+  db_exec("UPDATE course_tokens SET used_by = ?, used_at = ? WHERE code = ? AND used_at IS NULL", "iis", uid, now, code);
+  if (sqlite3_changes(s_db) != 1) return reply_error(c, 400, "That code has already been used.");
+  enroll(uid, cid, 1);
+  reply_course(c, uid, cid);
+}
+
 /* ---------------------------------------------------------------- routes */
 
 /* Returns 1 if it handled the request. */
@@ -409,6 +441,7 @@ static int handle_courses(struct mg_connection *c, struct mg_http_message *hm, l
   if (mg_match(hm->uri, mg_str("/api/courses/*/enroll"), caps) && (is_post || is_del)) {
     long long cid = strtoll(caps[0].buf, NULL, 10);
     if (!can_view(uid, cid)) reply_error(c, 404, "No such course");
+    else if (is_post && !has_access(uid, cid)) reply_error(c, 423, LOCKED_MSG);
     else {
       if (is_post) enroll(uid, cid, 1);
       else {
@@ -432,9 +465,6 @@ static int handle_courses(struct mg_connection *c, struct mg_http_message *hm, l
     else if (is_put) {
       if (!require_json(c, hm)) return 1;
       const char *err = save_course(hm, uid, &cid);
-      bool hidden = false;
-      if (err == NULL && is_admin(uid) && mg_json_get_bool(hm->body, "$.hidden", &hidden))
-        db_exec("UPDATE courses SET hidden = ? WHERE id = ?", "ii", (long long) hidden, cid);
       pool_reset();
       if (err != NULL) reply_error(c, 400, err);
       else reply_course(c, uid, cid);
@@ -443,6 +473,26 @@ static int handle_courses(struct mg_connection *c, struct mg_http_message *hm, l
       pool_reset();
       reply_json(c, 200, "{\"ok\":true}", NULL);
     } else reply_error(c, 404, "Not found");
+    return 1;
+  }
+
+  if (is_post && uri_is(hm, "/api/redeem")) {
+    if (!require_json(c, hm)) return 1;
+    redeem(c, hm, uid);
+    return 1;
+  }
+  if (is_put && mg_match(hm->uri, mg_str("/api/admin/courses/*"), caps)) {
+    long long cid = strtoll(caps[0].buf, NULL, 10);
+    bool hidden = false;
+    if (!is_admin(uid)) reply_error(c, 403, "Admins only");
+    else if (!course_exists(cid)) reply_error(c, 404, "No such course");
+    else if (!require_json(c, hm)) return 1;
+    else if (!mg_json_get_bool(hm->body, "$.hidden", &hidden)) reply_error(c, 400, "Say whether the course is hidden");
+    else {
+      db_exec("UPDATE courses SET hidden = ? WHERE id = ?", "ii", (long long) hidden, cid);
+      pool_reset();
+      reply_course(c, uid, cid);
+    }
     return 1;
   }
 

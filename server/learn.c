@@ -55,7 +55,12 @@ static const char *LEARN_SCHEMA =
     "CREATE TABLE IF NOT EXISTS unit_feedback ("
     "  id INTEGER PRIMARY KEY, unit_id INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,"
     "  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, rating INTEGER, category TEXT, text TEXT NOT NULL,"
-    "  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'done')), created_at INTEGER NOT NULL);";
+    "  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'done')), created_at INTEGER NOT NULL);"
+    /* Access codes for locked courses: each opens its course for one person, once. */
+    "CREATE TABLE IF NOT EXISTS course_tokens ("
+    "  id INTEGER PRIMARY KEY, course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE, code TEXT NOT NULL UNIQUE,"
+    "  created_at INTEGER NOT NULL, used_by INTEGER REFERENCES users(id) ON DELETE SET NULL, used_at INTEGER);"
+    "CREATE TABLE IF NOT EXISTS redeem_failures (user_id INTEGER NOT NULL, at INTEGER NOT NULL);";
 
 /* Columns added after the first release (each ignored if it already exists). */
 static const char *ADDED_COLUMNS[] = {
@@ -68,6 +73,7 @@ static const char *ADDED_COLUMNS[] = {
     "ALTER TABLE users ADD COLUMN current_course_id INTEGER",
     "ALTER TABLE units ADD COLUMN course_id INTEGER REFERENCES courses(id) ON DELETE CASCADE",
     "ALTER TABLE duels ADD COLUMN course_id INTEGER",
+    "ALTER TABLE courses ADD COLUMN locked INTEGER NOT NULL DEFAULT 0",
 };
 
 /* Indexes on those columns, so created after them. */
@@ -82,7 +88,10 @@ static const char *LEARN_INDEXES =
     "CREATE INDEX IF NOT EXISTS follows_following ON follows(following_id);"
     "CREATE INDEX IF NOT EXISTS xp_events_user_at ON xp_events(user_id, at);"
     "CREATE INDEX IF NOT EXISTS xp_events_at ON xp_events(at);"
-    "CREATE INDEX IF NOT EXISTS unit_feedback_unit ON unit_feedback(unit_id, status);";
+    "CREATE INDEX IF NOT EXISTS unit_feedback_unit ON unit_feedback(unit_id, status);"
+    "CREATE INDEX IF NOT EXISTS course_tokens_course ON course_tokens(course_id, used_at);"
+    "CREATE INDEX IF NOT EXISTS course_tokens_user ON course_tokens(used_by, course_id);"
+    "CREATE INDEX IF NOT EXISTS redeem_failures_user ON redeem_failures(user_id, at);";
 
 static const char *POS_VALUES[] = {"noun", "verb", "phrase", "other"};
 static const char *GENDER_VALUES[] = {"", "m", "f", "mpl", "fpl"};
@@ -97,6 +106,12 @@ static char s_admins[1024]; /* comma-separated, lowercase: emails, or dev:<name>
   "json_object('id', w.id, 'lt', w.lt, 'en', w.en, 'pos', w.pos, 'gender', w.gender, 'unitId', l.unit_id, 'completed',"                       \
   " " JBOOL("EXISTS (SELECT 1 FROM word_progress p WHERE p.word_id = w.id AND p.user_id = ?2)") ")"
 
+/* Whether user ?1 may learn from course `id` (row alias `r`): it isn't locked, they made it, they were enrolled
+ * (before it was locked, or with a code), or they redeemed one of its codes. */
+#define HAS_ACCESS_SQL(id, r)                                                                                                                      \
+  "(" r ".locked = 0 OR " r ".creator_id = ?1 OR EXISTS (SELECT 1 FROM enrollments ea WHERE ea.course_id = " id " AND ea.user_id = ?1)"           \
+  " OR EXISTS (SELECT 1 FROM course_tokens ta WHERE ta.course_id = " id " AND ta.used_by = ?1))"
+
 /* A course card. Needs `c` (courses) joined with `cu` (its creator), and `?1` bound to the viewer's user id. */
 #define COURSE_JSON                                                                                                                                \
   "json_object('id', c.id, 'title', c.title, 'description', c.description, 'fromLang', c.from_lang, 'toLang', c.to_lang,"                     \
@@ -108,7 +123,8 @@ static char s_admins[1024]; /* comma-separated, lowercase: emails, or dev:<name>
   " 'learned', (SELECT COUNT(*) FROM word_progress p JOIN words w ON w.id = p.word_id JOIN lessons l ON l.id = w.lesson_id JOIN units u ON u.id = l.unit_id"   "   WHERE p.user_id = ?1 AND u.course_id = c.id),"                                                                                           \
   " 'enrolled', " JBOOL("EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.user_id = ?1)") ","                                \
   " 'isCurrent', " JBOOL("c.id = (SELECT current_course_id FROM users WHERE id = ?1)") ","                                                     \
-  " 'mine', " JBOOL("c.creator_id = ?1") ")"
+  " 'mine', " JBOOL("c.creator_id = ?1") ", 'locked', " JBOOL("c.locked") ","                                                                 \
+  " 'hasAccess', " JBOOL(HAS_ACCESS_SQL("c.id", "c")) ")"
 
 #define COURSE_FROM " FROM courses c JOIN users cu ON cu.id = c.creator_id"
 
@@ -372,9 +388,12 @@ static int course_exists(long long cid) {
   return db_int(0, "SELECT COUNT(*) FROM courses WHERE id = ?", "i", cid) == 1;
 }
 
+/* The creator edits their course. Admins edit only the official account's courses; other people's courses they
+ * can hide or unhide (see /api/admin/courses), never change. */
 static int can_edit(long long uid, long long cid) {
   if (!course_exists(cid)) return 0;
-  return db_int(0, "SELECT creator_id = ? FROM courses WHERE id = ?", "ii", uid, cid) == 1 || is_admin(uid);
+  if (db_int(0, "SELECT creator_id = ? FROM courses WHERE id = ?", "ii", uid, cid) == 1) return 1;
+  return db_int(0, "SELECT u.is_official FROM courses c JOIN users u ON u.id = c.creator_id WHERE c.id = ?", "i", cid) == 1 && is_admin(uid);
 }
 
 /* Hidden courses (hidden by an admin) are only visible to their creator and admins. */
@@ -382,6 +401,15 @@ static int can_view(long long uid, long long cid) {
   if (!course_exists(cid)) return 0;
   return db_int(0, "SELECT hidden = 0 OR creator_id = ? FROM courses WHERE id = ?", "ii", uid, cid) == 1 || is_admin(uid);
 }
+
+/* Whether you may learn from the course: you can see it, and it's open to you (see HAS_ACCESS_SQL). Admins can
+ * open any course, to moderate it. */
+static int has_access(long long uid, long long cid) {
+  if (!can_view(uid, cid)) return 0;
+  return db_int(0, "SELECT " HAS_ACCESS_SQL("?2", "r") " FROM courses r WHERE r.id = ?2", "ii", uid, cid) == 1 || is_admin(uid);
+}
+
+#define LOCKED_MSG "This course is locked. Enter an access code from its creator to open it."
 
 static long long course_of_unit(long long id) {
   return db_int(0, "SELECT course_id FROM units WHERE id = ?", "i", id);
@@ -414,7 +442,7 @@ static long long requested_course(struct mg_http_message *hm, long long uid) {
   char buf[24] = "";
   mg_http_get_var(&hm->query, "course", buf, sizeof(buf));
   long long cid = buf[0] ? strtoll(buf, NULL, 10) : 0;
-  return cid > 0 && can_view(uid, cid) ? cid : current_course(uid);
+  return cid > 0 && has_access(uid, cid) ? cid : current_course(uid);
 }
 
 /* After signing in: a username, and new players start on the official course. */
@@ -642,6 +670,7 @@ static void reply_learn_path(struct mg_connection *c, long long uid, long long c
 static void reply_lesson(struct mg_connection *c, long long uid, long long lesson_id) {
   long long cid = course_of_lesson(lesson_id);
   if (cid == 0 || !can_view(uid, cid)) return reply_error(c, 404, "No such lesson");
+  if (!has_access(uid, cid)) return reply_error(c, 423, LOCKED_MSG);
   enroll(uid, cid, db_int(0, "SELECT COUNT(*) FROM enrollments WHERE user_id = ? AND course_id = ?", "ii", uid, cid) == 0); /* starting a lesson joins the course */
   char *lesson = db_text("SELECT json_object('id', l.id, 'title', l.title, 'unitId', u.id, 'unitTitle', u.title, 'level', u.level)"
                          " FROM lessons l JOIN units u ON u.id = l.unit_id WHERE l.id = ?",
@@ -707,6 +736,7 @@ static void reply_words(struct mg_connection *c, long long uid, long long cid) {
 static void answer_word(struct mg_connection *c, struct mg_http_message *hm, long long uid, long long wid) {
   long long cid = course_of_word(wid);
   if (cid == 0 || !can_view(uid, cid)) return reply_error(c, 404, "No such word");
+  if (!has_access(uid, cid)) return reply_error(c, 423, LOCKED_MSG);
   char kind[12] = "";
   char *k = mg_json_get_str(hm->body, "$.kind");
   if (k != NULL) snprintf(kind, sizeof(kind), "%s", k);
@@ -853,6 +883,7 @@ static int handle_learn(struct mg_connection *c, struct mg_http_message *hm, lon
     if (!require_json(c, hm)) return 1;
     long long cid = mg_json_get_long(hm->body, "$.courseId", 0);
     if (!can_view(uid, cid)) reply_error(c, 404, "No such course");
+    else if (!has_access(uid, cid)) reply_error(c, 423, LOCKED_MSG);
     else {
       enroll(uid, cid, 1);
       reply_learn_path(c, uid, cid);
@@ -995,6 +1026,107 @@ static const char *save_word(struct mg_http_message *hm, long long id, long long
   return err;
 }
 
+/* ---- access codes */
+
+static const char TOKEN_ALPHABET[] = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; /* 32 letters: no I, O, 0, 1 */
+#define TOKEN_GROUPS 3
+#define TOKEN_GROUP_LEN 5 /* 15 letters x 5 bits = 75 random bits, e.g. K7QX4-M2PRT-9HZBN */
+
+static void new_token(char out[TOKEN_GROUPS * (TOKEN_GROUP_LEN + 1)]) {
+  unsigned char r[TOKEN_GROUPS * TOKEN_GROUP_LEN];
+  random_bytes(r, sizeof(r));
+  size_t o = 0;
+  for (int i = 0; i < TOKEN_GROUPS * TOKEN_GROUP_LEN; i++) {
+    if (i > 0 && i % TOKEN_GROUP_LEN == 0) out[o++] = '-';
+    out[o++] = TOKEN_ALPHABET[r[i] & 31];
+  }
+  out[o] = '\0';
+}
+
+/* A code as typed (any case, spaces or dashes anywhere) in its stored form, or "" if it can't be one. */
+static void canonical_token(const char *in, char out[TOKEN_GROUPS * (TOKEN_GROUP_LEN + 1)]) {
+  char raw[TOKEN_GROUPS * TOKEN_GROUP_LEN + 1];
+  size_t n = 0;
+  for (const char *p = in; *p; p++) {
+    char ch = (char) (*p >= 'a' && *p <= 'z' ? *p - 32 : *p);
+    if (ch == ' ' || ch == '-') continue;
+    if (n == sizeof(raw) - 1 || strchr(TOKEN_ALPHABET, ch) == NULL || ch == '\0') {
+      out[0] = '\0';
+      return;
+    }
+    raw[n++] = ch;
+  }
+  if (n != TOKEN_GROUPS * TOKEN_GROUP_LEN) {
+    out[0] = '\0';
+    return;
+  }
+  size_t o = 0;
+  for (size_t i = 0; i < n; i++) {
+    if (i > 0 && i % TOKEN_GROUP_LEN == 0) out[o++] = '-';
+    out[o++] = raw[i];
+  }
+  out[o] = '\0';
+}
+
+#define TOKEN_STATS                                                                                                                                \
+  "'unused', (SELECT COUNT(*) FROM course_tokens WHERE course_id = ?1 AND used_at IS NULL),"                                                     \
+  " 'used', (SELECT COUNT(*) FROM course_tokens WHERE course_id = ?1 AND used_at IS NOT NULL)"
+
+/* GET /tokens: counts and recent redemptions. POST /tokens {count}: new codes (1-500). DELETE /tokens: revoke all
+ * unused codes. GET /tokens.txt: every unused code, one per line, as a download. */
+static void studio_tokens(struct mg_connection *c, struct mg_http_message *hm, long long uid, long long cid, int txt) {
+  (void) uid;
+  if (txt) {
+    if (!method_is(hm, "GET")) return reply_error(c, 405, "Use GET");
+    char *codes = db_text("SELECT group_concat(code, char(10)) FROM (SELECT code FROM course_tokens WHERE course_id = ? AND used_at IS NULL ORDER BY id)", "i", cid);
+    char *headers = mg_mprintf("Content-Type: text/plain; charset=utf-8\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\n"
+                               "Content-Disposition: attachment; filename=\"course-%lld-unused-codes.txt\"\r\n",
+                               cid);
+    mg_http_reply(c, 200, headers, "%s%s", codes != NULL ? codes : "", codes != NULL ? "\n" : "");
+    free(headers);
+    free(codes);
+    return;
+  }
+  if (method_is(hm, "POST")) {
+    if (!require_json(c, hm)) return;
+    long long count = mg_json_get_long(hm->body, "$.count", 0);
+    if (count < 1 || count > 500) return reply_error(c, 400, "Create between 1 and 500 codes at a time");
+    if (db_int(0, "SELECT COUNT(*) FROM course_tokens WHERE course_id = ? AND used_at IS NULL", "i", cid) + count > 50000)
+      return reply_error(c, 400, "A course can have at most 50,000 unused codes. Revoke some first.");
+    char *list = strdup("[");
+    long long now = now_ms();
+    sqlite3_exec(s_db, "BEGIN", NULL, NULL, NULL);
+    for (long long i = 0; i < count; i++) {
+      char code[TOKEN_GROUPS * (TOKEN_GROUP_LEN + 1)];
+      int rc = SQLITE_CONSTRAINT;
+      for (int tries = 0; tries < 5 && rc == SQLITE_CONSTRAINT; tries++) {
+        new_token(code);
+        rc = db_exec("INSERT INTO course_tokens (course_id, code, created_at) VALUES (?, ?, ?)", "isi", cid, code, now);
+      }
+      if (rc != SQLITE_DONE) continue;
+      char *next = mg_mprintf("%s%s%m", list, i ? "," : "", MG_ESC(code));
+      free(list);
+      list = next;
+    }
+    sqlite3_exec(s_db, "COMMIT", NULL, NULL, NULL);
+    char *stats = db_text("SELECT json_object(" TOKEN_STATS ")", "i", cid);
+    char *body = mg_mprintf("{\"codes\":%s],\"stats\":%s}", list, stats != NULL ? stats : "{}");
+    reply_json(c, 201, body, NULL);
+    free(body);
+    free(stats);
+    free(list);
+    return;
+  }
+  if (method_is(hm, "DELETE")) db_exec("DELETE FROM course_tokens WHERE course_id = ? AND used_at IS NULL", "i", cid);
+  else if (!method_is(hm, "GET")) return reply_error(c, 405, "Method not allowed");
+  char *body = db_text("SELECT json_object(" TOKEN_STATS ", 'recent', (SELECT json_group_array(json(x)) FROM (SELECT json_object('code', t.code, 'usedAt', t.used_at,"
+                       "  'user', CASE WHEN u.id IS NULL THEN NULL ELSE json_object('username', u.username, 'name', u.name, 'picture', u.picture) END) AS x"
+                       "  FROM course_tokens t LEFT JOIN users u ON u.id = t.used_by WHERE t.course_id = ?1 AND t.used_at IS NOT NULL ORDER BY t.used_at DESC LIMIT 50)))",
+                       "i", cid);
+  reply_json(c, 200, body != NULL ? body : "{}", NULL);
+  free(body);
+}
+
 /* /api/studio/<course>/...: editing course content. Returns 1 if it handled the request. */
 static int handle_studio(struct mg_connection *c, struct mg_http_message *hm, long long uid) {
   struct mg_str caps[3];
@@ -1015,6 +1147,11 @@ static int handle_studio(struct mg_connection *c, struct mg_http_message *hm, lo
   }
 #define REST_IS(s) (mg_strcmp(rest, mg_str(s)) == 0)
   const char *err = NULL;
+
+  if (REST_IS("/tokens") || REST_IS("/tokens.txt")) {
+    studio_tokens(c, hm, uid, cid, REST_IS("/tokens.txt"));
+    return 1;
+  }
 
   if (is_get && (REST_IS("") || REST_IS("/content"))) {
     reply_studio(c, cid, uid, 200);

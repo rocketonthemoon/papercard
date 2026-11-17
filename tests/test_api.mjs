@@ -292,8 +292,10 @@ assert.equal((await cara(`/studio/${spanish.id}/content`)).status, 403);
 assert.equal((await cara(`/studio/${spanish.id}/words`, { method: "POST", body: { lessonId: sLesson, lt: "x", en: "y", pos: "noun" } })).status, 403);
 assert.equal((await bob(`/studio/${spanish.id}/words`, { method: "POST", body: { lessonId: content.units[0].lessons[0].id, lt: "x", en: "y", pos: "noun" } })).status, 400, "can't add to another course's lesson");
 assert.equal((await bob(`/studio/${spanish.id}/words/${words.keys().next().value}`, { method: "DELETE" })).status, 400, "can't delete another course's word");
-assert.equal((await alice(`/studio/${spanish.id}/content`)).status, 200, "admins can edit any course");
-step("bob creates a Spanish course with a deck, a lesson and 5 words; only he (and admins) can edit it, and only inside it");
+assert.equal((await alice(`/studio/${spanish.id}/content`)).status, 403, "admins can't edit other people's courses");
+assert.equal((await alice(`/courses/${spanish.id}`, { method: "PUT", body: { title: "Hacked", toLang: "Spanish" } })).status, 403);
+assert.equal((await alice(`/courses/${spanish.id}/export`, { binary: true })).status, 403);
+step("bob creates a Spanish course with a deck, a lesson and 5 words; only he can edit it (not even admins), and only inside it");
 
 // Cara follows bob, sees the course, takes it.
 await cara(`/users/${renamed}/follow`, { method: "POST", body: {} });
@@ -375,17 +377,19 @@ assert.deepEqual(copy.units[0].lessons[0].words.map((w) => w.lt), studio.units[0
 step("bob exports his course as a SQLite file; cara imports it as her own copy (5 words, same letters); bad uploads are refused");
 
 // Moderation.
-await alice(`/courses/${spanish.id}`, { method: "PUT", body: { title: spanish.title, toLang: "Spanish", toCode: "es", letters: "ñ á é", hidden: true } });
+assert.equal((await alice(`/admin/courses/${spanish.id}`, { method: "PUT", body: { hidden: true } })).data.course.hidden, true);
 assert.ok(!(await cara("/courses?tab=popular")).data.courses.some((c) => c.id === spanish.id));
 assert.equal((await cara(`/learn/lessons/${sLesson}`)).status, 404);
 assert.equal((await bob(`/learn/lessons/${sLesson}`)).status, 200, "its creator still sees it");
 assert.ok((await alice("/admin/courses")).data.courses.some((c) => c.id === spanish.id && c.hidden));
 assert.equal((await bob("/admin/courses")).status, 403);
-await bob(`/courses/${spanish.id}`, { method: "PUT", body: { title: spanish.title, toLang: "Spanish", hidden: false } });
+assert.equal((await bob(`/admin/courses/${spanish.id}`, { method: "PUT", body: { hidden: false } })).status, 403);
+await bob(`/courses/${spanish.id}`, { method: "PUT", body: { title: spanish.title, toLang: "Spanish", hidden: false } }); // ignored: not a course field
 assert.equal((await cara(`/learn/lessons/${sLesson}`)).status, 404, "only admins can unhide");
-await alice(`/courses/${spanish.id}`, { method: "PUT", body: { title: spanish.title, toLang: "Spanish", hidden: false } });
+await alice(`/admin/courses/${spanish.id}`, { method: "PUT", body: { hidden: false } });
 assert.equal((await cara(`/learn/lessons/${sLesson}`)).status, 200);
-step("admins can hide a course (gone from Discover and lessons for others); only admins can unhide it");
+assert.equal((await alice(`/studio/${cid}/content`)).status, 200, "admins still edit the official course");
+step("admins can hide a course (gone from Discover and lessons for others) but not edit it; only admins can unhide; admins edit official courses");
 
 assert.equal((await cara(`/courses/${spanish.id}`, { method: "DELETE" })).status, 403);
 assert.equal((await cara(`/courses/${imp.data.id}`, { method: "DELETE" })).status, 200);
@@ -410,5 +414,58 @@ assert.equal((await arrange(cara, { kind: "unit", id: food.id, index: 1 })).stat
 assert.equal((await arrange(bob, { kind: "lesson", id: sLesson, unitId: content.units[0].id, index: 0 })).status, 400, "can't move a lesson into another course");
 assert.equal((await arrange(bob, { kind: "lesson", id: content.units[0].lessons[0].id, unitId: food.id, index: 0 })).status, 400, "or take one from another course");
 step("arrange: lessons move between decks and reorder, decks reorder; only within your own course");
+
+// Locked courses and one-time access codes.
+const dan = client();
+assert.equal((await dan("/auth/dev", { method: "POST", body: { name: `Dan ${run}` } })).status, 200);
+const lockedCourse = (await bob(`/courses/${spanish.id}`, { method: "PUT", body: { title: spanish.title, toLang: "Spanish", toCode: "es", letters: "ñ á é", locked: true } })).data.course;
+assert.equal(lockedCourse.locked, true);
+assert.equal(lockedCourse.hasAccess, true, "the creator always has access");
+let seen = (await dan(`/courses/${spanish.id}`)).data.course;
+assert.deepEqual([seen.locked, seen.hasAccess], [true, false], "a locked course is still visible");
+assert.equal((await dan(`/courses/${spanish.id}/enroll`, { method: "POST", body: {} })).status, 423);
+assert.equal((await dan(`/learn/lessons/${sLesson}`)).status, 423);
+assert.equal((await dan(`/learn/words/${rWord.id}/answer`, { method: "POST", body: { kind: "type_lt", text: "x" } })).status, 423);
+assert.equal((await dan("/learn/current", { method: "POST", body: { courseId: spanish.id } })).status, 423);
+assert.equal((await dan("/duels", { method: "POST", body: { courseId: spanish.id, unitIds: [unitId] } })).status, 423);
+assert.notEqual((await dan(`/learn/words?course=${spanish.id}`)).data.course?.id, spanish.id, "the word list doesn't open it either");
+step("a locked course shows on Discover, but enrolling, lessons, answers, the word list and duels need a code");
+
+assert.equal((await dan(`/studio/${spanish.id}/tokens`, { method: "POST", body: { count: 3 } })).status, 403);
+assert.equal((await alice(`/studio/${spanish.id}/tokens`, { method: "POST", body: { count: 3 } })).status, 403, "not even admins");
+assert.equal((await bob(`/studio/${spanish.id}/tokens`, { method: "POST", body: { count: 501 } })).status, 400);
+const made = (await bob(`/studio/${spanish.id}/tokens`, { method: "POST", body: { count: 3 } })).data;
+assert.equal(made.codes.length, 3);
+assert.ok(made.codes.every((k) => /^[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}-[A-HJ-NP-Z2-9]{5}$/.test(k)), made.codes.join(" "));
+assert.equal(new Set(made.codes).size, 3);
+assert.deepEqual(made.stats, { unused: 3, used: 0 });
+const txtRes = await bob(`/studio/${spanish.id}/tokens.txt`, { binary: true });
+assert.deepEqual(new TextDecoder().decode(txtRes.bytes).trim().split("\n").sort(), [...made.codes].sort(), "the .txt has every unused code, one per line");
+step("bob (only bob) creates codes in batches of up to 500 and downloads the unused ones as a .txt file");
+
+assert.equal((await dan("/redeem", { method: "POST", body: { code: "AAAAA-BBBBB-CCCCC" } })).status, 400);
+const opened = await dan("/redeem", { method: "POST", body: { code: `  ${made.codes[0].toLowerCase().replace(/-/g, " ")} ` } });
+assert.equal(opened.status, 200, "codes are forgiving about case, spaces and dashes");
+assert.deepEqual([opened.data.course.id, opened.data.course.enrolled, opened.data.course.hasAccess], [spanish.id, true, true]);
+assert.equal((await dan(`/learn/lessons/${sLesson}`)).status, 200);
+assert.equal((await dan("/learn")).data.course.id, spanish.id, "redeeming makes it your current course");
+assert.equal((await cara("/redeem", { method: "POST", body: { code: made.codes[0] } })).status, 400, "a code works only once");
+const again = await dan("/redeem", { method: "POST", body: { code: made.codes[1] } });
+assert.equal(again.status, 409, "someone who already has the course doesn't use up a code");
+await dan(`/courses/${spanish.id}/enroll`, { method: "DELETE" });
+assert.equal((await dan(`/courses/${spanish.id}/enroll`, { method: "POST", body: {} })).status, 200, "leaving and coming back doesn't need a new code");
+let tokens = (await bob(`/studio/${spanish.id}/tokens`)).data;
+assert.deepEqual([tokens.unused, tokens.used], [2, 1]);
+assert.equal(tokens.recent[0].user.username, (await dan("/me")).data.user.username);
+step("redeeming a code opens the course once, for one person; it isn't spent on someone who already has access");
+
+tokens = (await bob(`/studio/${spanish.id}/tokens`, { method: "DELETE" })).data;
+assert.deepEqual([tokens.unused, tokens.used], [0, 1], "revoking removes unused codes only");
+assert.equal((await cara("/redeem", { method: "POST", body: { code: made.codes[2] } })).status, 400);
+for (let k = 0; k < 10; k++) await cara("/redeem", { method: "POST", body: { code: `ZZZZZ-ZZZZZ-ZZZ${k % 10}Z`.replace(/[01]/g, "2") } });
+assert.equal((await cara("/redeem", { method: "POST", body: { code: "ZZZZZ-ZZZZZ-ZZZZZ" } })).status, 429, "too many wrong codes pause redeeming");
+await bob(`/courses/${spanish.id}`, { method: "PUT", body: { title: spanish.title, toLang: "Spanish", toCode: "es", letters: "ñ á é", locked: false } });
+assert.equal((await cara(`/learn/lessons/${sLesson}`)).status, 200, "unlocking opens it to everyone again");
+step("revoked codes stop working; wrong guesses are rate-limited; unlocking opens the course to everyone");
 
 console.log("\nall API checks passed");

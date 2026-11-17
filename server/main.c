@@ -458,6 +458,7 @@ static char *body_array(struct mg_http_message *hm, const char *path) {
 static void create_duel(struct mg_connection *c, struct mg_http_message *hm, long long uid) {
   long long cid = mg_json_get_long(hm->body, "$.courseId", 0);
   if (!can_view(uid, cid)) return reply_error(c, 400, "Pick a course");
+  if (!has_access(uid, cid)) return reply_error(c, 423, LOCKED_MSG);
   char *units = body_array(hm, "$.unitIds");
   if (units == NULL) return reply_error(c, 400, "Pick at least one deck");
   /* Only decks of that course count. */

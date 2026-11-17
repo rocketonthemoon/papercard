@@ -202,6 +202,17 @@ try {
   await waitFor(`document.querySelectorAll(".board-col:nth-child(2) .board-card").length === 2`, "lesson dragged into the other deck");
   console.log("after drag:", await js(`[...document.querySelectorAll(".board-col[data-unit]")].map((c) => c.querySelector(".board-col-head .rename").textContent + ": " + [...c.querySelectorAll(".board-card .rename")].map((x) => x.textContent).join(", ")).join(" | ")`));
   await shot("16b-arrange");
+
+  // Settings: lock the course and create access codes (the batch downloads as a .txt).
+  await js(`document.querySelector('[data-view="settings"]').click()`);
+  await waitFor(`!!document.getElementById("c-locked") && document.getElementById("t-unused").textContent !== "…"`, "settings");
+  await js(`document.getElementById("c-locked").checked = true; document.getElementById("cs").requestSubmit()`);
+  await waitFor(`!!document.querySelector("#codes-card .pill") && document.querySelector("#codes-card .pill").textContent.includes("locked")`, "course locked");
+  await js(`window.__downloads = []; const orig = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function () { if (this.download) window.__downloads.push(this.download); else orig.call(this); }`);
+  await js(`document.getElementById("t-count").value = 5; document.getElementById("t-form").requestSubmit()`);
+  await waitFor(`document.getElementById("t-unused").textContent === "5"`, "codes created");
+  console.log("codes: unused", await js(`document.getElementById("t-unused").textContent`), "| downloaded:", await js(`window.__downloads.join(", ")`));
+  await shot("16c-settings-codes");
   await js(`location.hash = "#/learn"`);
   await waitFor(`!!document.querySelector(".course-tiles")`, "dashboard with course tiles");
   console.log("course tiles:", await js(`[...document.querySelectorAll(".course-tile h3, .course-tile b")].map((o) => o.textContent).join(" | ")`));

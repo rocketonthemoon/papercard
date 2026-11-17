@@ -1,4 +1,4 @@
-// Labas front end: learn words in short lessons (the official course teaches Lithuanian to English speakers).
+// Labas front end: learn words in any language in short lessons; courses come from the official account and from learners.
 // Signed out: a landing page with Google sign-in. Signed in: Learn (your current course's path, review, word list),
 // Discover (courses by us and by learners; follow creators), Play (word duels), the leaderboard, the Studio (make
 // your own course) and, for admins, course moderation.
@@ -79,7 +79,7 @@ const LEVELS = {
   A1: ["Absolute beginner", "Campus survival"],
   A2: ["Elementary", "Practical independence"],
   B1: ["Intermediate", "Fluency bridge"],
-  B2: ["Upper intermediate", "Confident everyday Lithuanian"],
+  B2: ["Upper intermediate", "Confident everyday conversation"],
 };
 const GENDERS = { m: "masc.", f: "fem.", mpl: "masc. pl.", fpl: "fem. pl." };
 const POS_LABELS = { noun: "noun", verb: "verb", phrase: "phrase", other: "word" };
@@ -510,21 +510,22 @@ function renderNav() {
 
 // ---------------------------------------------------------------- landing page (signed out)
 
+/** [phrase, language code, language, meaning]: phrases from courses, in several languages. */
 const EXAMPLES = [
-  ["Kur yra biblioteka?", "Where is the library?"],
-  ["Aš nesuprantu.", "I don't understand."],
-  ["Vieną kavą išsinešti, prašau.", "One coffee to go, please."],
-  ["Ar galiu mokėti kortele?", "Can I pay by card?"],
-  ["Kuris autobusas važiuoja į centrą?", "Which bus goes to the city centre?"],
-  ["Kiek tai kainuoja?", "How much does this cost?"],
-  ["Man skauda galvą.", "I have a headache."],
-  ["Skanaus!", "Enjoy your meal!"],
+  ["¿Dónde está la biblioteca?", "es", "Spanish", "Where is the library?"],
+  ["Je ne comprends pas.", "fr", "French", "I don't understand."],
+  ["Kur yra biblioteka?", "lt", "Lithuanian", "Where is the library?"],
+  ["Was kostet das?", "de", "German", "How much does this cost?"],
+  ["ありがとう", "ja", "Japanese", "Thank you"],
+  ["Привет!", "ru", "Russian", "Hi!"],
+  ["Buon appetito!", "it", "Italian", "Enjoy your meal!"],
+  ["Pode falar mais devagar?", "pt", "Portuguese", "Can you speak more slowly?"],
 ];
 
 const FAQ = [
   ["Is it free?", "Yes. Sign in with Google and start learning. There's nothing to buy."],
-  ["Do I need a Lithuanian keyboard?", "No. When you type an answer, buttons for ą, č, ę, ė, į, š, ų, ū and ž appear under the box. If you leave the accents off, the answer still counts, and we show you the right spelling."],
-  ["What will I learn?", "Twelve themed decks of about 15–25 words each, from A1 (campus, dorm, café, buses, groceries) through A2 (doctor, part-time jobs, travel, food) to B1 (presentations, tech, careers). Each deck ends with phrases you can use straight away."],
+  ["Which languages can I learn?", "Any language. We publish official courses (the first one teaches Lithuanian to English speakers, A1 to B1), learners publish courses for other languages, and you can make your own in the Studio. Search works in every script: case and accents never matter."],
+  ["Do I need a special keyboard?", "No. Each course adds buttons for its language's special letters (like ñ, ą, ß or é) under the answer box. If you leave the accents off, the answer still counts, and we show you the right spelling."],
   ["How does review work?", "Once you've learned a word, it comes back for review a day later, then after 3 days, then at longer and longer gaps. Get it wrong and it starts again. A few minutes a day keeps everything fresh."],
   ["How do hearts work?", "You start with 5 hearts and lose one for each wrong answer in a new lesson. A heart comes back every 30 minutes, and practising a finished lesson earns them back too. Review never costs hearts."],
   ["What's the difference between Learn and Play?", "Learn is your own path of short lessons, with review, XP and streaks. Play is a duel: you and a friend answer the same 10 words once, and whoever gets more right wins."],
@@ -533,7 +534,7 @@ const FAQ = [
 ];
 
 const FEATURES = [
-  ["learn", "12 themed decks", "Words for real student life in Lithuania, from your first lecture to your first job interview. A1 to B1."],
+  ["learn", "Courses for any language", "Start with our official courses, take ones made by other learners, or build your own in the Studio."],
   ["cards", "Review that sticks", "Spaced repetition brings each word back just before you'd forget it."],
   ["heart", "Hearts keep you sharp", "Each wrong answer in a new lesson costs a heart. Practise finished lessons to earn them back."],
   ["fire", "Streaks and quests", "Learn a little every day to grow your streak, and hit XP goals along the way."],
@@ -549,9 +550,9 @@ function landingHtml() {
       ${challenged ? `<div class="notice">You've been challenged to word duel <b>${esc(challenged)}</b>. Sign in to play.</div>` : ""}
       <section class="card hero">
         <div>
-          <span class="eyebrow">Free · No ads · For English speakers</span>
-          <h1>Learn Lithuanian words, <em>one lesson at a time.</em></h1>
-          <p class="lede">Short, game-like lessons built around student life in Lithuania: campus, dorm, café, bus and beyond. Keep your streak, review words before you forget them, challenge friends to a word duel, and follow creators for more courses.</p>
+          <span class="eyebrow">Free · No ads · Any language</span>
+          <h1>Learn words in any language, <em>one lesson at a time.</em></h1>
+          <p class="lede">Short, game-like vocabulary lessons. Take courses from us and from other learners, or make your own for any language. Keep your streak, review words before you forget them, challenge friends to a word duel, and follow creators for more courses.</p>
           <div class="signin" id="signin"><div id="gsi" class="gsi-slot"></div><p id="signin-error" class="error" hidden></p>${
             config.devLogin
               ? `<form id="dev-login" class="dev-login"><input type="text" id="dev-name" placeholder="Your name (guest login)" maxlength="40" required><button class="btn outline">Play as guest</button></form>`
@@ -562,7 +563,7 @@ function landingHtml() {
           <div class="demo-card">
             <div class="demo-top"><span class="demo-x">${I.close}</span><span class="demo-bar"><i></i></span><span class="demo-hearts">${I.heart}<b>4</b></span></div>
             <p class="demo-q">What does this mean?</p>
-            <p class="demo-word" lang="lt">knyga <span class="wtag">noun · fem.</span></p>
+            <p class="demo-word" lang="es">el libro <span class="wtag">Spanish · noun</span></p>
             <div class="demo-opt"><span class="key">1</span>pencil</div>
             <div class="demo-opt picked"><span class="key">2</span>book</div>
             <div class="demo-opt"><span class="key">3</span>notebook</div>
@@ -582,25 +583,25 @@ function landingHtml() {
         <div class="path-copy">
           <span class="eyebrow">Learn</span>
           <h2>Follow your path</h2>
-          <p class="muted">Work through decks like <b>University & Classroom</b>, <b>Student Housing</b> and <b>City Transit</b>. Each lesson first shows you the words, then asks you to type them in Lithuanian or build whole phrases from word tiles.</p>
+          <p class="muted">Every course is a path of themed decks and short lessons. Each lesson first shows you the words, then asks you to type them in the language you're learning or build whole phrases from word tiles.</p>
           <ul class="checks">
             <li>${I.check} Lessons unlock as you go</li>
             <li>${I.check} Gender and part of speech for every word</li>
-            <li>${I.check} On-screen ą č ę ė į š ų ū ž keys</li>
+            <li>${I.check} On-screen keys for special letters (ñ, ą, ß…)</li>
             <li>${I.check} 10 XP for every correct answer</li>
           </ul>
         </div>
         <div class="mini-path" aria-hidden="true">
-          <div class="mini-banner"><small>A1 · Deck 1</small><b>University & Classroom</b></div>
-          ${node("done", I.tick, "On campus", 0)}
-          ${node("done", I.tick, "In class", 46)}
-          ${node("current", I.star, "Study verbs", 0)}
-          ${node("locked", I.lock, "Classroom phrases", -46)}
+          <div class="mini-banner"><small>A1 · Deck 1</small><b>First steps</b></div>
+          ${node("done", I.tick, "Greetings", 0)}
+          ${node("done", I.tick, "Numbers", 46)}
+          ${node("current", I.star, "At the café", 0)}
+          ${node("locked", I.lock, "Asking the way", -46)}
         </div>
       </section>
 
       <section class="card section">
-        <div class="section-head"><span class="eyebrow">Play a friend</span><h2>Word duels</h2><p>Pick the decks, answer 10 words and send your friend the link. They get exactly the same questions.</p></div>
+        <div class="section-head"><span class="eyebrow">Play a friend</span><h2>Word duels</h2><p>Pick a course and some decks, answer 10 words and send your friend the link. They get exactly the same questions.</p></div>
         <div class="duel-grid">
           <div class="hero-sheet duel-demo" aria-hidden="true">
             <div class="sheet">
@@ -616,7 +617,7 @@ function landingHtml() {
             </div>
           </div>
           <div class="duel-steps">
-            <div class="step-row"><span class="tile-icon">${I.decks}</span><div><h3>1. Pick your decks</h3><p class="muted">Ten random words from the decks you choose, A1 to B1.</p></div></div>
+            <div class="step-row"><span class="tile-icon">${I.decks}</span><div><h3>1. Pick your decks</h3><p class="muted">Ten random words from the course and decks you choose.</p></div></div>
             <div class="step-row"><span class="tile-icon">${I.answer}</span><div><h3>2. Answer them all</h3><p class="muted">Multiple choice, both ways round. One try, and the clock is running.</p></div></div>
             <div class="step-row"><span class="tile-icon">${I.share}</span><div><h3>3. Send the link</h3><p class="muted">Your friend answers the same 10 words. Most right answers wins.</p></div></div>
             <div class="points compact">
@@ -629,9 +630,9 @@ function landingHtml() {
       </section>
 
       <section class="card section">
-        <div class="section-head"><h2>Phrases you'll use from day one</h2><p>Every deck ends with phrases you'll actually need on campus and around town.</p></div>
+        <div class="section-head"><h2>Words and phrases in any language</h2><p>Courses teach the words you'll actually use, with the phrases that go with them.</p></div>
         <ul class="examples">
-          ${EXAMPLES.map(([lt, en]) => `<li><span class="lt" lang="lt">${esc(lt)}</span>${I.arrow}<span class="en">${esc(en)}</span></li>`).join("")}
+          ${EXAMPLES.map(([phrase, code, lang, en]) => `<li><span class="lt" lang="${code}">${esc(phrase)}<small class="ex-lang">${lang}</small></span>${I.arrow}<span class="en">${esc(en)}</span></li>`).join("")}
         </ul>
       </section>
 
@@ -643,7 +644,7 @@ function landingHtml() {
       <section class="card cta">
         <span class="cta-icon">${I.cup}</span>
         <h2>Start your streak today</h2>
-        <p class="muted">Your first lesson takes about three minutes. Sėkmės! (Good luck!)</p>
+        <p class="muted">Your first lesson takes about three minutes. ¡Suerte! Sėkmės! Bonne chance!</p>
         <a class="btn big" href="#signin" id="cta-signin">Get started</a>
       </section>
     </div>`;
@@ -1571,9 +1572,12 @@ const matchLabel = (m) =>
     : { language: "Matches the language", creator: "Matches the creator", description: "Matches the description", deck: `Deck: ${m.text ?? ""}`, word: `Has “${m.text ?? ""}”` }[m.in];
 
 function courseCard(c) {
-  const tag = matchLabel(c.match) ?? (c.isCurrent ? "Learning now" : c.enrolled ? "Enrolled" : c.creator.official ? "Official" : c.learners >= 3 ? "Popular" : "New");
+  const locked = c.locked && !c.hasAccess;
+  const tag = matchLabel(c.match) ?? (locked ? "🔒 Locked" : c.isCurrent ? "Learning now" : c.enrolled ? "Enrolled" : c.creator.official ? "Official" : c.learners >= 3 ? "Popular" : "New");
   const pct = c.words ? Math.round((100 * (c.learned ?? 0)) / c.words) : 0;
-  const button = c.enrolled
+  const button = locked
+    ? `<a class="btn small" href="#/course/${c.id}">${ICON.lock} Unlock</a>`
+    : c.enrolled
     ? `<button class="btn small" data-continue="${c.id}">${c.isCurrent ? "Continue" : "Switch to it"}</button>`
     : `<button class="btn small" data-enroll="${c.id}">Start</button>`;
   return `<article class="pcard">
@@ -1587,6 +1591,36 @@ function courseCard(c) {
     </div>
     <div class="pcard-foot"><span>by ${userLink(c.creator)}${c.hidden ? ` <span class="pill due">hidden</span>` : ""}</span>${button}</div>
   </article>`;
+}
+
+/** Redeems an access code; on success the course opens on the Learn page. */
+async function redeemCode(code, errEl) {
+  try {
+    const { course: c } = await api("/redeem", { method: "POST", body: { code } });
+    toast(`Unlocked “${c.title}”. Enjoy!`);
+    location.hash = "#/learn";
+  } catch (x) {
+    if (errEl) {
+      errEl.textContent = x.message;
+      errEl.hidden = false;
+    } else toast(x.message);
+  }
+}
+
+const codeFormHtml = (id, label = "Access code") => `<form class="code-form" id="${id}">
+    <input type="text" placeholder="XXXXX-XXXXX-XXXXX" aria-label="${label}" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40">
+    <button class="btn">Unlock</button>
+    <p class="error" hidden></p>
+  </form>`;
+
+function wireCodeForm(id) {
+  const f = document.getElementById(id);
+  if (!f) return;
+  f.onsubmit = (e) => {
+    e.preventDefault();
+    const code = f.querySelector("input").value.trim();
+    if (code) redeemCode(code, f.querySelector(".error"));
+  };
 }
 
 function wireCourseCards(root = $app) {
@@ -1668,6 +1702,7 @@ async function renderDiscover() {
       <aside class="card filters" aria-label="Filters">
         <div class="widget-head"><h3>Filters</h3><button type="button" class="linkbtn small" id="f-clear">Clear</button></div>
         <div class="active-filters" id="f-active"></div>
+        <div class="filter-group"><span>Have an access code?</span>${codeFormHtml("discover-code")}</div>
         <div class="filter-group"><span>Show</span>
           ${[["popular", "All courses"], ["following", "From people I follow"], ["enrolled", "My courses"]].map(([k, l]) => `<label><input type="radio" name="f-tab" value="${k}" ${k === f.tab ? "checked" : ""}> ${l}</label>`).join("")}
         </div>
@@ -1738,6 +1773,7 @@ async function renderDiscover() {
     for (const cb of document.querySelectorAll("#f-langs input")) cb.onchange = () => ((cb.checked ? f.langs.add(cb.value) : f.langs.delete(cb.value)), draw());
     draw();
   };
+  wireCodeForm("discover-code");
   document.getElementById("d-form").onsubmit = (e) => {
     e.preventDefault();
     f.q = document.getElementById("d-q").value.trim();
@@ -1782,17 +1818,28 @@ async function renderCourse(id) {
       <a class="back" href="#/discover">${I.back} Discover</a>
       <div class="toolbar-actions">
         ${d.canEdit ? `<a class="btn outline" href="#/studio/${c.id}">${I.edit} Edit course</a>` : ""}
-        ${c.enrolled ? `<button class="btn outline" id="leave">Leave course</button><button class="btn" data-continue="${c.id}">Continue learning</button>` : `<button class="btn" data-enroll="${c.id}">Start learning</button>`}
+        ${
+          c.locked && !c.hasAccess
+            ? ""
+            : c.enrolled
+              ? `<button class="btn outline" id="leave">Leave course</button><button class="btn" data-continue="${c.id}">Continue learning</button>`
+              : `<button class="btn" data-enroll="${c.id}">Start learning</button>`
+        }
       </div>
     </div>
     <div class="course-page">
       <div class="course-page-main">
         <section class="card course-hero">
           <span class="course-flag big">${esc(flag(c))}</span>
-          <div><h1>${esc(c.title)}${c.hidden ? ` <span class="pill due">hidden</span>` : ""}</h1>
+          <div><h1>${esc(c.title)}${c.hidden ? ` <span class="pill due">hidden</span>` : ""}${c.locked ? ` <span class="pill">${ICON.lock} locked</span>` : ""}</h1>
             <p class="muted">${esc(c.fromLang)} → ${esc(c.toLang)} · ${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p>
             ${c.description ? `<p>${esc(c.description)}</p>` : ""}</div>
         </section>
+        ${
+          c.locked && !c.hasAccess
+            ? `<section class="card unlock-card"><div><h3>${ICON.lock} This course is locked</h3><p class="muted small">Enter the access code you got from ${userLink(c.creator)}. Each code works once, for one person.</p></div>${codeFormHtml("unlock-form")}</section>`
+            : ""
+        }
         <section class="card list-card">
           <div class="list-head"><h3>Decks</h3></div>
           <ul class="rows">${
@@ -1809,6 +1856,7 @@ async function renderCourse(id) {
     </div>`;
   wireCourseCards();
   wireFollow();
+  wireCodeForm("unlock-form");
   document.getElementById("leave")?.addEventListener("click", async () => {
     if (!confirm("Leave this course? Your progress is kept if you come back.")) return;
     try {
@@ -1931,8 +1979,11 @@ const courseFormValues = () => ({
 async function renderStudioHome() {
   $app.innerHTML = `<p class="muted loading">Loading your courses…</p>`;
   let courses;
+  let official = [];
   try {
     ({ courses } = await api("/courses?tab=mine"));
+    // Admins edit the official account's courses too.
+    if (me.isAdmin) official = (await api("/courses?tab=popular")).courses.filter((c) => c.creator.official && !c.mine);
   } catch (x) {
     $app.innerHTML = errorCard(x.message);
     return;
@@ -1962,7 +2013,20 @@ async function renderStudioHome() {
             )
             .join("")
         : `<section class="card picker"><header class="picker-head"><span class="board-icon">${I.decks}</span><h2>No courses yet</h2><p class="muted">Create one from scratch, or import a course file someone shared with you.</p></header></section>`
-    }</div>`;
+    }</div>
+    ${
+      official.length
+        ? `<div class="row spread section-row"><h2>Official courses</h2><span class="muted small">You can edit these as an admin</span></div>
+          <div class="course-grid">${official
+            .map(
+              (c) => `<article class="card course-card">
+                <a class="course-main" href="#/studio/${c.id}"><span class="course-flag">${esc(flag(c))}</span><div><h3>${esc(c.title)}</h3><p class="muted small">${esc(c.toLang)} · ${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p></div></a>
+                <div class="course-foot"><span class="muted small">by ${userLink(c.creator)}</span><a class="btn small" href="#/studio/${c.id}">${I.edit} Edit</a></div>
+              </article>`,
+            )
+            .join("")}</div>`
+        : ""
+    }`;
   const form = document.getElementById("nc");
   document.getElementById("new-course").onclick = () => ((form.hidden = false), document.getElementById("c-title").focus());
   document.getElementById("nc-cancel").onclick = () => (form.hidden = true);
@@ -2160,7 +2224,7 @@ function drawStudio() {
   }
 }
 
-/** The course's details, export, and (for admins) hiding; plus deleting it. */
+/** The course's details, locking and access codes, export, and deleting it. */
 function drawSettings() {
   const c = cms.content.course;
   $app.innerHTML = `${studioToolbar("settings")}
@@ -2168,11 +2232,21 @@ function drawSettings() {
       <form class="card form" id="cs">
         <h2>Course details</h2>
         ${courseFormHtml(c)}
-        ${me.isAdmin ? `<label class="check"><input type="checkbox" id="c-hidden" ${c.hidden ? "checked" : ""}> Hidden (admins only: removes it from Discover and stops new learners)</label>` : ""}
+        <label class="check"><input type="checkbox" id="c-locked" ${c.locked ? "checked" : ""}> <span><b>Locked</b>: learners need an access code to start the course. People already taking it keep access.</span></label>
+        ${c.hidden ? `<p class="error">An admin has hidden this course: it isn't on Discover, and only you can open it.</p>` : ""}
         <p class="error" id="cs-err" hidden></p>
         <div class="row" style="justify-content:flex-end"><button class="btn">Save details</button></div>
       </form>
       <aside class="stack-sm">
+        <section class="card side-card codes-card" id="codes-card">
+          <div class="widget-head"><h3>Access codes</h3>${c.locked ? `<span class="pill">${ICON.lock} locked</span>` : `<span class="pill">open</span>`}</div>
+          <p class="muted small">${c.locked ? "Give or sell a code to each learner. Each code opens the course once, for one person." : "Lock the course (on the left) so only people with a code can start it. You can create codes any time."}</p>
+          <div class="stat-row two"><div><span>Unused</span><b id="t-unused">…</b></div><div><span>Used</span><b id="t-used">…</b></div></div>
+          <form class="code-make" id="t-form"><label class="field">How many? <input type="number" id="t-count" min="1" max="500" value="10"></label><button class="btn small">Create codes</button></form>
+          <p class="muted small">New codes download as a .txt file, one per line.</p>
+          <div class="row"><a class="btn outline small" href="/api/studio/${c.id}/tokens.txt" download>${I.download} All unused (.txt)</a><button type="button" class="linkbtn small" id="t-revoke">Revoke unused</button></div>
+          <details><summary class="small">Recently used</summary><ul class="rank-list" id="t-recent"><li class="muted small">Loading…</li></ul></details>
+        </section>
         <section class="card side-card"><h3>Share or back up</h3><p class="muted small">Download the whole course as one SQLite file. Anyone can import it in their Studio as a new course of their own.</p><a class="btn outline small" href="/api/courses/${c.id}/export" download>${I.download} Export .db</a></section>
         <section class="card side-card danger-zone"><h3>Delete course</h3><p class="muted small">Deletes every deck, lesson and word, and learners' progress on them. This can't be undone.</p><button class="btn danger small" id="del-course">${I.trash} Delete course</button></section>
       </aside>
@@ -2180,8 +2254,7 @@ function drawSettings() {
   wireStudioTabs();
   document.getElementById("cs").onsubmit = async (e) => {
     e.preventDefault();
-    const body = courseFormValues();
-    if (me.isAdmin) body.hidden = document.getElementById("c-hidden").checked;
+    const body = { ...courseFormValues(), locked: document.getElementById("c-locked").checked };
     try {
       await api(`/courses/${c.id}`, { method: "PUT", body });
       cms.content = await api(`/studio/${c.id}/content`);
@@ -2191,6 +2264,44 @@ function drawSettings() {
       const err = document.getElementById("cs-err");
       err.textContent = x.message;
       err.hidden = false;
+    }
+  };
+  // Access codes.
+  const showTokens = (t) => {
+    document.getElementById("t-unused").textContent = t.unused;
+    document.getElementById("t-used").textContent = t.used;
+    if (t.recent)
+      document.getElementById("t-recent").innerHTML =
+        t.recent.map((r) => `<li><span class="n">${ICON.lock}</span>${r.user ? avatar(r.user) : "<span></span>"}<span>${r.user ? `<a href="#/u/${esc(r.user.username)}">${esc(r.user.name)}</a>` : "(deleted account)"}<br><code class="small">${esc(r.code)}</code></span><span class="xp">${fmtDate(r.usedAt)}</span></li>`).join("") ||
+        `<li class="muted small">No codes used yet.</li>`;
+  };
+  api(`/studio/${c.id}/tokens`).then(showTokens).catch((x) => toast(x.message));
+  document.getElementById("t-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const count = Number(document.getElementById("t-count").value);
+    try {
+      const { codes, stats } = await api(`/studio/${c.id}/tokens`, { method: "POST", body: { count } });
+      // Download this batch straight away.
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([codes.join("\n") + "\n"], { type: "text/plain" }));
+      a.download = `${c.title.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").toLowerCase() || "course"}-codes-${new Date().toISOString().slice(0, 10)}.txt`;
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      toast(`${plural(codes.length, "code")} created and downloaded`);
+      showTokens(stats);
+    } catch (x) {
+      toast(x.message);
+    }
+  };
+  document.getElementById("t-revoke").onclick = async () => {
+    if (!confirm("Revoke every unused code? Anyone holding one won't be able to use it. Codes already used keep working.")) return;
+    try {
+      showTokens(await api(`/studio/${c.id}/tokens`, { method: "DELETE" }));
+      toast("Unused codes revoked");
+    } catch (x) {
+      toast(x.message);
     }
   };
   document.getElementById("del-course").onclick = async () => {
@@ -2496,13 +2607,13 @@ async function renderAdmin() {
     return;
   }
   $app.innerHTML = `
-    <div class="toolbar"><div class="page-head"><h1>Admin</h1><p class="muted">${plural(d.courses.length, "course")} · ${plural(d.players, "player")} · ${d.xpToday} XP earned today. Hide a course to take it off Discover; its creator still sees it.</p></div></div>
+    <div class="toolbar"><div class="page-head"><h1>Admin</h1><p class="muted">${plural(d.courses.length, "course")} · ${plural(d.players, "player")} · ${d.xpToday} XP earned today. Hide a course to take it off Discover; its creator still sees it. You can edit only the official courses.</p></div></div>
     <section class="card list-card">
       <ul class="rows">${d.courses
         .map(
           (c) => `<li class="admin-course ${c.hidden ? "is-hidden" : ""}"><span class="course-flag">${esc(flag(c))}</span>
             <div><a href="#/course/${c.id}"><b>${esc(c.title)}</b></a> ${c.hidden ? `<span class="pill due">hidden</span>` : ""}<br><span class="muted small">by ${userLink(c.creator)} · ${esc(c.toLang)} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")} · updated ${fmtDate(c.updatedAt)}</span></div>
-            <span class="tools"><a class="btn outline small" href="#/studio/${c.id}">${I.edit} Edit</a><button class="btn small ${c.hidden ? "" : "danger"}" data-hide="${c.id}">${c.hidden ? "Unhide" : "Hide"}</button></span></li>`,
+            <span class="tools">${c.creator.official ? `<a class="btn outline small" href="#/studio/${c.id}">${I.edit} Edit</a>` : `<a class="btn outline small" href="#/course/${c.id}">View</a>`}<button class="btn small ${c.hidden ? "" : "danger"}" data-hide="${c.id}">${c.hidden ? "Unhide" : "Hide"}</button></span></li>`,
         )
         .join("")}</ul>
     </section>`;
@@ -2510,7 +2621,7 @@ async function renderAdmin() {
     b.onclick = async () => {
       const c = d.courses.find((x) => x.id === Number(b.dataset.hide));
       try {
-        await api(`/courses/${c.id}`, { method: "PUT", body: { title: c.title, description: c.description, fromLang: c.fromLang, toLang: c.toLang, toCode: c.toCode, letters: c.letters, hidden: !c.hidden } });
+        await api(`/admin/courses/${c.id}`, { method: "PUT", body: { hidden: !c.hidden } });
         renderAdmin();
       } catch (x) {
         toast(x.message);
