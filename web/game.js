@@ -490,7 +490,7 @@ function renderNav() {
   const bottom = document.getElementById("side-bottom");
   bottom.innerHTML = `<button class="icon-btn" id="logout" title="Sign out" aria-label="Sign out">${ICON.logout}</button>`;
   bottom.prepend(themeBtn);
-  document.getElementById("page-title").textContent = location.hash.startsWith("#/learn/words") ? "Your words" : (TITLES[page()] ?? "Labas");
+  document.getElementById("page-title").textContent = location.hash.startsWith("#/learn/words") ? "Your words" : (TITLES[page()] ?? "Vokab");
   $account.innerHTML = `<a class="who" href="#/u/${esc(me.username)}" title="Your profile (@${esc(me.username)})">${avatar(me)}<span>${esc(me.name)}</span></a>`;
   document.getElementById("logout").onclick = async () => {
     await api("/auth/logout", { method: "POST", body: {} });
@@ -575,7 +575,7 @@ function landingHtml() {
       </section>
 
       <section class="card section">
-        <div class="section-head"><h2>Why it works</h2><p>Little and often beats cramming. Labas keeps you coming back, and keeps it fun.</p></div>
+        <div class="section-head"><h2>Why it works</h2><p>Little and often beats cramming. Vokab keeps you coming back, and keeps it fun.</p></div>
         <div class="features">${FEATURES.map(([icon, title, text]) => `<div class="feature"><span class="feature-icon fi-${icon}">${I[icon]}</span><h3>${title}</h3><p>${text}</p></div>`).join("")}</div>
       </section>
 
@@ -1053,7 +1053,7 @@ async function renderLearnPath() {
           fresh.length
             ? `<section class="card widget"><div class="widget-head"><h3>From people you follow</h3><a href="#/discover?tab=following" class="small">All</a></div>
                 <ul class="feed">${fresh.slice(0, 3).map((c) => `<li><a href="#/course/${c.id}"><b>${esc(c.title)}</b></a><span class="muted small">by ${userLink(c.creator)} · ${plural(c.words, "word")}</span></li>`).join("")}</ul></section>`
-            : `<section class="card widget"><h3>Follow creators</h3><p class="stat-note">Follow accounts to see their new courses here. Start with us: <a href="#/u/labas">@labas</a></p></section>`
+            : `<section class="card widget"><h3>Follow creators</h3><p class="stat-note">Follow accounts to see their new courses here. Start with us: <a href="#/u/vokab">@vokab</a></p></section>`
         }
         ${quests ? `<section class="card widget"><h3>Quests</h3><ul class="quests">${quests}</ul></section>` : ""}
       </aside>
@@ -1705,7 +1705,6 @@ async function renderDiscover() {
       <aside class="card filters" aria-label="Filters">
         <div class="widget-head"><h3>Filters</h3><button type="button" class="linkbtn small" id="f-clear">Clear</button></div>
         <div class="active-filters" id="f-active"></div>
-        <div class="filter-group"><span>Have an access code?</span>${codeFormHtml("discover-code")}</div>
         <div class="filter-group"><span>Show</span>
           ${[["popular", "All courses"], ["following", "From people I follow"], ["enrolled", "My courses"]].map(([k, l]) => `<label><input type="radio" name="f-tab" value="${k}" ${k === f.tab ? "checked" : ""}> ${l}</label>`).join("")}
         </div>
@@ -1714,12 +1713,17 @@ async function renderDiscover() {
         <div class="filter-group"><span>Sort by</span>
           ${[["learners", "Most learners"], ["updatedAt", "Recently updated"], ["words", "Most words"]].map(([k, l]) => `<label><input type="radio" name="f-sort" value="${k}" ${k === f.sort ? "checked" : ""}> ${l}</label>`).join("")}
         </div>
+        <section class="code-callout">
+          <h4>${ICON.lock} Access code</h4>
+          <p class="muted small">Have an invite code for a private course? Enter it below to unlock.</p>
+          ${codeFormHtml("discover-code")}
+        </section>
       </aside>
     </div>`;
   const list = document.getElementById("d-list");
   const empty = {
     popular: "No courses match. Try fewer words, or another spelling.",
-    following: `Follow creators to see their courses here. Start with the official account: <a href="#/u/labas">@labas</a>.`,
+    following: `Follow creators to see their courses here. Start with the official account: <a href="#/u/vokab">@vokab</a>.`,
     enrolled: "You haven't started a course yet.",
   };
   let people = [];
@@ -1995,7 +1999,7 @@ async function renderStudioHome() {
     <div class="toolbar">
       <div class="page-head"><h1>Studio</h1><p class="muted">Make your own course: decks, lessons and words. Learners get the same lessons, review and duels as the official course, and your followers see it on their Learn page.</p></div>
       <div class="toolbar-actions">
-        <label class="btn outline" title="Upload a course file exported from Labas">${I.upload} Import .db<input type="file" id="import" accept=".db,.sqlite,application/vnd.sqlite3" hidden></label>
+        <label class="btn outline" title="Upload a course file exported from Vokab">${I.upload} Import .db<input type="file" id="import" accept=".db,.sqlite,application/vnd.sqlite3" hidden></label>
         <button class="btn" id="new-course">${I.plus} New course</button>
       </div>
     </div>

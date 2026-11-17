@@ -95,7 +95,7 @@ static const char *LEARN_INDEXES =
 
 static const char *POS_VALUES[] = {"noun", "verb", "phrase", "other"};
 static const char *GENDER_VALUES[] = {"", "m", "f", "mpl", "fpl"};
-static const char *RESERVED_USERNAMES[] = {"admin", "admins", "official", "labas", "me", "api", "settings", "studio", "discover", "support", "help"};
+static const char *RESERVED_USERNAMES[] = {"admin", "admins", "official", "vokab", "labas", "me", "api", "settings", "studio", "discover", "support", "help"};
 
 static char s_admins[1024]; /* comma-separated, lowercase: emails, or dev:<name> for guest logins */
 
@@ -199,9 +199,9 @@ static void touch_course(long long cid) {
 static long long official_user(void) {
   long long id = db_int(0, "SELECT id FROM users WHERE provider = 'system' AND subject = 'official'", "");
   if (id == 0) {
-    db_exec("INSERT INTO users (provider, subject, name, created_at, username, is_official, bio) VALUES ('system', 'official', ?, ?, 'labas', 1, ?)", "sis",
-            getenv("OFFICIAL_NAME") != NULL ? getenv("OFFICIAL_NAME") : "Labas", now_ms(),
-            "The official Labas account. Follow us for new decks and courses.");
+    db_exec("INSERT INTO users (provider, subject, name, created_at, username, is_official, bio) VALUES ('system', 'official', ?, ?, 'vokab', 1, ?)", "sis",
+            getenv("OFFICIAL_NAME") != NULL ? getenv("OFFICIAL_NAME") : "Vokab", now_ms(),
+            "The official Vokab account. Follow us for new decks and courses.");
     id = sqlite3_last_insert_rowid(s_db);
   }
   return id;

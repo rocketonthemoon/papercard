@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Labas · Learn words in any language</title>
+<title>Vokab · Learn words in any language</title>
 <meta name="description" content="Learn words in any language in short, game-like lessons: courses by us and by learners, spaced-repetition review, word duels with friends, and a Studio to make your own course.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,9 +24,20 @@
 
 <header class="nav">
   <div class="nav-inner">
-    <a class="brand" href="#/" aria-label="Labas home">
-      <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="2" fill="url(#gGreen)"/><rect x="15" y="1" width="12" height="12" rx="2" fill="url(#gNavy)"/><rect x="1" y="15" width="12" height="12" rx="2" fill="url(#gNavy)"/><rect x="15" y="15" width="12" height="12" rx="2" fill="url(#gGreen)"/></svg>
-      <span class="brand-word">LABAS<span>!</span></span>
+    <a class="brand" href="#/" aria-label="Vokab home">
+      <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true">
+        <rect x="11.5" y="2" width="5" height="3" rx="0.75" fill="var(--text)"/>
+        <rect x="7.8" y="5.8" width="5.5" height="3" rx="0.75" fill="#22c38a"/>
+        <rect x="14.2" y="5.8" width="5.5" height="3" rx="0.75" fill="var(--text)"/>
+        <path d="M 5.5 17 C 5.5 10.5 22.5 10.5 22.5 17 C 22.5 19 20.5 19.5 18.5 19.5 C 16.5 19.5 15 18.5 14 18.5 C 13 18.5 11.5 19.5 9.5 19.5 C 7.5 19.5 5.5 19 5.5 17 Z" fill="#22c38a"/>
+        <circle cx="10.5" cy="15" r="1.4" fill="#ffffff"/>
+        <circle cx="17.5" cy="15" r="1.4" fill="#ffffff"/>
+        <path d="M 6 17.5 C 4 19.5 3.5 22.5 5.8 24 C 8 25 9.5 22.8 8.8 20.5" stroke="#22c38a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 9.8 19 C 9 21.2 9.5 24 11.2 24.5 C 12.8 24.5 13 22.2 12.5 20" stroke="#22c38a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 18.2 19 C 19 21.2 18.5 24 16.8 24.5 C 15.2 24.5 15 22.2 15.5 20" stroke="#22c38a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 22 17.5 C 24 19.5 24.5 22.5 22.2 24 C 20 25 18.5 22.8 19.2 20.5" stroke="#22c38a" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-word">VOKAB<span>!</span></span>
     </a>
     <h1 class="page-title" id="page-title"></h1>
     <form class="top-search" id="top-search" role="search" hidden>
@@ -41,7 +52,20 @@
 </header>
 
 <aside class="sidebar" id="sidebar" hidden>
-  <a class="side-brand" href="#/learn" aria-label="Labas home"><svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="3" fill="url(#gGreen)"/><rect x="15" y="1" width="12" height="12" rx="3" fill="url(#gNavy)"/><rect x="1" y="15" width="12" height="12" rx="3" fill="url(#gNavy)"/><rect x="15" y="15" width="12" height="12" rx="3" fill="url(#gGreen)"/></svg></a>
+  <a class="side-brand" href="#/learn" aria-label="Vokab home">
+    <svg viewBox="0 0 28 28" aria-hidden="true">
+      <rect x="11.5" y="2" width="5" height="3" rx="0.75" fill="var(--text)"/>
+      <rect x="7.8" y="5.8" width="5.5" height="3" rx="0.75" fill="#22c38a"/>
+      <rect x="14.2" y="5.8" width="5.5" height="3" rx="0.75" fill="var(--text)"/>
+      <path d="M 5.5 17 C 5.5 10.5 22.5 10.5 22.5 17 C 22.5 19 20.5 19.5 18.5 19.5 C 16.5 19.5 15 18.5 14 18.5 C 13 18.5 11.5 19.5 9.5 19.5 C 7.5 19.5 5.5 19 5.5 17 Z" fill="#22c38a"/>
+      <circle cx="10.5" cy="15" r="1.4" fill="#ffffff"/>
+      <circle cx="17.5" cy="15" r="1.4" fill="#ffffff"/>
+      <path d="M 6 17.5 C 4 19.5 3.5 22.5 5.8 24 C 8 25 9.5 22.8 8.8 20.5" stroke="#22c38a" stroke-width="2" stroke-linecap="round"/>
+      <path d="M 9.8 19 C 9 21.2 9.5 24 11.2 24.5 C 12.8 24.5 13 22.2 12.5 20" stroke="#22c38a" stroke-width="2" stroke-linecap="round"/>
+      <path d="M 18.2 19 C 19 21.2 18.5 24 16.8 24.5 C 15.2 24.5 15 22.2 15.5 20" stroke="#22c38a" stroke-width="2" stroke-linecap="round"/>
+      <path d="M 22 17.5 C 24 19.5 24.5 22.5 22.2 24 C 20 25 18.5 22.8 19.2 20.5" stroke="#22c38a" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </a>
   <nav class="side-links" id="side-links" aria-label="Main"></nav>
   <div class="side-bottom" id="side-bottom"></div>
 </aside>

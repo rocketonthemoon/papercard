@@ -12,7 +12,7 @@ const outDir = pos[1] ?? os.tmpdir();
 const chrome = ["C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", "/usr/bin/google-chrome"].find((p) => fs.existsSync(p));
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "duel-chrome-"));
 const proc = spawn(chrome, ["--headless=new", "--remote-debugging-port=9334", `--user-data-dir=${profile}`, "--window-size=1300,1000", "--no-first-run", "about:blank"], { stdio: "ignore" });
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); yesd
 
 let ws;
 for (let i = 0; i < 50 && !ws; i++) {

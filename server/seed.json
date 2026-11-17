@@ -16,46 +16,225 @@
         {
           "title": "On campus",
           "words": [
-            { "lt": "universitetas", "en": "university", "pos": "noun", "gender": "m" },
-            { "lt": "paskaita", "en": "lecture", "pos": "noun", "gender": "f" },
-            { "lt": "seminaras", "en": "seminar", "pos": "noun", "gender": "m" },
-            { "lt": "profesorius", "en": "professor", "pos": "noun", "gender": "m" },
-            { "lt": "studentas", "en": "student", "pos": "noun", "gender": "m", "note": "A female student is studentė." },
-            { "lt": "biblioteka", "en": "library", "pos": "noun", "gender": "f" },
-            { "lt": "auditorija", "en": "lecture hall", "pos": "noun", "gender": "f" }
+            {
+              "lt": "universitetas",
+              "en": "university",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "paskaita",
+              "en": "lecture",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "seminaras",
+              "en": "seminar",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "profesorius",
+              "en": "professor",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "studentas",
+              "en": "student",
+              "pos": "noun",
+              "gender": "m",
+              "note": "A female student is studentė."
+            },
+            {
+              "lt": "biblioteka",
+              "en": "library",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "auditorija",
+              "en": "lecture hall",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "dėstytojas",
+              "en": "lecturer",
+              "pos": "noun",
+              "gender": "m",
+              "note": "feminine is dėstytoja; university teacher or instructor"
+            },
+            {
+              "lt": "studentė",
+              "en": "female student",
+              "pos": "noun",
+              "gender": "f",
+              "note": "masculine is studentas"
+            }
           ]
         },
         {
           "title": "In class",
           "words": [
-            { "lt": "tvarkaraštis", "en": "timetable", "pos": "noun", "gender": "m" },
-            { "lt": "egzaminas", "en": "exam", "pos": "noun", "gender": "m" },
-            { "lt": "knyga", "en": "book", "pos": "noun", "gender": "f" },
-            { "lt": "sąsiuvinis", "en": "notebook", "pos": "noun", "gender": "m" },
-            { "lt": "pieštukas", "en": "pencil", "pos": "noun", "gender": "m" },
-            { "lt": "klausimas", "en": "question", "pos": "noun", "gender": "m" },
-            { "lt": "atsakymas", "en": "answer", "pos": "noun", "gender": "m" }
+            {
+              "lt": "tvarkaraštis",
+              "en": "timetable",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "egzaminas",
+              "en": "exam",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "knyga",
+              "en": "book",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "sąsiuvinis",
+              "en": "notebook",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "pieštukas",
+              "en": "pencil",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "klausimas",
+              "en": "question",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "atsakymas",
+              "en": "answer",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "žodynas",
+              "en": "dictionary",
+              "pos": "noun",
+              "gender": "m",
+              "note": "from žodis (word); also means vocabulary"
+            },
+            {
+              "lt": "pamoka",
+              "en": "lesson",
+              "pos": "noun",
+              "gender": "f",
+              "note": "takes accusative in phrases like turėti pamoką (to have a lesson)"
+            },
+            {
+              "lt": "žodis",
+              "en": "word",
+              "pos": "noun",
+              "gender": "m",
+              "note": "plural is žodžiai"
+            }
           ]
         },
         {
           "title": "Study verbs",
           "words": [
-            { "lt": "studijuoti", "en": "to study", "pos": "verb" },
-            { "lt": "skaityti", "en": "to read", "pos": "verb" },
-            { "lt": "rašyti", "en": "to write", "pos": "verb" },
-            { "lt": "klausytis", "en": "to listen", "pos": "verb" },
-            { "lt": "mokytis", "en": "to learn", "pos": "verb" },
-            { "lt": "suprasti", "en": "to understand", "pos": "verb" },
-            { "lt": "klausti", "en": "to ask", "pos": "verb" },
-            { "lt": "atsakyti", "en": "to answer", "pos": "verb" }
+            {
+              "lt": "studijuoti",
+              "en": "to study",
+              "pos": "verb"
+            },
+            {
+              "lt": "skaityti",
+              "en": "to read",
+              "pos": "verb"
+            },
+            {
+              "lt": "rašyti",
+              "en": "to write",
+              "pos": "verb"
+            },
+            {
+              "lt": "klausytis",
+              "en": "to listen",
+              "pos": "verb"
+            },
+            {
+              "lt": "mokytis",
+              "en": "to learn",
+              "pos": "verb"
+            },
+            {
+              "lt": "suprasti",
+              "en": "to understand",
+              "pos": "verb"
+            },
+            {
+              "lt": "klausti",
+              "en": "to ask",
+              "pos": "verb"
+            },
+            {
+              "lt": "atsakyti",
+              "en": "to answer",
+              "pos": "verb"
+            },
+            {
+              "lt": "kartoti",
+              "en": "to repeat",
+              "pos": "verb",
+              "gender": "",
+              "note": "kartoja, kartojo; essential classroom request: prašom pakartoti"
+            },
+            {
+              "lt": "mokyti",
+              "en": "to teach",
+              "pos": "verb",
+              "gender": "",
+              "note": "moko, mokė; mokyti ką nors (acc.) ko nors (gen.)"
+            }
           ]
         },
         {
           "title": "Classroom phrases",
           "words": [
-            { "lt": "Kur yra biblioteka?", "en": "Where is the library?", "pos": "phrase" },
-            { "lt": "Aš nesuprantu.", "en": "I don't understand.", "pos": "phrase", "also": "Nesuprantu." },
-            { "lt": "Ką tai reiškia?", "en": "What does this mean?", "pos": "phrase" }
+            {
+              "lt": "Kur yra biblioteka?",
+              "en": "Where is the library?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Aš nesuprantu.",
+              "en": "I don't understand.",
+              "pos": "phrase",
+              "also": "Nesuprantu."
+            },
+            {
+              "lt": "Ką tai reiškia?",
+              "en": "What does this mean?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Prašom pakartoti.",
+              "en": "Repeat please.",
+              "pos": "phrase",
+              "gender": "",
+              "note": "polite request in class or conversation"
+            },
+            {
+              "lt": "Aš kalbu lietuviškai.",
+              "en": "I speak Lithuanian.",
+              "pos": "phrase",
+              "gender": "",
+              "note": "kalbėti + adverb ending in -iškai (lietuviškai, angliškai)"
+            }
           ]
         }
       ]
@@ -68,44 +247,220 @@
         {
           "title": "Your room",
           "words": [
-            { "lt": "bendrabutis", "en": "dormitory", "pos": "noun", "gender": "m" },
-            { "lt": "kambarys", "en": "room", "pos": "noun", "gender": "m" },
-            { "lt": "kambario draugas", "en": "roommate", "pos": "noun", "gender": "m", "also": "kambariokas", "note": "Students often say kambariokas." },
-            { "lt": "virtuvė", "en": "kitchen", "pos": "noun", "gender": "f" },
-            { "lt": "raktas", "en": "key", "pos": "noun", "gender": "m" },
-            { "lt": "dušas", "en": "shower", "pos": "noun", "gender": "m" },
-            { "lt": "tualetas", "en": "toilet", "pos": "noun", "gender": "m" }
+            {
+              "lt": "bendrabutis",
+              "en": "dormitory",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "kambarys",
+              "en": "room",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "kambario draugas",
+              "en": "roommate",
+              "pos": "noun",
+              "gender": "m",
+              "also": "kambariokas",
+              "note": "Students often say kambariokas."
+            },
+            {
+              "lt": "virtuvė",
+              "en": "kitchen",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "raktas",
+              "en": "key",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "dušas",
+              "en": "shower",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "tualetas",
+              "en": "toilet",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "butas",
+              "en": "flat",
+              "pos": "noun",
+              "gender": "m",
+              "also": "apartment",
+              "note": "genitive buto; standard Lithuanian for apartment"
+            },
+            {
+              "lt": "aukštas",
+              "en": "floor",
+              "pos": "noun",
+              "gender": "m",
+              "note": "locative aukšte: kelintame aukšte gyveni? (which floor do you live on?)"
+            },
+            {
+              "lt": "stalas",
+              "en": "table",
+              "pos": "noun",
+              "gender": "m",
+              "also": "desk",
+              "note": "plural stalai; rašomasis stalas is a desk"
+            },
+            {
+              "lt": "kėdė",
+              "en": "chair",
+              "pos": "noun",
+              "gender": "f",
+              "note": "soft noun ending in -ė; plural kėdės"
+            }
           ]
         },
         {
           "title": "Around the dorm",
           "words": [
-            { "lt": "skalbimo mašina", "en": "washing machine", "pos": "noun", "gender": "f" },
-            { "lt": "nuoma", "en": "rent", "pos": "noun", "gender": "f" },
-            { "lt": "komunaliniai mokesčiai", "en": "utility bills", "pos": "noun", "gender": "mpl" },
-            { "lt": "internetas", "en": "internet", "pos": "noun", "gender": "m" },
-            { "lt": "šiukšlės", "en": "garbage", "pos": "noun", "gender": "fpl" },
-            { "lt": "šaldytuvas", "en": "fridge", "pos": "noun", "gender": "m" },
-            { "lt": "mikrobangų krosnelė", "en": "microwave", "pos": "noun", "gender": "f" }
+            {
+              "lt": "skalbimo mašina",
+              "en": "washing machine",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "nuoma",
+              "en": "rent",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "komunaliniai mokesčiai",
+              "en": "utility bills",
+              "pos": "noun",
+              "gender": "mpl"
+            },
+            {
+              "lt": "internetas",
+              "en": "internet",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "šiukšlės",
+              "en": "garbage",
+              "pos": "noun",
+              "gender": "fpl"
+            },
+            {
+              "lt": "šaldytuvas",
+              "en": "fridge",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "mikrobangų krosnelė",
+              "en": "microwave",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "langas",
+              "en": "window",
+              "pos": "noun",
+              "gender": "m",
+              "note": "plural langai; Title of the textbook Langas į lietuvių kalbą!"
+            },
+            {
+              "lt": "durys",
+              "en": "door",
+              "pos": "noun",
+              "gender": "fpl",
+              "note": "plural-only noun (pluralia tantum); e.g. atidaryti duris"
+            }
           ]
         },
         {
           "title": "Dorm verbs",
           "words": [
-            { "lt": "gyventi", "en": "to live", "pos": "verb" },
-            { "lt": "valyti", "en": "to clean", "pos": "verb" },
-            { "lt": "plauti", "en": "to wash", "pos": "verb" },
-            { "lt": "mokėti", "en": "to pay", "pos": "verb", "note": "Mokėti also means \"to know how to\": moku plaukti, I can swim." },
-            { "lt": "atidaryti", "en": "to open", "pos": "verb" },
-            { "lt": "uždaryti", "en": "to close", "pos": "verb" },
-            { "lt": "dalytis", "en": "to share", "pos": "verb", "also": "dalintis" }
+            {
+              "lt": "gyventi",
+              "en": "to live",
+              "pos": "verb"
+            },
+            {
+              "lt": "valyti",
+              "en": "to clean",
+              "pos": "verb"
+            },
+            {
+              "lt": "plauti",
+              "en": "to wash",
+              "pos": "verb"
+            },
+            {
+              "lt": "mokėti",
+              "en": "to pay",
+              "pos": "verb",
+              "note": "Mokėti also means \"to know how to\": moku plaukti, I can swim."
+            },
+            {
+              "lt": "atidaryti",
+              "en": "to open",
+              "pos": "verb"
+            },
+            {
+              "lt": "uždaryti",
+              "en": "to close",
+              "pos": "verb"
+            },
+            {
+              "lt": "dalytis",
+              "en": "to share",
+              "pos": "verb",
+              "also": "dalintis"
+            },
+            {
+              "lt": "nuomotis",
+              "en": "to rent",
+              "pos": "verb",
+              "gender": "",
+              "note": "nuomojasi, nuomojosi; reflexive verb: nuomotis butą (to rent an apartment)"
+            },
+            {
+              "lt": "tvarkyti",
+              "en": "to tidy up",
+              "pos": "verb",
+              "gender": "",
+              "note": "tvarko, tvarkė; tvarkyti kambarį (to tidy up the room)"
+            }
           ]
         },
         {
           "title": "Dorm phrases",
           "words": [
-            { "lt": "Kas šiandien tvarko virtuvę?", "en": "Who is cleaning the kitchen today?", "pos": "phrase" },
-            { "lt": "Man reikia Wi-Fi slaptažodžio.", "en": "I need the Wi-Fi password.", "pos": "phrase" }
+            {
+              "lt": "Kas šiandien tvarko virtuvę?",
+              "en": "Who is cleaning the kitchen today?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Man reikia Wi-Fi slaptažodžio.",
+              "en": "I need the Wi-Fi password.",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Kuriame aukšte gyveni?",
+              "en": "Which floor do you live on?",
+              "pos": "phrase",
+              "gender": "",
+              "also": "Kelintame aukšte gyveni?",
+              "note": "common question when visiting student dorms or apartments"
+            }
           ]
         }
       ]
@@ -118,43 +473,199 @@
         {
           "title": "Food and drinks",
           "words": [
-            { "lt": "valgykla", "en": "cafeteria", "pos": "noun", "gender": "f" },
-            { "lt": "kavinė", "en": "café", "pos": "noun", "gender": "f" },
-            { "lt": "kava", "en": "coffee", "pos": "noun", "gender": "f" },
-            { "lt": "arbata", "en": "tea", "pos": "noun", "gender": "f" },
-            { "lt": "sriuba", "en": "soup", "pos": "noun", "gender": "f" },
-            { "lt": "salotos", "en": "salad", "pos": "noun", "gender": "fpl" },
-            { "lt": "sumuštinis", "en": "sandwich", "pos": "noun", "gender": "m" }
+            {
+              "lt": "valgykla",
+              "en": "cafeteria",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "kavinė",
+              "en": "café",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "kava",
+              "en": "coffee",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "arbata",
+              "en": "tea",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "sriuba",
+              "en": "soup",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "salotos",
+              "en": "salad",
+              "pos": "noun",
+              "gender": "fpl"
+            },
+            {
+              "lt": "sumuštinis",
+              "en": "sandwich",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "cukrus",
+              "en": "sugar",
+              "pos": "noun",
+              "gender": "m",
+              "note": "u-stem noun; genitive cukraus: be cukraus (without sugar)"
+            },
+            {
+              "lt": "sultys",
+              "en": "juice",
+              "pos": "noun",
+              "gender": "fpl",
+              "note": "plural-only noun; apelsinų sultys (orange juice)"
+            },
+            {
+              "lt": "vanduo",
+              "en": "water",
+              "pos": "noun",
+              "gender": "m",
+              "note": "irregular stem: genitive vandens, accusative vandenį, plural vandenys"
+            }
           ]
         },
         {
           "title": "Paying",
           "words": [
-            { "lt": "dienos pietūs", "en": "lunch special", "pos": "noun", "gender": "mpl", "note": "Literally \"the day's lunch\"." },
-            { "lt": "sąskaita", "en": "bill", "pos": "noun", "gender": "f", "note": "Also means a bank account." },
-            { "lt": "pinigai", "en": "money", "pos": "noun", "gender": "mpl" },
-            { "lt": "grynieji", "en": "cash", "pos": "noun", "gender": "mpl", "also": "grynieji pinigai" },
-            { "lt": "kortelė", "en": "card", "pos": "noun", "gender": "f" },
-            { "lt": "nuolaida", "en": "discount", "pos": "noun", "gender": "f" },
-            { "lt": "studento pažymėjimas", "en": "student ID card", "pos": "noun", "gender": "m" }
+            {
+              "lt": "dienos pietūs",
+              "en": "lunch special",
+              "pos": "noun",
+              "gender": "mpl",
+              "note": "Literally \"the day's lunch\"."
+            },
+            {
+              "lt": "sąskaita",
+              "en": "bill",
+              "pos": "noun",
+              "gender": "f",
+              "note": "Also means a bank account."
+            },
+            {
+              "lt": "pinigai",
+              "en": "money",
+              "pos": "noun",
+              "gender": "mpl"
+            },
+            {
+              "lt": "grynieji",
+              "en": "cash",
+              "pos": "noun",
+              "gender": "mpl",
+              "also": "grynieji pinigai"
+            },
+            {
+              "lt": "kortelė",
+              "en": "card",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "nuolaida",
+              "en": "discount",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "studento pažymėjimas",
+              "en": "student ID card",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "grąža",
+              "en": "change",
+              "pos": "noun",
+              "gender": "f",
+              "note": "money returned when paying: štai jūsų grąža (here is your change)"
+            }
           ]
         },
         {
           "title": "Café verbs",
           "words": [
-            { "lt": "norėti", "en": "to want", "pos": "verb" },
-            { "lt": "užsisakyti", "en": "to order", "pos": "verb", "note": "Also used for booking: užsisakyti viešbutį." },
-            { "lt": "gerti", "en": "to drink", "pos": "verb" },
-            { "lt": "valgyti", "en": "to eat", "pos": "verb" },
-            { "lt": "rekomenduoti", "en": "to recommend", "pos": "verb" }
+            {
+              "lt": "norėti",
+              "en": "to want",
+              "pos": "verb"
+            },
+            {
+              "lt": "užsisakyti",
+              "en": "to order",
+              "pos": "verb",
+              "note": "Also used for booking: užsisakyti viešbutį."
+            },
+            {
+              "lt": "gerti",
+              "en": "to drink",
+              "pos": "verb"
+            },
+            {
+              "lt": "valgyti",
+              "en": "to eat",
+              "pos": "verb"
+            },
+            {
+              "lt": "rekomenduoti",
+              "en": "to recommend",
+              "pos": "verb"
+            },
+            {
+              "lt": "sumokėti",
+              "en": "to pay for",
+              "pos": "verb",
+              "gender": "",
+              "note": "sumoka, sumokėjo; perfective of mokėti: sumokėti už pietus (to pay for lunch)"
+            },
+            {
+              "lt": "pietauti",
+              "en": "to have lunch",
+              "pos": "verb",
+              "gender": "",
+              "note": "pietauja, pietavo; from pietūs (lunch)"
+            }
           ]
         },
         {
           "title": "At the counter",
           "words": [
-            { "lt": "Vieną kavą išsinešti, prašau.", "en": "One coffee to go, please.", "pos": "phrase", "also": "Prašau vieną kavą išsinešti." },
-            { "lt": "Ar galiu mokėti kortele?", "en": "Can I pay by card?", "pos": "phrase" },
-            { "lt": "Ar taikote studentų nuolaidą?", "en": "Do you give a student discount?", "pos": "phrase" }
+            {
+              "lt": "Vieną kavą išsinešti, prašau.",
+              "en": "One coffee to go, please.",
+              "pos": "phrase",
+              "also": "Prašau vieną kavą išsinešti."
+            },
+            {
+              "lt": "Ar galiu mokėti kortele?",
+              "en": "Can I pay by card?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Ar taikote studentų nuolaidą?",
+              "en": "Do you give a student discount?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Kiek kainuoja kava?",
+              "en": "How much does the coffee cost?",
+              "pos": "phrase",
+              "gender": "",
+              "note": "essential question at coffee bars and cafés"
+            }
           ]
         }
       ]
@@ -167,41 +678,207 @@
         {
           "title": "Public transport",
           "words": [
-            { "lt": "autobusas", "en": "bus", "pos": "noun", "gender": "m" },
-            { "lt": "troleibusas", "en": "trolleybus", "pos": "noun", "gender": "m" },
-            { "lt": "stotelė", "en": "bus stop", "pos": "noun", "gender": "f" },
-            { "lt": "bilietas", "en": "ticket", "pos": "noun", "gender": "m" },
-            { "lt": "vairuotojas", "en": "driver", "pos": "noun", "gender": "m" },
-            { "lt": "keleivis", "en": "passenger", "pos": "noun", "gender": "m" },
-            { "lt": "stotis", "en": "station", "pos": "noun", "gender": "f", "note": "Feminine, even though it ends in -is." }
+            {
+              "lt": "autobusas",
+              "en": "bus",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "troleibusas",
+              "en": "trolleybus",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "stotelė",
+              "en": "bus stop",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "bilietas",
+              "en": "ticket",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "vairuotojas",
+              "en": "driver",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "keleivis",
+              "en": "passenger",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "stotis",
+              "en": "station",
+              "pos": "noun",
+              "gender": "f",
+              "note": "Feminine, even though it ends in -is."
+            },
+            {
+              "lt": "mikroautobusas",
+              "en": "minibus",
+              "pos": "noun",
+              "gender": "m",
+              "note": "often colloquially called mikriukas"
+            }
           ]
         },
         {
           "title": "Around town",
           "words": [
-            { "lt": "gatvė", "en": "street", "pos": "noun", "gender": "f" },
-            { "lt": "tiltas", "en": "bridge", "pos": "noun", "gender": "m" },
-            { "lt": "centras", "en": "city centre", "pos": "noun", "gender": "m" },
-            { "lt": "žemėlapis", "en": "map", "pos": "noun", "gender": "m" }
+            {
+              "lt": "gatvė",
+              "en": "street",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "tiltas",
+              "en": "bridge",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "centras",
+              "en": "city centre",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "žemėlapis",
+              "en": "map",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "senamiestis",
+              "en": "old town",
+              "pos": "noun",
+              "gender": "m",
+              "note": "compound of senas (old) + miestas (city/town); locative senamiestyje"
+            },
+            {
+              "lt": "aikštė",
+              "en": "town square",
+              "pos": "noun",
+              "gender": "f",
+              "note": "e.g. Katedros aikštė (Cathedral Square in Vilnius)"
+            },
+            {
+              "lt": "šviesoforas",
+              "en": "traffic light",
+              "pos": "noun",
+              "gender": "m",
+              "note": "iki šviesoforo (up to the traffic light)"
+            },
+            {
+              "lt": "tiesiai",
+              "en": "straight ahead",
+              "pos": "other",
+              "gender": "",
+              "also": "straight",
+              "note": "adverb of direction: eikite tiesiai (walk straight)"
+            },
+            {
+              "lt": "į kairę",
+              "en": "to the left",
+              "pos": "other",
+              "gender": "",
+              "note": "direction phrase with preposition į + accusative kairę"
+            },
+            {
+              "lt": "į dešinę",
+              "en": "to the right",
+              "pos": "other",
+              "gender": "",
+              "note": "direction phrase with preposition į + accusative dešinę"
+            }
           ]
         },
         {
           "title": "Getting around",
           "words": [
-            { "lt": "važiuoti", "en": "to ride", "pos": "verb", "note": "To go by any vehicle: bus, car, bike." },
-            { "lt": "eiti", "en": "to walk", "pos": "verb", "note": "To go on foot." },
-            { "lt": "įlipti", "en": "to get on", "pos": "verb" },
-            { "lt": "išlipti", "en": "to get off", "pos": "verb" },
-            { "lt": "persėsti", "en": "to transfer", "pos": "verb", "note": "To change to another bus or train." },
-            { "lt": "vėluoti", "en": "to be late", "pos": "verb" },
-            { "lt": "rasti", "en": "to find", "pos": "verb" }
+            {
+              "lt": "važiuoti",
+              "en": "to ride",
+              "pos": "verb",
+              "note": "To go by any vehicle: bus, car, bike."
+            },
+            {
+              "lt": "eiti",
+              "en": "to walk",
+              "pos": "verb",
+              "note": "To go on foot."
+            },
+            {
+              "lt": "įlipti",
+              "en": "to get on",
+              "pos": "verb"
+            },
+            {
+              "lt": "išlipti",
+              "en": "to get off",
+              "pos": "verb"
+            },
+            {
+              "lt": "persėsti",
+              "en": "to transfer",
+              "pos": "verb",
+              "note": "To change to another bus or train."
+            },
+            {
+              "lt": "vėluoti",
+              "en": "to be late",
+              "pos": "verb"
+            },
+            {
+              "lt": "rasti",
+              "en": "to find",
+              "pos": "verb"
+            },
+            {
+              "lt": "pereiti",
+              "en": "to cross",
+              "pos": "verb",
+              "gender": "",
+              "note": "pereina, perėjo; pereiti gatvę (to cross the street)"
+            },
+            {
+              "lt": "pasukti",
+              "en": "to turn",
+              "pos": "verb",
+              "gender": "",
+              "note": "pasuka, pasuko; pasukti į dešinę (to turn right)"
+            }
           ]
         },
         {
           "title": "Asking the way",
           "words": [
-            { "lt": "Kuris autobusas važiuoja į centrą?", "en": "Which bus goes to the city centre?", "pos": "phrase" },
-            { "lt": "Ar ši stotelė yra netoli universiteto?", "en": "Is this stop near the university?", "pos": "phrase" }
+            {
+              "lt": "Kuris autobusas važiuoja į centrą?",
+              "en": "Which bus goes to the city centre?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Ar ši stotelė yra netoli universiteto?",
+              "en": "Is this stop near the university?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Eikite tiesiai iki šviesoforo.",
+              "en": "Walk straight to the traffic lights.",
+              "pos": "phrase",
+              "gender": "",
+              "note": "standard direction instruction taught in Langas į lietuvių kalbą"
+            }
           ]
         }
       ]
@@ -214,43 +891,197 @@
         {
           "title": "At the shop",
           "words": [
-            { "lt": "parduotuvė", "en": "shop", "pos": "noun", "gender": "f" },
-            { "lt": "prekybos centras", "en": "supermarket", "pos": "noun", "gender": "m" },
-            { "lt": "krepšelis", "en": "basket", "pos": "noun", "gender": "m" },
-            { "lt": "vežimėlis", "en": "shopping cart", "pos": "noun", "gender": "m" },
-            { "lt": "kasa", "en": "checkout", "pos": "noun", "gender": "f" },
-            { "lt": "čekis", "en": "receipt", "pos": "noun", "gender": "m" },
-            { "lt": "kaina", "en": "price", "pos": "noun", "gender": "f" }
+            {
+              "lt": "parduotuvė",
+              "en": "shop",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "prekybos centras",
+              "en": "supermarket",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "krepšelis",
+              "en": "basket",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "vežimėlis",
+              "en": "shopping cart",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "kasa",
+              "en": "checkout",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "čekis",
+              "en": "receipt",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "kaina",
+              "en": "price",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "turgus",
+              "en": "market",
+              "pos": "noun",
+              "gender": "m",
+              "note": "u-stem noun; e.g. Halės turgus in Vilnius"
+            },
+            {
+              "lt": "maišelis",
+              "en": "carrier bag",
+              "pos": "noun",
+              "gender": "m",
+              "also": "bag",
+              "note": "diminutive of maišas; asked at every checkout: Ar reikia maišelio?"
+            }
           ]
         },
         {
           "title": "Groceries",
           "words": [
-            { "lt": "duona", "en": "bread", "pos": "noun", "gender": "f" },
-            { "lt": "pienas", "en": "milk", "pos": "noun", "gender": "m" },
-            { "lt": "kiaušiniai", "en": "eggs", "pos": "noun", "gender": "mpl" },
-            { "lt": "sūris", "en": "cheese", "pos": "noun", "gender": "m" },
-            { "lt": "mėsa", "en": "meat", "pos": "noun", "gender": "f" },
-            { "lt": "daržovės", "en": "vegetables", "pos": "noun", "gender": "fpl" },
-            { "lt": "vaisiai", "en": "fruit", "pos": "noun", "gender": "mpl" },
-            { "lt": "vanduo", "en": "water", "pos": "noun", "gender": "m" }
+            {
+              "lt": "duona",
+              "en": "bread",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "pienas",
+              "en": "milk",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "kiaušiniai",
+              "en": "eggs",
+              "pos": "noun",
+              "gender": "mpl"
+            },
+            {
+              "lt": "sūris",
+              "en": "cheese",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "mėsa",
+              "en": "meat",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "daržovės",
+              "en": "vegetables",
+              "pos": "noun",
+              "gender": "fpl"
+            },
+            {
+              "lt": "vaisiai",
+              "en": "fruit",
+              "pos": "noun",
+              "gender": "mpl"
+            },
+            {
+              "lt": "miltai",
+              "en": "flour",
+              "pos": "noun",
+              "gender": "mpl",
+              "note": "plural-only noun; kvietiniai miltai (wheat flour)"
+            },
+            {
+              "lt": "sviestas",
+              "en": "butter",
+              "pos": "noun",
+              "gender": "m",
+              "note": "genitive sviesto; e.g. sumuštinis su sviestu"
+            },
+            {
+              "lt": "obuolys",
+              "en": "apple",
+              "pos": "noun",
+              "gender": "m",
+              "note": "plural obuoliai; genitive obuolio"
+            },
+            {
+              "lt": "ryžiai",
+              "en": "rice",
+              "pos": "noun",
+              "gender": "mpl",
+              "note": "plural-only noun"
+            }
           ]
         },
         {
           "title": "Shopping verbs",
           "words": [
-            { "lt": "pirkti", "en": "to buy", "pos": "verb" },
-            { "lt": "ieškoti", "en": "to look for", "pos": "verb" },
-            { "lt": "rinktis", "en": "to choose", "pos": "verb" },
-            { "lt": "sverti", "en": "to weigh", "pos": "verb" },
-            { "lt": "kainuoti", "en": "to cost", "pos": "verb" }
+            {
+              "lt": "pirkti",
+              "en": "to buy",
+              "pos": "verb"
+            },
+            {
+              "lt": "ieškoti",
+              "en": "to look for",
+              "pos": "verb"
+            },
+            {
+              "lt": "rinktis",
+              "en": "to choose",
+              "pos": "verb"
+            },
+            {
+              "lt": "sverti",
+              "en": "to weigh",
+              "pos": "verb"
+            },
+            {
+              "lt": "kainuoti",
+              "en": "to cost",
+              "pos": "verb"
+            },
+            {
+              "lt": "pasverti",
+              "en": "to weigh out",
+              "pos": "verb",
+              "gender": "",
+              "note": "pasveria, pasvėrė; perfective of sverti"
+            }
           ]
         },
         {
           "title": "Shopping phrases",
           "words": [
-            { "lt": "Kiek tai kainuoja?", "en": "How much does this cost?", "pos": "phrase" },
-            { "lt": "Kur galiu rasti cukraus?", "en": "Where can I find sugar?", "pos": "phrase" }
+            {
+              "lt": "Kiek tai kainuoja?",
+              "en": "How much does this cost?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Kur galiu rasti cukraus?",
+              "en": "Where can I find sugar?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Ar turite šviežios duonos?",
+              "en": "Do you have fresh bread?",
+              "pos": "phrase",
+              "gender": "",
+              "note": "asking with genitive object (šviežios duonos) after turite"
+            }
           ]
         }
       ]
@@ -263,40 +1094,186 @@
         {
           "title": "Seeing a doctor",
           "words": [
-            { "lt": "gydytojas", "en": "doctor", "pos": "noun", "gender": "m" },
-            { "lt": "klinika", "en": "clinic", "pos": "noun", "gender": "f" },
-            { "lt": "ligoninė", "en": "hospital", "pos": "noun", "gender": "f" },
-            { "lt": "vaistinė", "en": "pharmacy", "pos": "noun", "gender": "f" },
-            { "lt": "receptas", "en": "prescription", "pos": "noun", "gender": "m", "note": "Also a cooking recipe." },
-            { "lt": "vaistai", "en": "medicine", "pos": "noun", "gender": "mpl" }
+            {
+              "lt": "gydytojas",
+              "en": "doctor",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "klinika",
+              "en": "clinic",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "ligoninė",
+              "en": "hospital",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "vaistinė",
+              "en": "pharmacy",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "receptas",
+              "en": "prescription",
+              "pos": "noun",
+              "gender": "m",
+              "note": "Also a cooking recipe."
+            },
+            {
+              "lt": "vaistai",
+              "en": "medicine",
+              "pos": "noun",
+              "gender": "mpl"
+            },
+            {
+              "lt": "greitoji pagalba",
+              "en": "ambulance",
+              "pos": "noun",
+              "gender": "f",
+              "note": "literally 'fast help'; emergency medical service (call 112)"
+            }
           ]
         },
         {
           "title": "Symptoms",
           "words": [
-            { "lt": "skausmas", "en": "pain", "pos": "noun", "gender": "m" },
-            { "lt": "galvos skausmas", "en": "headache", "pos": "noun", "gender": "m" },
-            { "lt": "temperatūra", "en": "temperature", "pos": "noun", "gender": "f", "note": "Turiu temperatūros: I have a fever." },
-            { "lt": "vitaminai", "en": "vitamins", "pos": "noun", "gender": "mpl" },
-            { "lt": "tvarstis", "en": "bandage", "pos": "noun", "gender": "m" }
+            {
+              "lt": "skausmas",
+              "en": "pain",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "galvos skausmas",
+              "en": "headache",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "temperatūra",
+              "en": "temperature",
+              "pos": "noun",
+              "gender": "f",
+              "note": "Turiu temperatūros: I have a fever."
+            },
+            {
+              "lt": "vitaminai",
+              "en": "vitamins",
+              "pos": "noun",
+              "gender": "mpl"
+            },
+            {
+              "lt": "tvarstis",
+              "en": "bandage",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "galva",
+              "en": "head",
+              "pos": "noun",
+              "gender": "f",
+              "note": "genitive galvos, accusative galvą: man skauda galvą (I have a headache)"
+            },
+            {
+              "lt": "gerklė",
+              "en": "throat",
+              "pos": "noun",
+              "gender": "f",
+              "note": "genitive gerklės: man skauda gerklę (my throat hurts)"
+            },
+            {
+              "lt": "kosulys",
+              "en": "cough",
+              "pos": "noun",
+              "gender": "m",
+              "note": "genitive kosulio; symptom of cold or respiratory illness"
+            },
+            {
+              "lt": "sloga",
+              "en": "runny nose",
+              "pos": "noun",
+              "gender": "f",
+              "note": "common cold symptom; turėti slogą (to have a cold/runny nose)"
+            }
           ]
         },
         {
           "title": "Health verbs",
           "words": [
-            { "lt": "jaustis", "en": "to feel", "pos": "verb" },
-            { "lt": "sveikti", "en": "to recover", "pos": "verb" },
-            { "lt": "skaudėti", "en": "to hurt", "pos": "verb" },
-            { "lt": "vartoti", "en": "to take (medicine)", "pos": "verb" },
-            { "lt": "registruotis", "en": "to make an appointment", "pos": "verb" }
+            {
+              "lt": "jaustis",
+              "en": "to feel",
+              "pos": "verb"
+            },
+            {
+              "lt": "sveikti",
+              "en": "to recover",
+              "pos": "verb"
+            },
+            {
+              "lt": "skaudėti",
+              "en": "to hurt",
+              "pos": "verb"
+            },
+            {
+              "lt": "vartoti",
+              "en": "to take (medicine)",
+              "pos": "verb"
+            },
+            {
+              "lt": "registruotis",
+              "en": "to make an appointment",
+              "pos": "verb"
+            },
+            {
+              "lt": "karščiuoti",
+              "en": "to have a fever",
+              "pos": "verb",
+              "gender": "",
+              "note": "karščiuoja, karščiavo; when body temperature is elevated"
+            },
+            {
+              "lt": "matuoti",
+              "en": "to measure",
+              "pos": "verb",
+              "gender": "",
+              "note": "matuoja, matavo; matuoti temperatūrą (to take one's temperature)"
+            }
           ]
         },
         {
           "title": "At the clinic",
           "words": [
-            { "lt": "Man skauda galvą.", "en": "I have a headache.", "pos": "phrase" },
-            { "lt": "Aš noriu užsiregistruoti pas gydytoją.", "en": "I want to make an appointment with a doctor.", "pos": "phrase", "also": "Noriu užsiregistruoti pas gydytoją." },
-            { "lt": "Kur yra artimiausia vaistinė?", "en": "Where is the nearest pharmacy?", "pos": "phrase" }
+            {
+              "lt": "Man skauda galvą.",
+              "en": "I have a headache.",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Aš noriu užsiregistruoti pas gydytoją.",
+              "en": "I want to make an appointment with a doctor.",
+              "pos": "phrase",
+              "also": "Noriu užsiregistruoti pas gydytoją."
+            },
+            {
+              "lt": "Kur yra artimiausia vaistinė?",
+              "en": "Where is the nearest pharmacy?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Kaip šiandien jautiesi?",
+              "en": "How do you feel today?",
+              "pos": "phrase",
+              "gender": "",
+              "note": "standard greeting/health check question in Langas į lietuvių kalbą"
+            }
           ]
         }
       ]
@@ -309,40 +1286,182 @@
         {
           "title": "Finding work",
           "words": [
-            { "lt": "darbas", "en": "job", "pos": "noun", "gender": "m" },
-            { "lt": "gyvenimo aprašymas", "en": "CV", "pos": "noun", "gender": "m", "also": "CV", "note": "Literally \"life description\". Many people just say CV." },
-            { "lt": "pokalbis", "en": "interview", "pos": "noun", "gender": "m", "note": "Also any conversation." },
-            { "lt": "atlyginimas", "en": "salary", "pos": "noun", "gender": "m", "also": "alga" },
-            { "lt": "valanda", "en": "hour", "pos": "noun", "gender": "f" },
-            { "lt": "grafikas", "en": "work schedule", "pos": "noun", "gender": "m" }
+            {
+              "lt": "darbas",
+              "en": "job",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "gyvenimo aprašymas",
+              "en": "CV",
+              "pos": "noun",
+              "gender": "m",
+              "also": "CV",
+              "note": "Literally \"life description\". Many people just say CV."
+            },
+            {
+              "lt": "pokalbis",
+              "en": "interview",
+              "pos": "noun",
+              "gender": "m",
+              "note": "Also any conversation."
+            },
+            {
+              "lt": "atlyginimas",
+              "en": "salary",
+              "pos": "noun",
+              "gender": "m",
+              "also": "alga"
+            },
+            {
+              "lt": "valanda",
+              "en": "hour",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "grafikas",
+              "en": "work schedule",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "profesija",
+              "en": "profession",
+              "pos": "noun",
+              "gender": "f",
+              "note": "e.g. Kokia tavo profesija? (What is your profession?)"
+            },
+            {
+              "lt": "specialybė",
+              "en": "speciality",
+              "pos": "noun",
+              "gender": "f",
+              "also": "field of study",
+              "note": "what you study or specialise in at university"
+            }
           ]
         },
         {
           "title": "Paperwork",
           "words": [
-            { "lt": "bankas", "en": "bank", "pos": "noun", "gender": "m" },
-            { "lt": "banko sąskaita", "en": "bank account", "pos": "noun", "gender": "f" },
-            { "lt": "parašas", "en": "signature", "pos": "noun", "gender": "m" },
-            { "lt": "dokumentas", "en": "document", "pos": "noun", "gender": "m" },
-            { "lt": "savivaldybė", "en": "municipality", "pos": "noun", "gender": "f" }
+            {
+              "lt": "bankas",
+              "en": "bank",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "banko sąskaita",
+              "en": "bank account",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "parašas",
+              "en": "signature",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "dokumentas",
+              "en": "document",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "savivaldybė",
+              "en": "municipality",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "sutartis",
+              "en": "contract",
+              "pos": "noun",
+              "gender": "f",
+              "note": "i-stem feminine noun; darbo sutartis is employment contract"
+            },
+            {
+              "lt": "darbuotojas",
+              "en": "employee",
+              "pos": "noun",
+              "gender": "m",
+              "note": "female employee is darbuotoja; employer is darbdavys"
+            }
           ]
         },
         {
           "title": "Work verbs",
           "words": [
-            { "lt": "dirbti", "en": "to work", "pos": "verb" },
-            { "lt": "ieškoti darbo", "en": "to look for a job", "pos": "verb" },
-            { "lt": "uždirbti", "en": "to earn", "pos": "verb" },
-            { "lt": "pasirašyti", "en": "to sign", "pos": "verb" },
-            { "lt": "pateikti", "en": "to submit", "pos": "verb" },
-            { "lt": "laukti", "en": "to wait", "pos": "verb" }
+            {
+              "lt": "dirbti",
+              "en": "to work",
+              "pos": "verb"
+            },
+            {
+              "lt": "ieškoti darbo",
+              "en": "to look for a job",
+              "pos": "verb"
+            },
+            {
+              "lt": "uždirbti",
+              "en": "to earn",
+              "pos": "verb"
+            },
+            {
+              "lt": "pasirašyti",
+              "en": "to sign",
+              "pos": "verb"
+            },
+            {
+              "lt": "pateikti",
+              "en": "to submit",
+              "pos": "verb"
+            },
+            {
+              "lt": "laukti",
+              "en": "to wait",
+              "pos": "verb"
+            },
+            {
+              "lt": "įsidarbinti",
+              "en": "to get a job",
+              "pos": "verb",
+              "gender": "",
+              "note": "įsidarbina, įsidarbino; to find employment and start work"
+            },
+            {
+              "lt": "užpildyti",
+              "en": "to fill in",
+              "pos": "verb",
+              "gender": "",
+              "note": "užpildo, užpildė; užpildyti anketą (to fill in an application form)"
+            }
           ]
         },
         {
           "title": "At the bank",
           "words": [
-            { "lt": "Aš ieškau studentiško darbo.", "en": "I'm looking for a student job.", "pos": "phrase", "also": "Ieškau studentiško darbo." },
-            { "lt": "Man reikia atidaryti banko sąskaitą.", "en": "I need to open a bank account.", "pos": "phrase" }
+            {
+              "lt": "Aš ieškau studentiško darbo.",
+              "en": "I'm looking for a student job.",
+              "pos": "phrase",
+              "also": "Ieškau studentiško darbo."
+            },
+            {
+              "lt": "Man reikia atidaryti banko sąskaitą.",
+              "en": "I need to open a bank account.",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Kokia tavo profesija?",
+              "en": "What is your profession?",
+              "pos": "phrase",
+              "gender": "",
+              "note": "essential job question from Chapter 6 of the textbook"
+            }
           ]
         }
       ]
@@ -355,45 +1474,222 @@
         {
           "title": "Weather",
           "words": [
-            { "lt": "oras", "en": "weather", "pos": "noun", "gender": "m", "note": "Also means \"air\"." },
-            { "lt": "lietus", "en": "rain", "pos": "noun", "gender": "m" },
-            { "lt": "sniegas", "en": "snow", "pos": "noun", "gender": "m" },
-            { "lt": "saulė", "en": "sun", "pos": "noun", "gender": "f" },
-            { "lt": "vėjas", "en": "wind", "pos": "noun", "gender": "m" },
-            { "lt": "šiluma", "en": "warmth", "pos": "noun", "gender": "f" },
-            { "lt": "šaltis", "en": "cold", "pos": "noun", "gender": "m", "note": "The cold weather, or frost." }
+            {
+              "lt": "oras",
+              "en": "weather",
+              "pos": "noun",
+              "gender": "m",
+              "note": "Also means \"air\"."
+            },
+            {
+              "lt": "lietus",
+              "en": "rain",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "sniegas",
+              "en": "snow",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "saulė",
+              "en": "sun",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "vėjas",
+              "en": "wind",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "šiluma",
+              "en": "warmth",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "šaltis",
+              "en": "cold",
+              "pos": "noun",
+              "gender": "m",
+              "note": "The cold weather, or frost."
+            },
+            {
+              "lt": "šalta",
+              "en": "coldly",
+              "pos": "other",
+              "gender": "",
+              "also": "cold",
+              "note": "neuter adjective / adverb: man šalta (I am cold), šiandien šalta (it is cold today)"
+            },
+            {
+              "lt": "karšta",
+              "en": "hotly",
+              "pos": "other",
+              "gender": "",
+              "also": "hot",
+              "note": "neuter adjective / adverb: man karšta (I am hot)"
+            },
+            {
+              "lt": "debesuota",
+              "en": "cloudy",
+              "pos": "other",
+              "gender": "",
+              "note": "neuter predicate: šiandien debesuota (it is cloudy today)"
+            }
           ]
         },
         {
           "title": "Seasons and trips",
           "words": [
-            { "lt": "pavasaris", "en": "spring", "pos": "noun", "gender": "m" },
-            { "lt": "vasara", "en": "summer", "pos": "noun", "gender": "f" },
-            { "lt": "ruduo", "en": "autumn", "pos": "noun", "gender": "m" },
-            { "lt": "žiema", "en": "winter", "pos": "noun", "gender": "f" },
-            { "lt": "kelionė", "en": "trip", "pos": "noun", "gender": "f" },
-            { "lt": "traukinys", "en": "train", "pos": "noun", "gender": "m" },
-            { "lt": "viešbutis", "en": "hotel", "pos": "noun", "gender": "m" },
-            { "lt": "ežeras", "en": "lake", "pos": "noun", "gender": "m" },
-            { "lt": "miškas", "en": "forest", "pos": "noun", "gender": "m" }
+            {
+              "lt": "pavasaris",
+              "en": "spring",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "vasara",
+              "en": "summer",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "ruduo",
+              "en": "autumn",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "žiema",
+              "en": "winter",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "kelionė",
+              "en": "trip",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "traukinys",
+              "en": "train",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "viešbutis",
+              "en": "hotel",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "ežeras",
+              "en": "lake",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "miškas",
+              "en": "forest",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "pajūris",
+              "en": "seaside",
+              "pos": "noun",
+              "gender": "m",
+              "note": "literally 'by the sea'; Baltic coastline of Lithuania (Palanga, Nida, Klaipėda)"
+            },
+            {
+              "lt": "atostogos",
+              "en": "holidays",
+              "pos": "noun",
+              "gender": "fpl",
+              "also": "vacation",
+              "note": "plural-only noun; vasaros atostogos (summer holidays)"
+            }
           ]
         },
         {
           "title": "Weather verbs",
           "words": [
-            { "lt": "lyja", "en": "it's raining", "pos": "verb" },
-            { "lt": "sninga", "en": "it's snowing", "pos": "verb" },
-            { "lt": "šviečia", "en": "it's shining", "pos": "verb", "note": "Saulė šviečia: the sun is shining." },
-            { "lt": "keliauti", "en": "to travel", "pos": "verb" },
-            { "lt": "pailsėti", "en": "to rest", "pos": "verb" },
-            { "lt": "rezervuoti", "en": "to book", "pos": "verb", "also": "užsisakyti", "note": "You'll also hear užsisakyti for booking." }
+            {
+              "lt": "lyja",
+              "en": "it's raining",
+              "pos": "verb"
+            },
+            {
+              "lt": "sninga",
+              "en": "it's snowing",
+              "pos": "verb"
+            },
+            {
+              "lt": "šviečia",
+              "en": "it's shining",
+              "pos": "verb",
+              "note": "Saulė šviečia: the sun is shining."
+            },
+            {
+              "lt": "keliauti",
+              "en": "to travel",
+              "pos": "verb"
+            },
+            {
+              "lt": "pailsėti",
+              "en": "to rest",
+              "pos": "verb"
+            },
+            {
+              "lt": "rezervuoti",
+              "en": "to book",
+              "pos": "verb",
+              "also": "užsisakyti",
+              "note": "You'll also hear užsisakyti for booking."
+            },
+            {
+              "lt": "ilsėtis",
+              "en": "to relax",
+              "pos": "verb",
+              "gender": "",
+              "also": "to rest",
+              "note": "ilsisi, ilsėjosi; reflexive verb: ilsėtis prie ežero (to relax by the lake)"
+            },
+            {
+              "lt": "aplankyti",
+              "en": "to visit",
+              "pos": "verb",
+              "gender": "",
+              "note": "aplanko, aplankė; aplankyti muziejų (to visit a museum)"
+            }
           ]
         },
         {
           "title": "Weekend plans",
           "words": [
-            { "lt": "Kokia šiandien oro temperatūra?", "en": "What's the temperature today?", "pos": "phrase" },
-            { "lt": "Savaitgalį važiuosime į pajūrį.", "en": "We're going to the seaside this weekend.", "pos": "phrase" }
+            {
+              "lt": "Kokia šiandien oro temperatūra?",
+              "en": "What's the temperature today?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Savaitgalį važiuosime į pajūrį.",
+              "en": "We're going to the seaside this weekend.",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Šiandien lauke labai šalta.",
+              "en": "It is very cold outside today.",
+              "pos": "phrase",
+              "gender": "",
+              "note": "very common Lithuanian weather phrase"
+            }
           ]
         }
       ]
@@ -406,33 +1702,168 @@
         {
           "title": "At the restaurant",
           "words": [
-            { "lt": "restoranas", "en": "restaurant", "pos": "noun", "gender": "m" },
-            { "lt": "meniu", "en": "menu", "pos": "noun", "note": "Never changes its form." },
-            { "lt": "padavėjas", "en": "waiter", "pos": "noun", "gender": "m", "note": "A waitress is padavėja." },
-            { "lt": "užsakymas", "en": "order", "pos": "noun", "gender": "m" },
-            { "lt": "arbatpinigiai", "en": "tip", "pos": "noun", "gender": "mpl", "note": "Literally \"tea money\"." }
+            {
+              "lt": "restoranas",
+              "en": "restaurant",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "meniu",
+              "en": "menu",
+              "pos": "noun",
+              "note": "Never changes its form."
+            },
+            {
+              "lt": "padavėjas",
+              "en": "waiter",
+              "pos": "noun",
+              "gender": "m",
+              "note": "A waitress is padavėja."
+            },
+            {
+              "lt": "užsakymas",
+              "en": "order",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "arbatpinigiai",
+              "en": "tip",
+              "pos": "noun",
+              "gender": "mpl",
+              "note": "Literally \"tea money\"."
+            },
+            {
+              "lt": "valgiaraštis",
+              "en": "bill of fare",
+              "pos": "noun",
+              "gender": "m",
+              "also": "menu",
+              "note": "pure Lithuanian term for menu; compound of valgis (food) + raštas (writing)"
+            },
+            {
+              "lt": "patiekalas",
+              "en": "course",
+              "pos": "noun",
+              "gender": "m",
+              "also": "dish",
+              "note": "plural patiekalai; pagrindinis patiekalas is the main course"
+            },
+            {
+              "lt": "desertas",
+              "en": "dessert",
+              "pos": "noun",
+              "gender": "m",
+              "note": "sweet course at the end of a meal"
+            }
           ]
         },
         {
           "title": "Lithuanian dishes",
           "words": [
-            { "lt": "šaltibarščiai", "en": "cold beet soup", "pos": "noun", "gender": "mpl" },
-            { "lt": "cepelinai", "en": "potato dumplings", "pos": "noun", "gender": "mpl", "note": "Named after the zeppelin airship." },
-            { "lt": "bulvės", "en": "potatoes", "pos": "noun", "gender": "fpl" },
-            { "lt": "grietinė", "en": "sour cream", "pos": "noun", "gender": "f" },
-            { "lt": "blynai", "en": "pancakes", "pos": "noun", "gender": "mpl" },
-            { "lt": "alus", "en": "beer", "pos": "noun", "gender": "m" }
+            {
+              "lt": "šaltibarščiai",
+              "en": "cold beet soup",
+              "pos": "noun",
+              "gender": "mpl"
+            },
+            {
+              "lt": "cepelinai",
+              "en": "potato dumplings",
+              "pos": "noun",
+              "gender": "mpl",
+              "note": "Named after the zeppelin airship."
+            },
+            {
+              "lt": "bulvės",
+              "en": "potatoes",
+              "pos": "noun",
+              "gender": "fpl"
+            },
+            {
+              "lt": "grietinė",
+              "en": "sour cream",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "blynai",
+              "en": "pancakes",
+              "pos": "noun",
+              "gender": "mpl"
+            },
+            {
+              "lt": "alus",
+              "en": "beer",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "šakotis",
+              "en": "traditional tree cake",
+              "pos": "noun",
+              "gender": "m",
+              "note": "iconic Lithuanian spit cake with horn-like branches, served at celebrations"
+            },
+            {
+              "lt": "kiauliena",
+              "en": "pork",
+              "pos": "noun",
+              "gender": "f",
+              "note": "staple Lithuanian meat; jautiena is beef, vištiena is chicken"
+            }
           ]
         },
         {
           "title": "Dining phrases",
           "words": [
-            { "lt": "ragauti", "en": "to taste", "pos": "verb" },
-            { "lt": "palikti", "en": "to leave", "pos": "verb" },
-            { "lt": "mėgautis", "en": "to enjoy", "pos": "verb" },
-            { "lt": "Skanaus!", "en": "Enjoy your meal!", "pos": "phrase", "note": "Said before eating, like bon appétit." },
-            { "lt": "Viskas buvo labai skanu.", "en": "Everything was very tasty.", "pos": "phrase" },
-            { "lt": "Ar galima gauti sąskaitą?", "en": "Could we have the bill?", "pos": "phrase" }
+            {
+              "lt": "ragauti",
+              "en": "to taste",
+              "pos": "verb"
+            },
+            {
+              "lt": "palikti",
+              "en": "to leave",
+              "pos": "verb"
+            },
+            {
+              "lt": "mėgautis",
+              "en": "to enjoy",
+              "pos": "verb"
+            },
+            {
+              "lt": "Skanaus!",
+              "en": "Enjoy your meal!",
+              "pos": "phrase",
+              "note": "Said before eating, like bon appétit."
+            },
+            {
+              "lt": "Viskas buvo labai skanu.",
+              "en": "Everything was very tasty.",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Ar galima gauti sąskaitą?",
+              "en": "Could we have the bill?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "į sveikatą",
+              "en": "to your health",
+              "pos": "other",
+              "gender": "",
+              "also": "cheers",
+              "note": "said when clinking glasses or when someone sneezes"
+            },
+            {
+              "lt": "Prašom atnešti valgiaraštį.",
+              "en": "Please bring the menu.",
+              "pos": "phrase",
+              "gender": "",
+              "note": "polite request to the waiter in a restaurant"
+            }
           ]
         }
       ]
@@ -445,40 +1876,166 @@
         {
           "title": "Research",
           "words": [
-            { "lt": "tyrimas", "en": "research", "pos": "noun", "gender": "m" },
-            { "lt": "šaltinis", "en": "source", "pos": "noun", "gender": "m", "note": "Also a spring of water." },
-            { "lt": "literatūra", "en": "literature", "pos": "noun", "gender": "f" },
-            { "lt": "išvada", "en": "conclusion", "pos": "noun", "gender": "f" },
-            { "lt": "rezultatas", "en": "result", "pos": "noun", "gender": "m" },
-            { "lt": "tikslas", "en": "goal", "pos": "noun", "gender": "m" }
+            {
+              "lt": "tyrimas",
+              "en": "research",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "šaltinis",
+              "en": "source",
+              "pos": "noun",
+              "gender": "m",
+              "note": "Also a spring of water."
+            },
+            {
+              "lt": "literatūra",
+              "en": "literature",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "išvada",
+              "en": "conclusion",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "rezultatas",
+              "en": "result",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "tikslas",
+              "en": "goal",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "straipsnis",
+              "en": "article",
+              "pos": "noun",
+              "gender": "m",
+              "note": "mokslinis straipsnis is a scientific research paper/article"
+            },
+            {
+              "lt": "teiginiai",
+              "en": "theses",
+              "pos": "noun",
+              "gender": "mpl",
+              "also": "main points",
+              "note": "plural-only noun; core arguments or bullet points"
+            }
           ]
         },
         {
           "title": "Group projects",
           "words": [
-            { "lt": "pristatymas", "en": "presentation", "pos": "noun", "gender": "m" },
-            { "lt": "skaidrė", "en": "slide", "pos": "noun", "gender": "f" },
-            { "lt": "terminas", "en": "deadline", "pos": "noun", "gender": "m", "note": "Also \"term\", as in a technical term." },
-            { "lt": "projektas", "en": "project", "pos": "noun", "gender": "m" },
-            { "lt": "komanda", "en": "team", "pos": "noun", "gender": "f" }
+            {
+              "lt": "pristatymas",
+              "en": "presentation",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "skaidrė",
+              "en": "slide",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "terminas",
+              "en": "deadline",
+              "pos": "noun",
+              "gender": "m",
+              "note": "Also \"term\", as in a technical term."
+            },
+            {
+              "lt": "projektas",
+              "en": "project",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "komanda",
+              "en": "team",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "pranešimas",
+              "en": "report",
+              "pos": "noun",
+              "gender": "m",
+              "note": "oral presentation or official announcement"
+            }
           ]
         },
         {
           "title": "Academic verbs",
           "words": [
-            { "lt": "pristatyti", "en": "to present", "pos": "verb" },
-            { "lt": "analizuoti", "en": "to analyse", "pos": "verb" },
-            { "lt": "diskutuoti", "en": "to discuss", "pos": "verb" },
-            { "lt": "palyginti", "en": "to compare", "pos": "verb" },
-            { "lt": "argumentuoti", "en": "to argue a point", "pos": "verb" },
-            { "lt": "apibendrinti", "en": "to summarise", "pos": "verb" }
+            {
+              "lt": "pristatyti",
+              "en": "to present",
+              "pos": "verb"
+            },
+            {
+              "lt": "analizuoti",
+              "en": "to analyse",
+              "pos": "verb"
+            },
+            {
+              "lt": "diskutuoti",
+              "en": "to discuss",
+              "pos": "verb"
+            },
+            {
+              "lt": "palyginti",
+              "en": "to compare",
+              "pos": "verb"
+            },
+            {
+              "lt": "argumentuoti",
+              "en": "to argue a point",
+              "pos": "verb"
+            },
+            {
+              "lt": "apibendrinti",
+              "en": "to summarise",
+              "pos": "verb"
+            },
+            {
+              "lt": "pagrįsti",
+              "en": "to substantiate",
+              "pos": "verb",
+              "gender": "",
+              "also": "to justify",
+              "note": "pagrindžia, pagrindė; to back up statements with evidence or data"
+            }
           ]
         },
         {
           "title": "Presenting",
           "words": [
-            { "lt": "Mūsų pristatymo tema yra...", "en": "The topic of our presentation is...", "pos": "phrase" },
-            { "lt": "Remiantis šiuo tyrimu...", "en": "Based on this research...", "pos": "phrase" }
+            {
+              "lt": "Mūsų pristatymo tema yra...",
+              "en": "The topic of our presentation is...",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Remiantis šiuo tyrimu...",
+              "en": "Based on this research...",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Ši tema reikalauja išsamesnio tyrimo.",
+              "en": "This topic requires a more detailed study.",
+              "pos": "phrase",
+              "gender": "",
+              "note": "formal academic conclusion phrase"
+            }
           ]
         }
       ]
@@ -491,40 +2048,175 @@
         {
           "title": "Hardware and software",
           "words": [
-            { "lt": "kompiuteris", "en": "computer", "pos": "noun", "gender": "m" },
-            { "lt": "programa", "en": "program", "pos": "noun", "gender": "f" },
-            { "lt": "kodas", "en": "code", "pos": "noun", "gender": "m" },
-            { "lt": "klaida", "en": "bug", "pos": "noun", "gender": "f", "note": "Any mistake or error." },
-            { "lt": "duomenų bazė", "en": "database", "pos": "noun", "gender": "f" },
-            { "lt": "serveris", "en": "server", "pos": "noun", "gender": "m" }
+            {
+              "lt": "kompiuteris",
+              "en": "computer",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "programa",
+              "en": "program",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "kodas",
+              "en": "code",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "klaida",
+              "en": "bug",
+              "pos": "noun",
+              "gender": "f",
+              "note": "Any mistake or error."
+            },
+            {
+              "lt": "duomenų bazė",
+              "en": "database",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "serveris",
+              "en": "server",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "ekranas",
+              "en": "screen",
+              "pos": "noun",
+              "gender": "m",
+              "also": "monitor",
+              "note": "display screen or monitor"
+            },
+            {
+              "lt": "klaviatūra",
+              "en": "keyboard",
+              "pos": "noun",
+              "gender": "f",
+              "note": "computer keyboard"
+            }
           ]
         },
         {
           "title": "On the web",
           "words": [
-            { "lt": "tinklalapis", "en": "website", "pos": "noun", "gender": "m" },
-            { "lt": "saugumas", "en": "security", "pos": "noun", "gender": "m" },
-            { "lt": "failas", "en": "file", "pos": "noun", "gender": "m" },
-            { "lt": "kūrėjas", "en": "developer", "pos": "noun", "gender": "m", "note": "Literally \"creator\"." },
-            { "lt": "įrankis", "en": "tool", "pos": "noun", "gender": "m" }
+            {
+              "lt": "tinklalapis",
+              "en": "website",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "saugumas",
+              "en": "security",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "failas",
+              "en": "file",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "kūrėjas",
+              "en": "developer",
+              "pos": "noun",
+              "gender": "m",
+              "note": "Literally \"creator\"."
+            },
+            {
+              "lt": "įrankis",
+              "en": "tool",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "saugykla",
+              "en": "storage",
+              "pos": "noun",
+              "gender": "f",
+              "also": "repository",
+              "note": "code repository or cloud storage"
+            },
+            {
+              "lt": "vartotojas",
+              "en": "user",
+              "pos": "noun",
+              "gender": "m",
+              "note": "software user or account holder"
+            }
           ]
         },
         {
           "title": "Tech verbs",
           "words": [
-            { "lt": "programuoti", "en": "to program", "pos": "verb" },
-            { "lt": "kurti", "en": "to build", "pos": "verb", "note": "To create anything: an app, a song, a plan." },
-            { "lt": "testuoti", "en": "to test", "pos": "verb" },
-            { "lt": "atnaujinti", "en": "to update", "pos": "verb" },
-            { "lt": "išsaugoti", "en": "to save", "pos": "verb" },
-            { "lt": "taisyti", "en": "to fix", "pos": "verb" }
+            {
+              "lt": "programuoti",
+              "en": "to program",
+              "pos": "verb"
+            },
+            {
+              "lt": "kurti",
+              "en": "to build",
+              "pos": "verb",
+              "note": "To create anything: an app, a song, a plan."
+            },
+            {
+              "lt": "testuoti",
+              "en": "to test",
+              "pos": "verb"
+            },
+            {
+              "lt": "atnaujinti",
+              "en": "to update",
+              "pos": "verb"
+            },
+            {
+              "lt": "išsaugoti",
+              "en": "to save",
+              "pos": "verb"
+            },
+            {
+              "lt": "taisyti",
+              "en": "to fix",
+              "pos": "verb"
+            },
+            {
+              "lt": "paleisti",
+              "en": "to launch",
+              "pos": "verb",
+              "gender": "",
+              "also": "to run",
+              "note": "paleidžia, paleido; to run or start an application or server"
+            }
           ]
         },
         {
           "title": "Stand-up phrases",
           "words": [
-            { "lt": "Man reikia pataisyti šią klaidą.", "en": "I need to fix this bug.", "pos": "phrase" },
-            { "lt": "Serveris šiuo metu nepasiekiamas.", "en": "The server is currently unreachable.", "pos": "phrase" }
+            {
+              "lt": "Man reikia pataisyti šią klaidą.",
+              "en": "I need to fix this bug.",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Serveris šiuo metu nepasiekiamas.",
+              "en": "The server is currently unreachable.",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Prašom atnaujinti programinę įrangą.",
+              "en": "Please update the software.",
+              "pos": "phrase",
+              "gender": "",
+              "note": "standard IT maintenance instruction"
+            }
           ]
         }
       ]
@@ -537,37 +2229,154 @@
         {
           "title": "Career",
           "words": [
-            { "lt": "karjera", "en": "career", "pos": "noun", "gender": "f" },
-            { "lt": "patirtis", "en": "experience", "pos": "noun", "gender": "f", "note": "Feminine, even though it ends in -is." },
-            { "lt": "įmonė", "en": "company", "pos": "noun", "gender": "f" },
-            { "lt": "kolega", "en": "colleague", "pos": "noun", "gender": "m", "note": "Masculine, even though it ends in -a. A female colleague is kolegė." },
-            { "lt": "vadovas", "en": "manager", "pos": "noun", "gender": "m" }
+            {
+              "lt": "karjera",
+              "en": "career",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "patirtis",
+              "en": "experience",
+              "pos": "noun",
+              "gender": "f",
+              "note": "Feminine, even though it ends in -is."
+            },
+            {
+              "lt": "įmonė",
+              "en": "company",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "kolega",
+              "en": "colleague",
+              "pos": "noun",
+              "gender": "m",
+              "note": "Masculine, even though it ends in -a. A female colleague is kolegė."
+            },
+            {
+              "lt": "vadovas",
+              "en": "manager",
+              "pos": "noun",
+              "gender": "m"
+            },
+            {
+              "lt": "iniciatyva",
+              "en": "initiative",
+              "pos": "noun",
+              "gender": "f",
+              "note": "taking active lead in a project or company"
+            },
+            {
+              "lt": "kompetencija",
+              "en": "competence",
+              "pos": "noun",
+              "gender": "f",
+              "note": "professional skills and qualification"
+            }
           ]
         },
         {
           "title": "Ideas and opinions",
           "words": [
-            { "lt": "galimybė", "en": "opportunity", "pos": "noun", "gender": "f" },
-            { "lt": "nuomonė", "en": "opinion", "pos": "noun", "gender": "f" },
-            { "lt": "problema", "en": "problem", "pos": "noun", "gender": "f" },
-            { "lt": "sprendimas", "en": "solution", "pos": "noun", "gender": "m", "note": "Also \"decision\"." }
+            {
+              "lt": "galimybė",
+              "en": "opportunity",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "nuomonė",
+              "en": "opinion",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "problema",
+              "en": "problem",
+              "pos": "noun",
+              "gender": "f"
+            },
+            {
+              "lt": "sprendimas",
+              "en": "solution",
+              "pos": "noun",
+              "gender": "m",
+              "note": "Also \"decision\"."
+            },
+            {
+              "lt": "pasiūlymas",
+              "en": "proposal",
+              "pos": "noun",
+              "gender": "m",
+              "also": "offer",
+              "note": "from pasiūlyti; business proposal or idea"
+            }
           ]
         },
         {
           "title": "Networking verbs",
           "words": [
-            { "lt": "tobulėti", "en": "to improve", "pos": "verb", "note": "To get better yourself, e.g. at your job." },
-            { "lt": "bendrauti", "en": "to network", "pos": "verb", "note": "To socialise or communicate with people." },
-            { "lt": "sutikti", "en": "to agree", "pos": "verb", "note": "Also \"to meet\" someone." },
-            { "lt": "nesutikti", "en": "to disagree", "pos": "verb" },
-            { "lt": "pasiūlyti", "en": "to suggest", "pos": "verb" }
+            {
+              "lt": "tobulėti",
+              "en": "to improve",
+              "pos": "verb",
+              "note": "To get better yourself, e.g. at your job."
+            },
+            {
+              "lt": "bendrauti",
+              "en": "to network",
+              "pos": "verb",
+              "note": "To socialise or communicate with people."
+            },
+            {
+              "lt": "sutikti",
+              "en": "to agree",
+              "pos": "verb",
+              "note": "Also \"to meet\" someone."
+            },
+            {
+              "lt": "nesutikti",
+              "en": "to disagree",
+              "pos": "verb"
+            },
+            {
+              "lt": "pasiūlyti",
+              "en": "to suggest",
+              "pos": "verb"
+            },
+            {
+              "lt": "tobulinti",
+              "en": "to refine",
+              "pos": "verb",
+              "gender": "",
+              "note": "tobulina, tobulino; to continuously improve skills or products"
+            }
           ]
         },
         {
           "title": "Sharing opinions",
           "words": [
-            { "lt": "Aš noriu pasidalinti savo nuomone.", "en": "I want to share my opinion.", "pos": "phrase", "also": "Aš noriu pasidalyti savo nuomone.;Noriu pasidalinti savo nuomone." },
-            { "lt": "Kokia jūsų pozicija šiuo klausimu?", "en": "What is your position on this?", "pos": "phrase" }
+            {
+              "lt": "Aš noriu pasidalyti savo nuomone.",
+              "en": "I want to share my opinion.",
+              "pos": "phrase",
+              "also": "Aš noriu pasidalinti savo nuomone.",
+              "note": "standard Lithuanian prefers dalytis / pasidalyti over dalintis"
+            },
+            {
+              "lt": "Kokia jūsų pozicija šiuo klausimu?",
+              "en": "What is your position on this?",
+              "pos": "phrase"
+            },
+            {
+              "lt": "Mes palaikome šią iniciatyvą.",
+              "en": "We support this initiative.",
+              "pos": "phrase",
+              "gender": "",
+              "note": "professional consensus phrase"
+            }
           ]
         }
       ]

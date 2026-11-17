@@ -1,11 +1,11 @@
-# Labas: learn words in any language
+# Vokab: learn words in any language
 
 A vocabulary game for any language. The official account publishes courses (the first teaches Lithuanian to English speakers, A1 to B1); learners take them, follow creators, and publish their own courses for any language in the Studio.
 
 - **Learn:** a Duolingo-style path of decks and lessons, with hearts, XP, a daily streak, quests and a leaderboard. Each lesson first asks you to recognise each word (multiple choice, both ways round), then to produce it: type it in the language being learned, or build a phrase from word tiles.
 - **Review:** spaced repetition (SM-2). A learned word comes back a day later, then after 3 days, then at growing gaps. Get it wrong and it starts again.
 - **Play:** a word duel. Pick some decks; both players answer the same 10 multiple-choice questions once. Most right answers wins; ties go to the faster player.
-- **Courses and accounts:** anyone can publish a course for any language in the **Studio**. People follow accounts, find courses on **Discover**, and switch between the courses they take. The official account **@labas** owns the starter Lithuanian course.
+- **Courses and accounts:** anyone can publish a course for any language in the **Studio**. People follow accounts, find courses on **Discover**, and switch between the courses they take. The official account **@vokab** owns the starter Lithuanian course.
 - **Admin:** admins hide or unhide any course, and edit only the official account's courses.
 
 This folder used to hold Grammar Duel, an English grammar game checked by Harper; that version is in git history (tag `grammar-duel`). Labas keeps its app shell, with Harper taken out. The server is one static binary: [Mongoose](https://github.com/cesanta/mongoose) (C) with a small Rust engine linked in.
@@ -48,7 +48,7 @@ Shell variables override `.env` for that run only. Keep `ALLOW_DEV_LOGIN=0` on a
 
 ## The course
 
-`server/seed.json` holds the starter course (its `course` object sets the title, languages and letters): 12 decks (5 at A1, 4 at A2, 3 at B1), each with 3–4 lessons, 245 words and phrases in total. It's loaded the first time the server starts with an empty database. After that, the content editor (`#/admin`) is the source of truth.
+`server/seed.json` holds the starter course (its `course` object sets the title, languages and letters): 12 decks (5 at A1, 4 at A2, 3 at B1), each with 3–4 lessons, 333 words and phrases in total (refined and expanded from the Vilnius University textbook *Langas į lietuvių kalbą*, 2021). It's loaded the first time the server starts with an empty database. After that, the content editor (`#/admin`) is the source of truth.
 
 Each word has:
 
@@ -91,7 +91,7 @@ Not done yet: audio (no `audio_url`), and example sentences.
 
 ## Deploying with HTTPS
 
-Point a domain at the server, set `DOMAIN`, `BIND=127.0.0.1`, `COOKIE_SECURE=1`, `ALLOW_DEV_LOGIN=0`, `GOOGLE_CLIENT_ID` and `ADMINS` in `.env`, add `https://<DOMAIN>` to the OAuth client's origins, and run `podman compose --profile https up -d --build`. Caddy gets the certificate.
+Deploy via **Dokploy** (or Docker/Podman compose). Set `DOMAIN`, `COOKIE_SECURE=1`, `ALLOW_DEV_LOGIN=0`, `GOOGLE_CLIENT_ID` and `ADMINS` in `.env`, and add `https://<DOMAIN>` to the OAuth client's origins in Google Cloud Console. Dokploy's Traefik handles SSL/TLS termination automatically and routes to port 8000.
 
 Admins are listed in `ADMINS` (Google emails, or `dev:<name>` for guest logins) and are checked on every request.
 
