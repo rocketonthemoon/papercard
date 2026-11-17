@@ -112,8 +112,8 @@ body.shell .sidebar {
   padding: 18px 10px; background: var(--surface); border-right: 1px solid var(--line); z-index: 7;
 }
 .brand { display: flex; align-items: center; gap: 10px; }
-.brand-mark { width: 34px; height: 34px; flex-shrink: 0; }
-.side-brand svg { width: 34px; height: 34px; display: block; }
+.brand-mark { width: 32px; height: 32px; flex-shrink: 0; }
+.side-brand svg { width: 32px; height: 32px; display: block; }
 .side-links { display: grid; gap: 6px; width: 100%; }
 .side-links a {
   display: grid; justify-items: center; gap: 4px; padding: 10px 4px; border-radius: 14px; color: var(--muted); font-size: 12px; font-weight: 500;
