@@ -1361,6 +1361,21 @@ function runFlashcards({ words, stats, course, now }) {
   const fromLanguageName = course?.fromLang || "English";
   const courseBack = course?.id ? `#/learn/course/${course.id}` : "#/learn";
 
+  const toggleFlip = (force) => {
+    flipped = typeof force === "boolean" ? force : !flipped;
+    const card = document.getElementById("fc-card");
+    if (card) {
+      card.classList.toggle("flipped", flipped);
+      card.setAttribute("aria-expanded", String(flipped));
+    }
+    const unflippedRow = document.getElementById("fc-actions-unflipped");
+    const flippedRow = document.getElementById("fc-actions-flipped");
+    if (unflippedRow && flippedRow) {
+      unflippedRow.style.display = flipped ? "none" : "flex";
+      flippedRow.style.display = flipped ? "flex" : "none";
+    }
+  };
+
   const render = () => {
     if (index >= deck.length) {
       document.body.classList.remove("focus");
@@ -1450,31 +1465,27 @@ function runFlashcards({ words, stats, course, now }) {
         </div>
 
         <div class="fc-controls">
-          ${
-            flipped
-              ? `<div class="fc-rate-row">
-                  <button class="btn outline learning" id="fc-learning">Still learning</button>
-                  <button class="btn mastered" id="fc-mastered">Got it! ✓</button>
-                </div>`
-              : `<div class="fc-actions">
-                  <button class="btn outline" id="fc-prev" ${index === 0 ? "disabled" : ""}>← Previous</button>
-                  <button class="btn fc-flip" id="fc-flip-btn">${FC_ICONS.flip} Flip card</button>
-                  <button class="btn outline" id="fc-skip">Skip →</button>
-                </div>`
-          }
+          <div class="fc-actions" id="fc-actions-unflipped" style="display: ${flipped ? "none" : "flex"}">
+            <button class="btn outline" id="fc-prev" ${index === 0 ? "disabled" : ""}>← Previous</button>
+            <button class="btn fc-flip" id="fc-flip-btn">${FC_ICONS.flip} Flip card</button>
+            <button class="btn outline" id="fc-skip">Skip →</button>
+          </div>
+          <div class="fc-rate-row" id="fc-actions-flipped" style="display: ${flipped ? "flex" : "none"}">
+            <button class="btn outline learning" id="fc-learning">Still learning</button>
+            <button class="btn mastered" id="fc-mastered">Got it! ✓</button>
+          </div>
           <p class="fc-keyboard-hints">Keyboard: <b>Space</b> to flip · <b>←</b> Previous · <b>→</b> Next</p>
         </div>
       </div>`;
 
-    document.getElementById("fc-card")?.addEventListener("click", () => {
-      flipped = !flipped;
-      render();
+    document.getElementById("fc-card")?.addEventListener("click", (e) => {
+      if (e.target.closest("#fc-speak") || e.target.closest("button")) return;
+      toggleFlip();
     });
 
     document.getElementById("fc-flip-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
-      flipped = true;
-      render();
+      toggleFlip(true);
     });
 
     document.getElementById("fc-speak")?.addEventListener("click", (e) => {
@@ -1538,12 +1549,14 @@ function runFlashcards({ words, stats, course, now }) {
     if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
     if (e.code === "Space" || e.code === "Enter" || e.code === "ArrowUp" || e.code === "ArrowDown") {
       e.preventDefault();
-      flipped = !flipped;
-      render();
+      toggleFlip();
     } else if (e.code === "ArrowRight") {
       e.preventDefault();
       if (flipped) {
         mastered.add(deck[index]?.id);
+        if (deck[index]?.dueAt && deck[index]?.dueAt <= now) {
+          api(`/learn/words/${deck[index].id}/answer`, { method: "POST", body: { review: true, text: deck[index].lt, kind: "type_lt" } }).catch(() => {});
+        }
         index++;
         flipped = false;
         render();
