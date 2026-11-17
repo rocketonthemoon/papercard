@@ -1573,9 +1573,12 @@ const matchLabel = (m) =>
 
 function courseCard(c) {
   const locked = c.locked && !c.hasAccess;
-  const tag = matchLabel(c.match) ?? (locked ? "🔒 Locked" : c.isCurrent ? "Learning now" : c.enrolled ? "Enrolled" : c.creator.official ? "Official" : c.learners >= 3 ? "Popular" : "New");
+  const empty = !c.words && !c.mine;
+  const tag = matchLabel(c.match) ?? (empty ? "No lessons yet" : locked ? "🔒 Locked" : c.isCurrent ? "Learning now" : c.enrolled ? "Enrolled" : c.creator.official ? "Official" : c.learners >= 3 ? "Popular" : "New");
   const pct = c.words ? Math.round((100 * (c.learned ?? 0)) / c.words) : 0;
-  const button = locked
+  const button = empty
+    ? `<a class="btn small outline" href="#/course/${c.id}">View</a>`
+    : locked
     ? `<a class="btn small" href="#/course/${c.id}">${ICON.lock} Unlock</a>`
     : c.enrolled
     ? `<button class="btn small" data-continue="${c.id}">${c.isCurrent ? "Continue" : "Switch to it"}</button>`

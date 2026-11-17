@@ -468,4 +468,13 @@ await bob(`/courses/${spanish.id}`, { method: "PUT", body: { title: spanish.titl
 assert.equal((await cara(`/learn/lessons/${sLesson}`)).status, 200, "unlocking opens it to everyone again");
 step("revoked codes stop working; wrong guesses are rate-limited; unlocking opens the course to everyone");
 
+// A course that's still being built (no decks yet) is visible to everyone too.
+const draft = (await bob("/courses", { method: "POST", body: { title: `Draft ${run}`, toLang: "French" } })).data.course;
+const onDiscover = (await cara("/courses?tab=popular")).data.courses;
+assert.ok(onDiscover.some((c) => c.id === draft.id && c.words === 0), "an empty course shows on Discover");
+assert.ok(onDiscover.findIndex((c) => c.id === draft.id) > onDiscover.findIndex((c) => c.id === spanish.id), "after courses that have lessons");
+assert.ok((await cara("/feed")).data.courses.some((c) => c.id === draft.id), "and in followers' feeds");
+await bob(`/courses/${draft.id}`, { method: "DELETE" });
+step("courses without lessons yet are listed for everyone, after the ones with content");
+
 console.log("\nall API checks passed");

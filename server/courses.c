@@ -107,7 +107,9 @@ static void reply_courses(struct mg_connection *c, struct mg_http_message *hm, l
   if (strcmp(tab, "mine") == 0) where = "c.creator_id = ?1", order = "c.updated_at DESC";
   else if (strcmp(tab, "enrolled") == 0) where = "c.id IN (SELECT course_id FROM enrollments WHERE user_id = ?1) AND (c.hidden = 0 OR c.creator_id = ?1)", order = "c.updated_at DESC";
   else if (strcmp(tab, "following") == 0) where = "c.creator_id IN (SELECT following_id FROM follows WHERE follower_id = ?1) AND c.hidden = 0", order = "c.updated_at DESC";
-  else where = "c.hidden = 0 AND EXISTS (SELECT 1 FROM units u WHERE u.course_id = c.id)", order = "cu.is_official DESC, learners DESC, c.updated_at DESC";
+  else
+    /* Every visible course; ones still being built (no decks yet) come after the rest. */
+    where = "c.hidden = 0", order = "cu.is_official DESC, EXISTS (SELECT 1 FROM units u WHERE u.course_id = c.id) DESC, learners DESC, c.updated_at DESC";
   char sql[8000];
   snprintf(sql, sizeof(sql),
            SEARCH_CTE
@@ -527,7 +529,7 @@ static int handle_courses(struct mg_connection *c, struct mg_http_message *hm, l
   if (is_get && uri_is(hm, "/api/feed")) {
     char *list = db_text("SELECT json_group_array(json(x)) FROM (SELECT " COURSE_JSON " AS x" COURSE_FROM
                          " WHERE c.hidden = 0 AND c.creator_id IN (SELECT following_id FROM follows WHERE follower_id = ?1)"
-                         "   AND EXISTS (SELECT 1 FROM units u WHERE u.course_id = c.id) ORDER BY c.updated_at DESC LIMIT 8)",
+                         " ORDER BY c.updated_at DESC LIMIT 8)",
                          "i", uid);
     char *body = mg_mprintf("{\"courses\":%s}", list != NULL ? list : "[]");
     reply_json(c, 200, body, NULL);
