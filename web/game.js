@@ -159,7 +159,7 @@ async function mountGoogleButton(err) {
     });
     const slot = document.getElementById("gsi");
     if (!slot) return;
-    google.accounts.id.renderButton(slot, { theme: isDark() ? "filled_black" : "outline", size: "large", shape: "rectangular", text: "signin_with", width: 260 });
+    google.accounts.id.renderButton(slot, { theme: isDark() ? "filled_black" : "outline", size: "large", shape: "pill", text: "signin_with", width: 280 });
   } catch (x) {
     err(x.message);
   }
@@ -480,11 +480,7 @@ function renderNav() {
     $account.innerHTML = `<a class="btn-outlined-display small" href="#signin" id="nav-signin">SIGN IN</a>`;
     document.getElementById("nav-signin").onclick = (e) => {
       e.preventDefault();
-      const drawer = document.getElementById("signin-drawer");
-      if (drawer) {
-        drawer.hidden = false;
-        drawer.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+      document.getElementById("signin")?.scrollIntoView({ behavior: "smooth", block: "center" });
     };
     return;
   }
@@ -542,12 +538,10 @@ function landingHtml() {
         
         <p class="poster-lead">Short, game-like vocabulary lessons, spaced-repetition flashcards, and live word duels with friends. No cramming, no paywalls.</p>
         
-        <div class="poster-actions">
-          <button type="button" class="btn-gate-pill big" id="cta-get-started">START LEARNING →</button>
-          <button type="button" class="btn-outlined-display big" id="cta-guest-btn">PLAY AS GUEST</button>
+        <div class="poster-actions poster-signin-actions" id="signin">
+          <div id="gsi" class="gsi-slot"></div>
+          <p id="signin-error" class="error" hidden></p>
         </div>
-        
-        <a href="#signin" class="link-disclaimer-underline" id="cta-signin-link">Already a member? Sign in with Google or account</a>
 
         <!-- Authentic Language Sample Strip -->
         <div class="poster-language-sample" aria-label="Authentic Lithuanian sample vocabulary">
@@ -556,29 +550,12 @@ function landingHtml() {
           <span class="sample-chip"><span class="chip-lt">Prašom</span> <span class="chip-en">Please</span></span>
           <span class="sample-chip"><span class="chip-lt">Iki pasimatymo!</span> <span class="chip-en">See you!</span></span>
         </div>
-        
-        <div class="poster-signin-drawer" id="signin-drawer">
-          <div class="signin-box card" id="signin">
-            <span class="mono-tag dark-ink">[ ACCESS GATE // SIGN IN ]</span>
-            <div id="gsi" class="gsi-slot"></div>
-            <p id="signin-error" class="error" hidden></p>
-            ${
-              config.devLogin
-                ? `<form id="dev-login" class="dev-login">
-                     <input type="text" id="dev-name" placeholder="Your name (guest pass)" maxlength="40" required class="riso-input" value="Learner">
-                     <button class="btn-gate-pill" style="width:100%; justify-content:center;">ENTER AS GUEST →</button>
-                   </form>`
-                : ""
-            }
-          </div>
-        </div>
       </section>
     </div>`;
 }
 
 function renderLanding() {
   $app.innerHTML = landingHtml();
-  const drawer = document.getElementById("signin-drawer");
   const err = (msg) => {
     const e = document.getElementById("signin-error");
     if (e) {
@@ -586,37 +563,12 @@ function renderLanding() {
       e.hidden = !msg;
     }
   };
-  if (config.googleClientId) mountGoogleButton(err);
-  else {
+  if (config.googleClientId) {
+    mountGoogleButton(err);
+  } else {
     const gsi = document.getElementById("gsi");
-    if (gsi) gsi.innerHTML = `<p class="mono-tag dark-ink">Guest access enabled.</p>`;
+    if (gsi) gsi.innerHTML = `<p class="mono-tag dark-ink" style="background:#f9f5f2; padding:10px 20px; border-radius:100px; border:2px solid #000;">Google Sign-In is required to enter Papercard.</p>`;
   }
-
-  const openDrawer = () => {
-    if (drawer) {
-      drawer.hidden = false;
-      drawer.scrollIntoView({ behavior: "smooth", block: "center" });
-      document.getElementById("dev-name")?.focus();
-    }
-  };
-
-  document.getElementById("cta-get-started")?.addEventListener("click", openDrawer);
-  document.getElementById("cta-guest-btn")?.addEventListener("click", openDrawer);
-  document.getElementById("cta-signin-link")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    openDrawer();
-  });
-
-  document.getElementById("dev-login")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    try {
-      const devName = document.getElementById("dev-name")?.value || "Learner";
-      ({ user: me } = await api("/auth/dev", { method: "POST", body: { name: devName } }));
-      afterSignIn();
-    } catch (x) {
-      err(x.message);
-    }
-  });
 }
 
 /** After signing in, go where the visitor was headed (a duel link) or to Learn. */

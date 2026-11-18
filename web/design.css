@@ -928,6 +928,21 @@ body.shell .account {
   flex-wrap: wrap;
 }
 
+.poster-signin-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0 20px;
+}
+
+.gsi-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 52px;
+}
+
 /* Authentic Language Sample Strip */
 .poster-language-sample {
   display: flex;
