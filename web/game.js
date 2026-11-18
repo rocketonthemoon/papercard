@@ -734,18 +734,18 @@ async function renderPlayHub() {
     <div class="lobby">
       <section class="card picker">
         <header class="picker-head"><h2>Play a friend</h2><p class="muted">Create a word duel and send the link, or join one with a code</p></header>
-        <div class="tiles two" role="tablist">
-          <button class="tile" role="tab" data-mode="create" aria-selected="true"><span class="tile-icon">${I.room}</span><span class="tile-name">Create a room</span></button>
-          <button class="tile" role="tab" data-mode="join" aria-selected="false"><span class="tile-icon">${I.join}</span><span class="tile-name">Join a room</span></button>
+        <div class="tiles two" role="tablist" aria-label="Duel modes">
+          <button type="button" class="tile" role="tab" id="tab-create" data-mode="create" aria-selected="true" aria-controls="pane-create"><span class="tile-icon">${I.room}</span><span class="tile-name">Create a room</span></button>
+          <button type="button" class="tile" role="tab" id="tab-join" data-mode="join" aria-selected="false" aria-controls="pane-join"><span class="tile-icon">${I.join}</span><span class="tile-name">Join a room</span></button>
         </div>
-        <div class="pane" id="pane-create">
+        <div class="pane" id="pane-create" role="tabpanel" aria-labelledby="tab-create">
           <label class="field" id="course-pick" hidden>Course <select id="duel-course"></select></label>
           <div class="row spread"><h3>Which decks?</h3><span class="muted small" id="deck-count"></span></div>
           <div class="deck-picker" id="decks"><p class="muted">Loading decks…</p></div>
           <p id="create-error" class="error" hidden></p>
           <div class="pane-actions"><span class="muted small mono-tag">10 RANDOM WORDS · YOU PLAY FIRST</span><button class="btn btn-gate-pill" id="create">Create room →</button></div>
         </div>
-        <form class="pane" id="pane-join" hidden>
+        <form class="pane" id="pane-join" role="tabpanel" aria-labelledby="tab-join" hidden>
           <label class="field">Room code
             <span class="row" style="gap:12px;margin-top:4px;"><input type="text" id="join-code" placeholder="e.g. K7QX4M" maxlength="6" autocomplete="off" style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:.12em"><button class="btn btn-gate-pill">Join →</button></span>
           </label>
@@ -759,9 +759,9 @@ async function renderPlayHub() {
       </div>
     </div>`;
 
-  for (const b of $app.querySelectorAll(".tile")) {
+  for (const b of $app.querySelectorAll(".tiles.two .tile")) {
     b.onclick = () => {
-      for (const x of $app.querySelectorAll(".tile")) x.setAttribute("aria-selected", String(x === b));
+      for (const x of $app.querySelectorAll(".tiles.two .tile")) x.setAttribute("aria-selected", String(x === b));
       document.getElementById("pane-create").hidden = b.dataset.mode !== "create";
       document.getElementById("pane-join").hidden = b.dataset.mode !== "join";
       if (b.dataset.mode === "join") document.getElementById("join-code").focus();
@@ -791,11 +791,10 @@ async function renderPlayHub() {
       if (!picked.size && units[0]) picked.add(units[0].id);
       const updateDeckSummaries = () => {
         for (const grp of decks.querySelectorAll(".deck-group")) {
-          const lvl = grp.dataset.levelGroup;
           const cbs = grp.querySelectorAll("input[type=checkbox]");
           const sel = [...cbs].filter((x) => x.checked).length;
           const cntEl = grp.querySelector(".deck-sel-count");
-          if (cntEl) cntEl.textContent = `${lvl} · ${sel} of ${cbs.length} selected`;
+          if (cntEl) cntEl.textContent = `${sel} of ${cbs.length} selected`;
         }
       };
       decks.innerHTML = byLevel(units)
@@ -806,8 +805,8 @@ async function renderPlayHub() {
               <summary class="deck-group-summary">
                 <div class="row spread deck-summary-row">
                   <span class="deck-summary-title">
-                    <span class="deck-summary-chev">${ICON.chev}</span>
-                    <b>${levelChip(level)} <span class="deck-sel-count mono-tag">${level} · ${countSel} of ${us.length} selected</span></b>
+                    <span class="deck-summary-chev" aria-hidden="true">${ICON.chev}</span>
+                    <b>${levelChip(level)} <span class="deck-sel-count mono-tag">${countSel} of ${us.length} selected</span></b>
                   </span>
                   <button type="button" class="linkbtn small select-all-btn" data-level="${esc(level)}">Select all</button>
                 </div>
@@ -877,7 +876,10 @@ async function renderPlayHub() {
     const wrap = document.getElementById("my-duels-wrap");
     if (!wrap) return;
     if (!duels.length) {
-      wrap.innerHTML = `<p class="muted small center empty-rooms-line" style="margin-top:16px;">No active rooms yet.</p>`;
+      wrap.innerHTML = `<aside class="card list-card">
+        <div class="list-head"><h3>Your rooms <span class="muted">(0)</span></h3></div>
+        <p class="muted small center empty-rooms-line" style="padding:16px 8px;margin:0;">No active rooms yet.</p>
+      </aside>`;
     } else {
       wrap.innerHTML = `<aside class="card list-card">
         <div class="list-head"><h3>Your rooms <span class="muted">(${duels.length})</span></h3></div>
@@ -2238,8 +2240,8 @@ I.verified = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5l2.2 1
 I.upload = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 13V3m-4 4 4-4 4 4M4 13v3h12v-3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 I.download = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 13v3h12v-3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-const officialBadge = (u) => (u?.official ? `<span class="official" title="Official account">${I.verified}</span>` : "");
-const userLink = (u) => (u?.username ? `<a class="user-link" href="#/u/${esc(u.username)}">${esc(u.name)}${officialBadge(u)}</a>` : esc(u?.name ?? ""));
+const officialBadge = (u) => "";
+const userLink = (u) => (u?.username ? `<a class="user-link" href="#/u/${esc(u.username)}">${esc(u.name)}</a>` : esc(u?.name ?? ""));
 /** Two letters for a course's badge: its language code, or the start of its language. */
 const flag = (c) => (c.toCode || c.toLang || "?").slice(0, 2).toUpperCase();
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;

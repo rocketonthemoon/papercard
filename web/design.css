@@ -4651,7 +4651,58 @@ body.shell .footer {
 
 .pcard-foot .creator-meta {
   font-size: 12px;
-  color: #333;
+  color: var(--color-ink-black) !important;
+}
+
+.pcard-foot .creator-meta a,
+.creator-meta a,
+.user-link {
+  color: var(--color-ink-black) !important;
+  font-weight: 700 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 2px !important;
+}
+
+.pcard-foot .creator-meta a:hover,
+.creator-meta a:hover,
+.user-link:hover {
+  color: var(--color-ink-black) !important;
+  opacity: 0.8 !important;
+}
+
+.official {
+  display: none !important;
+}
+
+.row {
+  display: flex !important;
+  gap: 12px;
+  align-items: center;
+}
+
+.row.spread,
+.spread {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center;
+  width: 100%;
+}
+
+.bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-bone-white);
+  border: 1.5px solid var(--color-ink-black);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--color-hi-vis-yellow);
+  transition: width 0.3s;
 }
 
 /* Filters Sidebar */
