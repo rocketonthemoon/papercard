@@ -93,7 +93,7 @@ const lettersHtml = (c = course, title = "Shift-click for capital") =>
 
 /** "[ NOUN // FEM. ]" */
 const wordTag = (w) => `<span class="wtag">[ ${esc(POS_LABELS[w.pos] ?? w.pos ?? "")}${GENDERS[w.gender] ? ` // ${GENDERS[w.gender]}` : ""} ]</span>`;
-const levelChip = (level) => (level ? `<span class="level-chip">[ ${esc(level)} ]</span>` : "");
+const levelChip = (level) => (level ? `<span class="level-chip mono-tag">[ ${esc(String(level).toUpperCase())} ]</span>` : "");
 
 // ---------------------------------------------------------------- icons (inline SVG, gradients defined in index.html)
 
@@ -1009,7 +1009,7 @@ async function renderEnrolledCourses() {
           <div class="bar"><i style="width:${pct}%"></i></div>
         </div>
         <div class="enrolled-foot">
-          <a class="btn btn-gate-pill small ${c.learned ? "" : "outline"}" href="#/learn/course/${c.id}">${c.learned ? "Continue learning" : "Start course"}</a>
+          <a class="btn btn-gate-pill small" href="#/learn/course/${c.id}">${c.learned ? "Continue →" : "Start course →"}</a>
           <a class="btn btn-outlined-display small" href="#/course/${c.id}" title="Course details">About</a>
         </div>
       </div>`;

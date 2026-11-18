@@ -252,6 +252,7 @@ a:hover {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  white-space: nowrap !important;
   background: var(--color-bone-white) !important;
   color: var(--color-pure-black) !important;
   border: 2px solid var(--color-pure-black) !important;
@@ -303,6 +304,7 @@ a:hover {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  white-space: nowrap !important;
   background: transparent !important;
   color: var(--color-hi-vis-yellow) !important;
   border: 2px solid var(--color-hi-vis-yellow) !important;
@@ -1454,24 +1456,46 @@ body.shell .account {
   margin-top: auto;
 }
 
-.enrolled-foot .btn.outline {
-  color: var(--color-ink-black) !important;
-  border: 1.5px solid var(--color-ink-black) !important;
-  background: var(--color-bone-white) !important;
-  font-weight: 700;
+.enrolled-foot .btn {
+  white-space: nowrap !important;
+  height: 38px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  box-shadow: none !important;
 }
 
-.enrolled-foot .btn.outline:hover {
-  background: var(--color-hi-vis-yellow) !important;
-  border-color: var(--color-ink-black) !important;
-  color: var(--color-ink-black) !important;
-}
-
-.enrolled-foot .btn:not(.outline) {
+.enrolled-foot .btn-gate-pill,
+.enrolled-foot .btn:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
   background: var(--color-hi-vis-yellow) !important;
   color: var(--color-ink-black) !important;
   border: 2px solid var(--color-ink-black) !important;
-  font-weight: 700;
+}
+
+.enrolled-foot .btn-gate-pill:hover,
+.enrolled-foot .btn:first-child:hover {
+  background: #fff852 !important;
+  transform: translateY(-1px);
+}
+
+.enrolled-foot .btn-outlined-display,
+.enrolled-foot .btn.outline,
+.enrolled-foot .btn:last-child {
+  flex: 0 0 auto;
+  background: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
+  border: 2px solid var(--color-ink-black) !important;
+  padding: 0 16px !important;
+}
+
+.enrolled-foot .btn-outlined-display:hover,
+.enrolled-foot .btn.outline:hover,
+.enrolled-foot .btn:last-child:hover {
+  background: rgba(22, 21, 29, 0.08) !important;
+  color: var(--color-ink-black) !important;
+  border-color: var(--color-ink-black) !important;
 }
 
 .enrolled-add {
@@ -5006,6 +5030,34 @@ label.field {
   font-size: 22px !important;
 }
 
+/* Level Chips across Play, Learn, Duel (e.g. [ A1 ], [ B1 ]) */
+.level-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 2px 8px !important;
+  height: 22px !important;
+  box-sizing: border-box !important;
+  border-radius: var(--radius-buttons) !important;
+  background: var(--color-hi-vis-yellow) !important;
+  color: var(--color-ink-black) !important;
+  border: 1.5px solid var(--color-ink-black) !important;
+  font-family: var(--font-bergenmonoregular) !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  vertical-align: middle !important;
+  margin-right: 6px !important;
+  box-shadow: none !important;
+}
+
+.level-head .level-chip {
+  height: 28px !important;
+  font-size: 13px !important;
+  padding: 4px 12px !important;
+}
+
 /* 4. Strict Card Text Contrast: No white or yellow text on white card surfaces */
 .card,
 .card h1,
@@ -5014,7 +5066,7 @@ label.field {
 .card h4,
 .card p,
 .card label,
-.card span:not(.mono-tag):not(.badge-dot):not(.wtag):not(.admin-badge):not(.pill):not(.key),
+.card span:not(.mono-tag):not(.badge-dot):not(.wtag):not(.admin-badge):not(.pill):not(.key):not(.level-chip),
 .picker,
 .list-card,
 .deck-group h3,
@@ -5060,20 +5112,67 @@ label.field {
 
 /* Deck chips in duel picker */
 .deck-chip {
-  background: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 14px !important;
+  background: var(--color-bone-white) !important;
   color: var(--color-ink-black) !important;
   border: 2px solid var(--color-ink-black) !important;
   border-radius: var(--radius-cards) !important;
   box-shadow: none !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  transition: background 0.15s ease, border-color 0.15s ease !important;
 }
 
-.deck-chip small {
-  color: #555555 !important;
+.deck-chip:hover {
+  border-color: #000000 !important;
 }
 
 .deck-chip:has(input:checked) {
   background: var(--color-matcha-green) !important;
   border-color: var(--color-ink-black) !important;
+}
+
+/* Constrain checkbox input to a fixed 18px box so it never stretches or takes excess space */
+.deck-chip input[type="checkbox"],
+.pane .deck-chip input[type="checkbox"],
+.deck-picker input[type="checkbox"] {
+  width: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  max-height: 18px !important;
+  flex: 0 0 18px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  accent-color: var(--color-ink-black) !important;
+}
+
+.deck-chip span {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  font-family: var(--font-degularvariable) !important;
+  font-weight: 700 !important;
+  font-size: 14.5px !important;
+  line-height: 1.3 !important;
+  color: var(--color-ink-black) !important;
+  text-align: left !important;
+}
+
+.deck-chip small {
+  display: block !important;
+  font-family: var(--font-bergenmonoregular) !important;
+  font-weight: 600 !important;
+  font-size: 11.5px !important;
+  color: #555555 !important;
+  letter-spacing: 0.02em !important;
 }
 
 /* ==========================================================================
@@ -5676,7 +5775,7 @@ label.field {
   }
 
   .pane select,
-  .pane input {
+  .pane input:not([type="checkbox"]):not([type="radio"]) {
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
@@ -5705,170 +5804,31 @@ label.field {
   }
 
   .deck-chip {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-    padding: 12px 14px !important;
-    font-size: 13.5px !important;
-    line-height: 1.35 !important;
-    word-break: break-word !important;
-  }
-
-  .pane-actions {
     display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
+    align-items: center !important;
     gap: 12px !important;
     width: 100% !important;
     max-width: 100% !important;
-    box-sizing: border-box !important;
-    margin-top: 18px !important;
-  }
-
-  .pane-actions .btn {
-    width: 100% !important;
-    justify-content: center !important;
-  }
-
-  #pane-join .row {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px !important;
-    width: 100% !important;
-  }
-
-  #pane-join input {
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-
-  #pane-join .btn {
-    width: 100% !important;
-    justify-content: center !important;
-  }
-
-  /* Play / Duel Lobby Mobile Layout */
-  .lobby {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 20px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .lobby .picker,
-  .lobby .list-card {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-    padding: 20px 16px !important;
-  }
-
-  .lobby .picker-head {
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .lobby .picker-head h2 {
-    font-size: 22px !important;
-    line-height: 1.15 !important;
-  }
-
-  .lobby .picker-head p {
-    font-size: 13.5px !important;
-    line-height: 1.4 !important;
-  }
-
-  .tiles.two,
-  .tiles {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 10px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .tile {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    padding: 12px 8px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    text-align: center !important;
-    box-sizing: border-box !important;
-  }
-
-  .tile-icon svg {
-    width: 24px !important;
-    height: 24px !important;
-    max-width: 24px !important;
-    max-height: 24px !important;
-  }
-
-  .tile-name {
-    font-size: 13px !important;
-    line-height: 1.2 !important;
-    word-break: break-word !important;
-  }
-
-  .pane {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .pane .field {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .pane select,
-  .pane input {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .deck-picker,
-  #decks {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .deck-group {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .deck-chips {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .deck-chip {
-    width: 100% !important;
-    max-width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
     padding: 12px 14px !important;
     font-size: 13.5px !important;
     line-height: 1.35 !important;
     word-break: break-word !important;
+  }
+
+  .deck-chip input[type="checkbox"],
+  .pane .deck-chip input[type="checkbox"],
+  .deck-picker input[type="checkbox"] {
+    width: 18px !important;
+    min-width: 18px !important;
+    max-width: 18px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    max-height: 18px !important;
+    flex: 0 0 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .pane-actions {
