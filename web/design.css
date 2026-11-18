@@ -328,29 +328,33 @@ a:hover {
 
 .nav {
   background: transparent !important;
-  border-bottom: 1px solid rgba(97, 96, 154, 0.35) !important;
+  border-bottom: 1px solid rgba(97, 96, 154, 0.25) !important;
   position: sticky;
   top: 0;
   z-index: 100;
-  padding: 14px 24px;
+  padding: 17px 24px;
 }
 
 .nav-inner {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  position: relative;
   height: 48px;
 }
 
 /* Brand Wordmark: centered, 30px, ObviouslyVariable 800 in Hi-Vis Yellow */
 .brand {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 8px;
   text-decoration: none;
+  z-index: 2;
 }
 
 .brand-wordmark {
@@ -361,7 +365,7 @@ a:hover {
   letter-spacing: 0.02em;
   text-transform: uppercase;
   font-feature-settings: "calt" 0;
-  line-height: 0.85;
+  line-height: 1;
 }
 
 .brand-wordmark.side {
@@ -369,6 +373,8 @@ a:hover {
   display: block;
   text-align: center;
   padding: 12px 0 16px;
+  position: static;
+  transform: none;
 }
 
 .brand:hover {
@@ -441,8 +447,10 @@ a:hover {
 
 /* Account pill */
 .account {
+  margin-left: auto;
   display: flex;
   align-items: center;
+  z-index: 3;
 }
 
 .who,
@@ -685,13 +693,13 @@ a:hover {
    ========================================================================== */
 
 .app {
-  max-width: 1400px;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 24px 24px 60px;
+  padding: 40px 24px 80px;
   display: flex;
   flex-direction: column;
-  gap: var(--section-gap);
+  gap: var(--spacing-60);
 }
 
 .poster-hero {
@@ -699,68 +707,42 @@ a:hover {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 40px 16px 60px;
-  gap: 28px;
+  padding: 60px 16px 80px;
+  gap: 36px;
   position: relative;
-  overflow: visible;
+  max-width: 1080px;
+  margin: 0 auto;
 }
 
 .eyebrow-tag {
   background: var(--color-bone-white);
   color: var(--color-ink-black);
-  border: 1.5px solid var(--color-ink-black);
+  border: 2px solid var(--color-ink-black);
   border-radius: var(--radius-tags);
-  padding: 6px 16px;
+  padding: 6px 18px;
   font-family: var(--font-bergenmonoregular);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
 
-.poster-headline-container {
-  position: relative;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 /* Poster headline: 184px–244px clamped to viewport, tight 0.82 leading, calt: 0 */
 .poster-display-title {
   font-family: var(--font-obviouslyvariable);
   font-weight: 900;
-  font-size: clamp(52px, 12vw, 175px);
-  line-height: 0.82;
+  font-size: clamp(48px, 11vw, 150px);
+  line-height: 0.85;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   margin: 0;
   font-feature-settings: "calt" 0;
-  position: relative;
-  z-index: 2;
   word-break: break-word;
 }
 
-/* Mascot peek behind or through type */
-.poster-mascot-slot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.95;
-}
-
-.poster-mascot {
-  width: clamp(140px, 22vw, 280px);
-  height: clamp(140px, 22vw, 280px);
-  filter: drop-shadow(0 0 0 transparent);
-}
-
 .poster-lead {
-  max-width: 780px;
-  font-size: clamp(16px, 2vw, 20px);
-  line-height: 1.35;
+  max-width: 680px;
+  font-size: clamp(16px, 2.2vw, 21px);
+  line-height: 1.4;
   color: var(--color-bone-white);
   margin: 0 auto;
 }
@@ -771,13 +753,12 @@ a:hover {
   justify-content: center;
   gap: 16px;
   flex-wrap: wrap;
-  z-index: 3;
 }
 
 .poster-signin-drawer {
   width: 100%;
   max-width: 440px;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .signin-box {
@@ -816,7 +797,10 @@ a:hover {
 .poster-section {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
+  max-width: 1080px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .section-label-row {

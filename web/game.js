@@ -465,40 +465,6 @@ const refreshTopStats = () =>
     .then((d) => setTopStats(d.stats))
     .catch(() => {});
 
-const MASCOT_SVG = `
-<svg class="poster-mascot" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Flying Papers Mascot">
-  <!-- Body (Bone White Cream fill, 3.5px Pure Black outline) -->
-  <path d="M50 140 C50 80, 80 40, 120 40 C160 40, 190 80, 190 140 C190 185, 165 210, 120 210 C75 210, 50 185, 50 140 Z" fill="#f9f5f2" stroke="#000000" stroke-width="3.5" stroke-linejoin="round"/>
-  <!-- Belly patch / Riso texture accent -->
-  <path d="M75 145 C75 110, 95 85, 120 85 C145 85, 165 110, 165 145 C165 175, 145 195, 120 195 C95 195, 75 175, 75 145 Z" fill="#f4ed36" stroke="#000000" stroke-width="3" stroke-linejoin="round"/>
-  <!-- Hi-Vis Cap / Hat on top -->
-  <path d="M85 45 C85 25, 110 20, 120 20 C130 20, 155 25, 155 45 Z" fill="#f4ed36" stroke="#000000" stroke-width="3.5"/>
-  <path d="M80 45 L175 42 C185 42, 185 48, 175 50 L80 50 Z" fill="#000000" stroke="#000000" stroke-width="2"/>
-  <!-- Cartoon Big Eyes -->
-  <ellipse cx="102" cy="100" rx="16" ry="20" fill="#f9f5f2" stroke="#000000" stroke-width="3"/>
-  <ellipse cx="138" cy="100" rx="16" ry="20" fill="#f9f5f2" stroke="#000000" stroke-width="3"/>
-  <!-- Mischievous Ink Pupils looking sideways -->
-  <ellipse cx="108" cy="102" rx="7" ry="10" fill="#000000"/>
-  <ellipse cx="144" cy="102" rx="7" ry="10" fill="#000000"/>
-  <circle cx="106" cy="98" r="2.5" fill="#f9f5f2"/>
-  <circle cx="142" cy="98" r="2.5" fill="#f9f5f2"/>
-  <!-- Cheeky Cartoon Smile with Tongue -->
-  <path d="M105 130 Q120 145 135 130" stroke="#000000" stroke-width="3.5" stroke-linecap="round" fill="none"/>
-  <path d="M112 135 Q120 148 128 135" fill="#f8c1ba" stroke="#000000" stroke-width="2.5"/>
-  <!-- Flying Paper sheet held in wing/hand -->
-  <path d="M175 110 L215 95 L225 140 L185 155 Z" fill="#f9f5f2" stroke="#000000" stroke-width="3.5" stroke-linejoin="round"/>
-  <line x1="185" y1="118" x2="210" y2="108" stroke="#000000" stroke-width="2"/>
-  <line x1="188" y1="128" x2="215" y2="118" stroke="#000000" stroke-width="2"/>
-  <line x1="192" y1="138" x2="218" y2="128" stroke="#000000" stroke-width="2"/>
-  <!-- Hand grasping the paper -->
-  <ellipse cx="178" cy="132" rx="8" ry="12" fill="#f4ed36" stroke="#000000" stroke-width="3"/>
-  <!-- Left hand resting on hip -->
-  <path d="M60 135 Q40 145 55 165" stroke="#000000" stroke-width="3.5" fill="#f4ed36" stroke-linejoin="round"/>
-  <!-- Cartoon Shoes / Feet -->
-  <path d="M90 205 L80 225 L105 225 L105 208 Z" fill="#f4ed36" stroke="#000000" stroke-width="3.5" stroke-linejoin="round"/>
-  <path d="M135 205 L135 225 L160 225 L150 205 Z" fill="#f4ed36" stroke="#000000" stroke-width="3.5" stroke-linejoin="round"/>
-</svg>`;
-
 function renderNav() {
   const signedIn = !!me;
   document.body.classList.toggle("shell", signedIn);
@@ -560,60 +526,22 @@ function renderNav() {
 
 // ---------------------------------------------------------------- landing page (signed out)
 
-/** [phrase, language code, language, meaning]: phrases from courses, in several languages. */
-const EXAMPLES = [
-  ["Labas rytas!", "lt", "Lithuanian", "Good morning!"],
-  ["Ačiū labai!", "lt", "Lithuanian", "Thank you very much!"],
-  ["Kaip sekasi?", "lt", "Lithuanian", "How are you doing?"],
-  ["Kur yra kavinė?", "lt", "Lithuanian", "Where is the cafe?"],
-  ["Noriu kavos, prašau.", "lt", "Lithuanian", "I'd like a coffee, please."],
-  ["Malonu susipažinti!", "lt", "Lithuanian", "Nice to meet you!"],
-  ["Aš mokausi lietuvių kalbos.", "lt", "Lithuanian", "I am learning Lithuanian."],
-  ["Iki pasimatymo!", "lt", "Lithuanian", "See you later!"],
-];
-
-const FAQ = [
-  ["Is it free?", "Yes. Sign in with Google or join as a guest and start learning. Everything is accessible."],
-  ["What is the Flying Papers aesthetic?", "Operates like a Saturday-morning cartoon printed on thick riso cardstock: a flat muted-violet stage, a small cast of saturated confetti colors, and poster-scale display type."],
-  ["What courses are available?", "We offer authentic Lithuanian vocabulary courses (A1–B1) covering everyday conversation, campus life, food, and culture, plus historical chronicles of the Grand Duchy."],
-  ["Do I need a Lithuanian keyboard?", "No. On-screen buttons for letters like ą, č, ę, ė, į, š, ų, ū, ž appear under the answer box. Leaving accents off still counts, and we display proper orthography."],
-  ["How does spaced review work?", "Words you master return in 1 day, then 3 days, then at expanding intervals like a printed receipt. Keep your retention near 100%."],
-  ["How do hearts work?", "You start each round with 5 hearts. Wrong answers in fresh lessons consume a heart. Practice sessions earn them back."],
-  ["What are Word Duels?", "Head-to-head multiplayer. You and a rival answer the exact same 10 words under the clock. Higher score wins the crown."],
-];
-
-const FEATURES = [
-  ["learn", "Conversational Lithuanian", "Practical vocabulary courses from first greetings to fluent conversations."],
-  ["cards", "Receipts on Cardstock", "Spaced repetition brings words back right before you would forget them."],
-  ["heart", "5 Hearts Keep You Sharp", "Each miss matters in fresh lessons. Practise finished decks to restore hearts."],
-  ["fire", "Streaks & Confetti XP", "Learn a little every day to grow your streak and hit your goals."],
-  ["cup", "Saturday Showdowns", "Compete with fellow learners on the weekly confessional leaderboard."],
-  ["room", "1-on-1 Word Duels", "Same 10 cards, real-time stopwatch. Whoever gets more right wins."],
-];
-
 function landingHtml() {
   const challenged = duelCodeFromHash();
   return `
     <div class="landing-page-poster">
-      ${challenged ? `<div class="confetti-card confetti-yellow" style="margin-bottom:24px;"><b>WORD DUEL CHALLENGE:</b> You've been challenged to duel <b>${esc(challenged)}</b>. Jump into the arena!</div>` : ""}
+      ${challenged ? `<div class="confetti-card confetti-yellow" style="margin-bottom:24px;"><b>WORD DUEL:</b> You've been challenged to duel <b>${esc(challenged)}</b>. Jump into the arena!</div>` : ""}
       
-      <!-- Component 1: Hero screen with mascot (from DESIGN.md) -->
+      <!-- Hero Screen: Bold, Uncluttered, Pure Poster -->
       <section class="poster-hero">
-        <span class="eyebrow-tag">[ RISO CARDSTOCK // ISSUE #01 ]</span>
-        <div class="poster-headline-container">
-          <h1 class="poster-display-title">
-            <span class="txt-hi">FLYING</span> <span class="txt-butter">PAPERS</span>
-            <br>
-            <span class="txt-butter">SATURDAY</span> <span class="txt-hi">MORNING</span>
-            <br>
-            <span class="txt-hi">CONFESSIONAL</span>
-          </h1>
-          <div class="poster-mascot-slot">
-            ${MASCOT_SVG}
-          </div>
-        </div>
+        <span class="mono-tag eyebrow-tag">[ RISO CARDSTOCK // ISSUE #01 ]</span>
+        <h1 class="poster-display-title">
+          <span class="txt-hi">FLYING</span> <span class="txt-butter">PAPERS</span>
+          <br>
+          <span class="txt-butter">SPEAK</span> <span class="txt-hi">LITHUANIAN</span>
+        </h1>
         
-        <p class="poster-lead">Printed on thick riso cardstock: a flat muted-violet stage, saturated confetti colors, and type so loud it takes the viewport. Learn Lithuanian and words that stick.</p>
+        <p class="poster-lead">Printed on thick riso cardstock: a flat muted-violet stage, saturated confetti colors, and type so oversized it takes the viewport. Learn words that stick.</p>
         
         <div class="poster-actions">
           <button type="button" class="btn-gate-pill big" id="cta-get-started">START LEARNING →</button>
@@ -639,7 +567,7 @@ function landingHtml() {
         </div>
       </section>
 
-      <!-- Component 2: Confetti Card Grid Section (from DESIGN.md) -->
+      <!-- Confetti Cards: Clean 3-Card Row with Generous 40px Breathing Room -->
       <section class="poster-section">
         <div class="section-label-row">
           <span class="mono-tag light-bone" style="align-self:flex-start;">[ CONFETTI CARDS // SPECIFICATION ]</span>
@@ -648,42 +576,27 @@ function landingHtml() {
         <div class="confetti-grid">
           <div class="confetti-card confetti-matcha">
             <span class="mono-tag dark-ink">[ 01 // VOCABULARY ]</span>
-            <h3>Authentic Lithuanian</h3>
+            <h3>Conversational Lithuanian</h3>
             <p>Everyday vocabulary, campus conversation, dining, and street idioms printed into long-term memory.</p>
           </div>
           <div class="confetti-card confetti-pink">
             <span class="mono-tag dark-ink">[ 02 // SPACED REVIEWS ]</span>
             <h3>Receipts on Cardstock</h3>
-            <p>Tight spaced intervals return each learned card right before you'd forget it. Zero cramming.</p>
+            <p>Tight spaced intervals return each card right before you'd forget it. Zero cramming.</p>
           </div>
           <div class="confetti-card confetti-magenta">
             <span class="mono-tag light-bone">[ 03 // WORD DUELS ]</span>
             <h3>10 Cards. Real Showdown.</h3>
-            <p>Challenge a friend or rival to the exact same 10 words. Speed and precision take the crown.</p>
-          </div>
-          <div class="confetti-card confetti-red">
-            <span class="mono-tag light-bone">[ 04 // 5 HEARTS FLAME ]</span>
-            <h3>Hearts Keep You Sharp</h3>
-            <p>5 hearts per round. Misses sting, practice heals. Daily streaks keep the confessional burning.</p>
-          </div>
-          <div class="confetti-card confetti-lilac">
-            <span class="mono-tag light-bone">[ 05 // BALTIC CHRONICLES ]</span>
-            <h3>Grand Duchy to Baltic Way</h3>
-            <p>Castles, kings, book smugglers, and restored independence in authentic A1–B1 historical decks.</p>
-          </div>
-          <div class="confetti-card confetti-butter">
-            <span class="mono-tag dark-ink">[ 06 // STUDIO CMS ]</span>
-            <h3>Create & Publish Decks</h3>
-            <p>Build custom courses, arrange lessons, and export portable SQLite files with open access.</p>
+            <p>Challenge a friend to the exact same 10 words. Speed and precision take the crown.</p>
           </div>
         </div>
       </section>
 
-      <!-- Component 3: Color Swatch Legend Block (from DESIGN.md) -->
+      <!-- Palette Swatch Legend Block (from DESIGN.md) -->
       <section class="poster-section">
         <div class="card swatch-legend-card">
           <div class="swatch-head">
-            <span class="mono-tag dark-ink">[ SYSTEM // TOKENS ]</span>
+            <span class="mono-tag dark-ink">[ SYSTEM // PALETTE TOKENS ]</span>
             <h3 class="swatch-heading">PALETTE</h3>
           </div>
           <div class="swatch-grid">
@@ -703,13 +616,13 @@ function landingHtml() {
               <span class="swatch-name">Lilac Shadow</span>
               <span class="swatch-hex">#61609a</span>
             </div>
-            <div class="swatch-item" style="background:#f8c1ba; color:#1a1a1a;">
-              <span class="swatch-name">Bubblegum Pink</span>
-              <span class="swatch-hex">#f8c1ba</span>
-            </div>
             <div class="swatch-item" style="background:#b5c995; color:#1a1a1a;">
               <span class="swatch-name">Matcha Cream</span>
               <span class="swatch-hex">#b5c995</span>
+            </div>
+            <div class="swatch-item" style="background:#f8c1ba; color:#1a1a1a;">
+              <span class="swatch-name">Bubblegum Pink</span>
+              <span class="swatch-hex">#f8c1ba</span>
             </div>
             <div class="swatch-item" style="background:#ac4f98; color:#f9f5f2;">
               <span class="swatch-name">Magenta Punch</span>
@@ -728,49 +641,6 @@ function landingHtml() {
               <span class="swatch-hex">#1a1a1a</span>
             </div>
           </div>
-        </div>
-      </section>
-
-      <!-- Vocabulary Examples -->
-      <section class="poster-section">
-        <div class="card dark-text-card">
-          <span class="mono-tag dark-ink" style="align-self:flex-start;">[ CURRICULUM // EXAMPLES ]</span>
-          <h2 class="sub-headline">AUTHENTIC VOCABULARY</h2>
-          <ul class="riso-examples">
-            ${EXAMPLES.map(([phrase, code, lang, en]) => `
-              <li class="riso-ex-item">
-                <span class="riso-phrase" lang="${code}">${esc(phrase)} <span class="mono-tag dark-ink" style="font-size:10px; margin-left:4px;">${lang.toUpperCase()}</span></span>
-                <span class="riso-arrow">→</span>
-                <span class="riso-translation">${esc(en)}</span>
-              </li>
-            `).join("")}
-          </ul>
-        </div>
-      </section>
-
-      <!-- Inquiries FAQ -->
-      <section class="poster-section">
-        <div class="card dark-text-card">
-          <span class="mono-tag dark-ink" style="align-self:flex-start;">[ FAQ // INQUIRIES ]</span>
-          <h2 class="sub-headline">CONFESSIONAL INQUIRIES</h2>
-          <div class="riso-faq">
-            ${FAQ.map(([q, a]) => `
-              <details class="riso-details">
-                <summary class="riso-summary"><span class="q-text">${esc(q)}</span><span class="q-icon">+</span></summary>
-                <p class="riso-answer">${esc(a)}</p>
-              </details>
-            `).join("")}
-          </div>
-        </div>
-      </section>
-
-      <!-- Final CTA Banner -->
-      <section class="poster-section">
-        <div class="confetti-card confetti-magenta cta-poster">
-          <span class="mono-tag light-bone">[ ADMISSION // FINAL STEP ]</span>
-          <h2 class="cta-title">I'M OVER 18. LET ME IN.</h2>
-          <p class="cta-desc">Your first lesson takes under three minutes. Step onto the violet stage and start learning.</p>
-          <button type="button" class="btn-gate-pill big" id="cta-bottom-start">ENTER THE STAGE →</button>
         </div>
       </section>
     </div>`;
@@ -806,7 +676,6 @@ function renderLanding() {
     e.preventDefault();
     openDrawer();
   });
-  document.getElementById("cta-bottom-start")?.addEventListener("click", openDrawer);
 
   document.getElementById("dev-login")?.addEventListener("submit", async (e) => {
     e.preventDefault();
