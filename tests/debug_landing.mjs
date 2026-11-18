@@ -3,9 +3,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const port = 9389;
+const port = 9391;
 const chrome = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'debug-rect-'));
+const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'debug-els-'));
 const proc = spawn(chrome, [
   '--headless=new',
   '--remote-debugging-port=' + port,
@@ -41,33 +41,34 @@ await send('Page.enable');
 await send('Page.navigate', { url: 'http://localhost:8080/#/' });
 await sleep(1500);
 
-const metrics = (await send('Runtime.evaluate', {
-  expression: `(() => {
-    const app = document.querySelector("#app");
-    const poster = document.querySelector(".landing-page-poster");
-    const hero = document.querySelector(".poster-hero");
-    const title = document.querySelector(".poster-display-title");
-    const r = el => el ? { top: el.getBoundingClientRect().top, height: el.getBoundingClientRect().height, width: el.getBoundingClientRect().width } : null;
-    return {
-      appDisplay: app ? getComputedStyle(app).display : null,
-      appVisibility: app ? getComputedStyle(app).visibility : null,
-      appRect: r(app),
-      posterDisplay: poster ? getComputedStyle(poster).display : null,
-      posterVisibility: poster ? getComputedStyle(poster).visibility : null,
-      posterRect: r(poster),
-      heroRect: r(hero),
-      titleText: title ? title.innerText : null,
-      titleColor: title ? getComputedStyle(title).color : null
-    };
-  })()`,
-  returnByValue: true
-})).result?.result?.value;
+const expr = `(() => {
+  return Array.from(document.querySelectorAll('#app *')).map(el => ({
+    tag: el.tagName,
+    cls: el.className,
+    text: el.innerText ? el.innerText.slice(0, 30) : '',
+    rect: { top: Math.round(el.getBoundingClientRect().top), h: Math.round(el.getBoundingClientRect().height), w: Math.round(el.getBoundingClientRect().width) }
+  })).filter(x => x.rect.h > 0);
+})()`;
 
-console.log('Metrics:', JSON.stringify(metrics, null, 2));
+const els = (await send('Runtime.evaluate', { expression: expr, returnByValue: true })).result?.result?.value;
+console.log('Elements count in #app:', els ? els.length : 0);
+if (els) {
+  console.log('First 20 elements in #app:', JSON.stringify(els.slice(0, 20), null, 2));
+}
+
+// Now let's check what if the user is SIGNED IN:
+await send('Runtime.evaluate', {
+  expression: `fetch('/api/auth/dev', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Tester' }) })`
+});
+await sleep(500);
+await send('Page.navigate', { url: 'http://localhost:8080/#/' });
+await sleep(1500);
+
+const signedInHash = (await send('Runtime.evaluate', { expression: 'location.hash' })).result?.result?.value;
+console.log('Signed in location.hash after going to #/:', signedInHash);
 
 const shot = await send('Page.captureScreenshot', { format: 'png' });
-fs.writeFileSync('tests/debug_landing_actual.png', Buffer.from(shot.result.data, 'base64'));
-console.log('Saved tests/debug_landing_actual.png');
+fs.writeFileSync('tests/debug_signed_in_hash.png', Buffer.from(shot.result.data, 'base64'));
 
 proc.kill();
 process.exit(0);

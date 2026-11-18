@@ -705,8 +705,20 @@ body.shell .account {
   display: none !important;
 }
 
-.sidebar[hidden],
-body:not(.shell) .sidebar {
+body.landing #page-title,
+body:not(.shell) #page-title {
+  display: none !important;
+}
+
+body.landing .sidebar,
+body:not(.shell) .sidebar,
+.sidebar[hidden] {
+  display: none !important;
+}
+
+body.landing .mobile-nav,
+body:not(.shell) .mobile-nav,
+.mobile-nav[hidden] {
   display: none !important;
 }
 
@@ -7938,16 +7950,19 @@ details.deck-group .deck-chips {
     margin-bottom: 14px !important;
     gap: 10px !important;
   }
+
   .studio-desc {
     font-size: 13px !important;
     line-height: 1.35 !important;
   }
+
   .studio-toolbar .toolbar-actions {
     width: 100% !important;
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 8px !important;
   }
+
   .studio-toolbar .toolbar-actions .btn,
   .studio-toolbar .toolbar-actions label.btn {
     width: 100% !important;
@@ -7959,6 +7974,7 @@ details.deck-group .deck-chips {
     gap: 6px !important;
     box-sizing: border-box !important;
   }
+
   .studio-toolbar .toolbar-actions .btn svg,
   .studio-toolbar .toolbar-actions label.btn svg {
     width: 14px !important;
@@ -7966,21 +7982,25 @@ details.deck-group .deck-chips {
     min-width: 14px !important;
     max-width: 14px !important;
   }
+
   .new-course,
   .profile-edit,
   .card.form {
     padding: 16px 14px !important;
     gap: 12px !important;
   }
+
   .new-course h2 {
     font-size: 18px !important;
     margin: 0 0 2px !important;
   }
+
   .field,
   label.field {
     font-size: 13px !important;
     gap: 4px !important;
   }
+
   .field .muted,
   .field .small,
   label.field .muted,
@@ -7989,6 +8009,7 @@ details.deck-group .deck-chips {
     font-weight: 500 !important;
     line-height: 1.3 !important;
   }
+
   select,
   input[type="text"],
   input[type="search"],
@@ -8000,6 +8021,7 @@ details.deck-group .deck-chips {
     min-height: 38px !important;
     height: 38px !important;
   }
+
   textarea {
     padding: 8px 12px !important;
     font-size: 14px !important;

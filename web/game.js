@@ -80,11 +80,10 @@ function emptyStateHtml({ icon, title, desc, actionText, actionHref, actionId })
       <h2>${esc(title)}</h2>
       <p class="muted">${esc(desc)}</p>
     </header>
-    ${actionText ? `<div class="row" style="justify-content:center">${
-      actionHref
+    ${actionText ? `<div class="row" style="justify-content:center">${actionHref
         ? `<a class="btn btn-gate-pill" href="${actionHref}">${esc(actionText)}</a>`
         : `<button class="btn btn-gate-pill" id="${actionId || 'empty-action'}">${esc(actionText)}</button>`
-    }</div>` : ""}
+      }</div>` : ""}
   </section>`;
 }
 
@@ -685,6 +684,12 @@ function startLandingDemos() {
 }
 
 function renderLanding() {
+  document.body.classList.remove("shell");
+  document.body.classList.add("landing");
+  const sidebar = document.getElementById("sidebar");
+  if (sidebar) sidebar.hidden = true;
+  const mobileNav = document.getElementById("mobile-nav");
+  if (mobileNav) mobileNav.hidden = true;
   $app.innerHTML = landingHtml();
   const err = (msg) => {
     const e = document.getElementById("signin-error");
@@ -885,12 +890,12 @@ async function renderPlayHub() {
         <div class="list-head"><h3>Your rooms <span class="muted">(${duels.length})</span></h3></div>
         <ul class="rows" id="my-duels">
           ${duels
-            .map(
-              (d) => `<li><a class="duel-row" href="#/duel/${esc(d.code)}"><span class="code-chip">${esc(d.code)}</span>
+          .map(
+            (d) => `<li><a class="duel-row" href="#/duel/${esc(d.code)}"><span class="code-chip">${esc(d.code)}</span>
                   <span>${esc(d.title)}<br><span class="muted small">by ${esc(d.creator)} · ${d.players} played</span></span>
                   <span class="act">${d.myPoints == null ? "Play" : `${d.myPoints} pts`}</span></a></li>`,
-            )
-            .join("")}
+          )
+          .join("")}
         </ul>
       </aside>`;
     }
@@ -1847,12 +1852,12 @@ async function renderReview() {
     $app.innerHTML = `
       <div class="review-empty-stage">
         ${emptyStateHtml({
-          icon: I.cards,
-          title: s.learned ? "All caught up for now!" : "Nothing to review yet",
-          desc: s.learned ? "Your words are fresh. Come back when they're due." : "Words you learn in lessons show up here, right before you'd forget them.",
-          actionText: "Start a lesson →",
-          actionHref: course?.id ? `#/learn/course/${course.id}` : "#/learn",
-        })}
+      icon: I.cards,
+      title: s.learned ? "All caught up for now!" : "Nothing to review yet",
+      desc: s.learned ? "Your words are fresh. Come back when they're due." : "Words you learn in lessons show up here, right before you'd forget them.",
+      actionText: "Start a lesson →",
+      actionHref: course?.id ? `#/learn/course/${course.id}` : "#/learn",
+    })}
       </div>`;
     return;
   }
@@ -2224,12 +2229,12 @@ async function renderLeaderboard() {
         <a role="tab" href="#/leaderboard/all" aria-selected="${period === "all"}">All time</a>
       </div>
       ${data.rows.length ? boardHtml(data.rows, 20) : emptyStateHtml({
-        icon: I.trophy,
-        title: "No learners on the board yet",
-        desc: "Earn XP in lessons and reviews to take the top spot.",
-        actionText: "Start learning →",
-        actionHref: "#/learn"
-      })}
+    icon: I.trophy,
+    title: "No learners on the board yet",
+    desc: "Earn XP in lessons and reviews to take the top spot.",
+    actionText: "Start learning →",
+    actionHref: "#/learn"
+  })}
       ${data.me && !data.rows.some((r) => r.isYou) ? `<p class="muted center">You're #${data.me.rank} with ${data.me.xp} XP.</p>` : ""}
     </section>`;
 }
@@ -2814,12 +2819,12 @@ async function renderStudioHome() {
         )
         .join("")}</div>`
       : emptyStateHtml({
-          icon: I.decks,
-          title: "No custom courses yet",
-          desc: "Create one from scratch, or import a course file someone shared with you.",
-          actionText: "New course →",
-          actionId: "studio-empty-new"
-        })
+        icon: I.decks,
+        title: "No custom courses yet",
+        desc: "Create one from scratch, or import a course file someone shared with you.",
+        actionText: "New course →",
+        actionId: "studio-empty-new"
+      })
     }</div>
     ${official.length
       ? `<div class="studio-section">
@@ -3596,7 +3601,7 @@ function route() {
   document.querySelector(".modal-back")?.remove();
   renderNav();
   window.scrollTo(0, 0);
-  if (!me) return renderLanding();
+  if (!me || location.hash === "#/landing" || location.hash === "#/about") return renderLanding();
   const code = duelCodeFromHash();
   if (code) return renderDuel(code);
   const learnCourseId = /^#\/learn\/course\/(\d+)$/.exec(location.hash)?.[1];
