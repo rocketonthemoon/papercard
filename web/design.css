@@ -5558,8 +5558,14 @@ label.field {
     object-fit: cover !important;
   }
 
-  /* Fixed Bottom Navigation Tab Bar */
-  .mobile-nav {
+  /* Fixed Bottom Navigation Tab Bar (Only when signed in) */
+  .mobile-nav[hidden],
+  body:not(.shell) .mobile-nav,
+  body.landing .mobile-nav {
+    display: none !important;
+  }
+
+  body.shell:not(.focus) .mobile-nav:not([hidden]) {
     display: flex !important;
     position: fixed !important;
     bottom: 0 !important;
@@ -5981,6 +5987,11 @@ label.field {
     padding: 20px 16px 80px !important;
     box-sizing: border-box !important;
     width: 100% !important;
+  }
+
+  body:not(.shell) .footer,
+  body.landing .footer {
+    padding: 24px 16px 36px !important;
   }
 
   .footer-inner {

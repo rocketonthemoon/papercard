@@ -493,11 +493,7 @@ function renderNav() {
     if (pt) pt.textContent = "";
     const tc = document.getElementById("top-chips");
     if (tc) tc.innerHTML = "";
-    $account.innerHTML = `<a class="btn-outlined-display small" href="#signin" id="nav-signin">SIGN IN</a>`;
-    document.getElementById("nav-signin").onclick = (e) => {
-      e.preventDefault();
-      document.getElementById("signin")?.scrollIntoView({ behavior: "smooth", block: "center" });
-    };
+    $account.innerHTML = "";
     return;
   }
   const items = me.isAdmin ? [...NAV, ["admin", "#/admin", "Admin", "admin"]] : NAV;
