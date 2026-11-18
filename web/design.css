@@ -7775,13 +7775,13 @@ a.quiet-link-inline {
   outline: none !important;
 }
 
-/* Selected tile: Cream text on Dark Ink */
+/* Selected tile: Hi-vis Yellow with Ink Black text and icons */
 .lobby .tile[aria-selected="true"],
 .picker .tiles.two .tile[aria-selected="true"],
 .tiles.two .tile[aria-selected="true"],
 .tile[aria-selected="true"] {
-  background: var(--color-ink-black) !important;
-  color: var(--color-bone-white) !important;
+  background: var(--color-hi-vis-yellow) !important;
+  color: var(--color-ink-black) !important;
   border-color: var(--color-ink-black) !important;
 }
 
@@ -7790,7 +7790,7 @@ a.quiet-link-inline {
 .tiles.two .tile[aria-selected="true"] .tile-name,
 .tile[aria-selected="true"] .tile-name,
 .card .lobby .tile[aria-selected="true"] .tile-name {
-  color: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
   font-family: var(--font-degulardisplay-bold), var(--font-degularvariable), sans-serif !important;
   font-size: 15px !important;
   font-weight: 700 !important;
@@ -7800,7 +7800,7 @@ a.quiet-link-inline {
 .lobby .tile[aria-selected="true"] .tile-icon svg,
 .tiles.two .tile[aria-selected="true"] .tile-icon svg,
 .tile[aria-selected="true"] .tile-icon svg {
-  stroke: var(--color-bone-white) !important;
+  stroke: var(--color-ink-black) !important;
   fill: none !important;
   width: 20px !important;
   height: 20px !important;
@@ -7835,6 +7835,14 @@ a.quiet-link-inline {
   fill: none !important;
   width: 20px !important;
   height: 20px !important;
+}
+
+.lobby .tile:not([aria-selected="true"]):hover,
+.picker .tiles.two .tile:not([aria-selected="true"]):hover,
+.tiles.two .tile:not([aria-selected="true"]):hover,
+.tile:not([aria-selected="true"]):hover {
+  background: #ffffff !important;
+  border-color: var(--color-ink-black) !important;
 }
 
 /* Play hub: collapsible deck level groups */
