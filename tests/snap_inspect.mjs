@@ -149,4 +149,15 @@ await send("Page.navigate", { url: "http://localhost:8080/#/discover" });
 await sleep(2000);
 await shot("tests/inspect_courses_fixed.png");
 
+// Mobile viewport test for top bar & play page
+await send("Emulation.setDeviceMetricsOverride", {
+  width: 360,
+  height: 740,
+  deviceScaleFactor: 2,
+  mobile: true,
+});
+await js(`location.hash = '#/play'; window.__app.route();`);
+await sleep(1500);
+await shot("tests/inspect_mobile_play.png");
+
 process.exit(0);
