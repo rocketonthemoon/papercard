@@ -510,7 +510,7 @@ function renderNav() {
       ? "YOUR WORDS"
       : learnCourseMatch
         ? (course?.title?.toUpperCase() || "LEARN")
-        : (TITLES[page()]?.toUpperCase() ?? "FLYING PAPERS");
+        : (TITLES[page()]?.toUpperCase() ?? "PAPERCARD");
   }
   $account.innerHTML = `<a class="who-pill profile-pill" href="#/u/${esc(me.username)}" title="Your profile (@${esc(me.username)})">${avatar(me)}<span>${esc(me.name)}</span></a>`;
   document.getElementById("logout")?.addEventListener("click", async () => {
@@ -536,7 +536,7 @@ function landingHtml() {
       <section class="poster-hero">
         <span class="mono-tag eyebrow-tag">[ LITHUANIAN LANGUAGE // A1–B1 ]</span>
         <h1 class="poster-display-title">
-          <span class="poster-title-line"><span class="txt-hi">FLYING</span> <span class="txt-butter">PAPERS</span></span>
+          <span class="poster-title-line"><span class="txt-hi">PAPER</span><span class="txt-butter">CARD</span></span>
           <span class="poster-title-line"><span class="txt-butter">LEARN</span> <span class="txt-hi">LITHUANIAN</span></span>
         </h1>
         
