@@ -71,4 +71,13 @@ const shotScrolled = await send("Page.captureScreenshot", { format: "png" });
 fs.writeFileSync("tests/inspect_landing_mobile_scrolled.png", Buffer.from(shotScrolled.result.data, "base64"));
 console.log("Saved tests/inspect_landing_mobile_scrolled.png");
 
+// Also test desktop footer
+await send("Emulation.setDeviceMetricsOverride", { width: 1200, height: 800, deviceScaleFactor: 1, mobile: false });
+await sleep(500);
+await js(`window.scrollTo(0, document.body.scrollHeight)`);
+await sleep(300);
+const shotDesktop = await send("Page.captureScreenshot", { format: "png" });
+fs.writeFileSync("tests/inspect_landing_desktop_footer.png", Buffer.from(shotDesktop.result.data, "base64"));
+console.log("Saved tests/inspect_landing_desktop_footer.png");
+
 process.exit(0);

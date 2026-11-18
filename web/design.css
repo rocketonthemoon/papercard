@@ -3976,13 +3976,62 @@ input[type="text"].type-box:focus {
   gap: 16px;
 }
 
-.footer-tag,
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.footer-brand {
+  font-family: var(--font-obviouslyvariable);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.05em;
+  color: var(--color-hi-vis-yellow);
+}
+
 .footer-sub {
   font-family: var(--font-bergenmonoregular);
   font-size: 12px;
-  line-height: 1.5;
-  letter-spacing: 0.06em;
-  color: var(--color-bone-white);
+  letter-spacing: 0.04em;
+  color: rgba(249, 245, 242, 0.85);
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+}
+
+.footer-github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-bone-white);
+  color: var(--color-ink-black) !important;
+  border: 2px solid var(--color-ink-black);
+  border-radius: var(--radius-buttons);
+  padding: 6px 14px;
+  font-family: var(--font-bergenmonoregular);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-decoration: none !important;
+  box-shadow: none !important;
+  transition: all 0.15s ease;
+}
+
+.footer-github-link:hover {
+  background: var(--color-hi-vis-yellow) !important;
+  color: var(--color-ink-black) !important;
+  border-color: var(--color-ink-black) !important;
+  transform: translateY(-1px);
+}
+
+.footer-github-link svg {
+  width: 16px;
+  height: 16px;
+  color: currentColor;
 }
 
 /* ==========================================================================
@@ -5996,17 +6045,32 @@ label.field {
 
   .footer-inner {
     display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 8px !important;
-    line-height: 1.5 !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    line-height: 1.4 !important;
   }
 
-  .footer-tag,
+  .footer-left {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 3px !important;
+  }
+
+  .footer-right {
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .footer-brand {
+    font-size: 15px !important;
+  }
+
   .footer-sub {
-    line-height: 1.5 !important;
     font-size: 11px !important;
-    word-break: break-word !important;
+    line-height: 1.4 !important;
   }
 
   /* Mobile Profile Page and Actions */
