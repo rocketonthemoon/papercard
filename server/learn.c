@@ -540,14 +540,6 @@ static int hearts_now(long long uid, long long *next_ms) {
   return (int) hearts;
 }
 
-static void set_hearts(long long uid, int hearts) {
-  if (hearts < 0) hearts = 0;
-  if (hearts > MAX_HEARTS) hearts = MAX_HEARTS;
-  /* Start the regeneration clock when dropping below full. */
-  db_exec("UPDATE users SET hearts_at = CASE WHEN hearts >= ? THEN ? ELSE hearts_at END, hearts = ? WHERE id = ?", "iiii", (long long) MAX_HEARTS,
-          now_ms(), (long long) hearts, uid);
-}
-
 static int streak_days(long long uid) {
   sqlite3_stmt *st = NULL;
   if (sqlite3_prepare_v2(s_db,

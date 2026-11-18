@@ -1,13 +1,13 @@
-# Vokab: vocabulary game & language learning platform
+# Papercard: vocabulary game & language learning platform
 # Deploy with Dokploy (Traefik) or docker compose / podman compose
-name: vokab
+name: papercard
 
 services:
   app:
     build:
       context: .
       dockerfile: Containerfile
-    image: vokab:latest
+    image: papercard:latest
     ports:
       - "${PORT:-8080}:8000"
     environment:
@@ -18,7 +18,7 @@ services:
       MEMCACHED: memcached:11211
       OFFICIAL_NAME: ${OFFICIAL_NAME}
     volumes:
-      - vokab-data:/data
+      - papercard-data:/data
     depends_on:
       - memcached
     restart: unless-stopped
@@ -29,4 +29,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  vokab-data:
+  papercard-data:

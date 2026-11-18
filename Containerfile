@@ -3,7 +3,11 @@ FROM docker.io/library/node:22-alpine AS frontend-build
 WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm ci
-COPY frontend/ ./
+COPY frontend/src ./src
+COPY frontend/public ./public
+COPY frontend/index.html ./index.html
+COPY frontend/vite.config.js ./vite.config.js
+COPY frontend/svelte.config.js ./svelte.config.js
 RUN npm run build
 
 # --- Stage 2: Compile C Backend & Rust Engine ---
@@ -25,7 +29,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cd engine && CARGO_BUILD_JOBS=2 cargo build --release && cp target/release/libduelcore.a /src/
 
 COPY server/main.c server/learn.c server/courses.c ./
-RUN gcc -O2 -Wall -Wextra -static -o labas main.c mongoose.c -Iengine libduelcore.a -lsqlite3 -lm \
+RUN gcc -O2 -Wall -Wextra -static -o papercard main.c mongoose.c -Iengine libduelcore.a -lsqlite3 -lm \
     && strip papercard
 
 # --- Stage 3: Minimal Production Image (no Node.js in runtime) ---
@@ -38,4 +42,4 @@ USER papercard
 EXPOSE 8000
 ENV LISTEN=http://0.0.0.0:8000 WEB_ROOT=/srv/web DB_FILE=/data/papercard.sqlite MEMCACHED=memcached:11211
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s CMD wget -qO- http://127.0.0.1:8000/api/config >/dev/null || exit 1
-CMD ["labas"]
+CMD ["papercard"]
