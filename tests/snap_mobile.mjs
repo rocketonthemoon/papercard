@@ -94,12 +94,37 @@ console.log("who-pill display:", await js(`document.querySelector(".who-pill") ?
 console.log("avatar display:", await js(`document.querySelector(".avatar") ? getComputedStyle(document.querySelector(".avatar")).display : "not found"`));
 console.log("nav-inner innerHTML:", await js(`document.querySelector(".nav-inner")?.innerHTML`));
 
-// Discover page on mobile
+// Play page on mobile
 await js(`
-  location.hash = '#/discover';
+  location.hash = '#/play';
   window.__app.route();
 `);
-await sleep(1000);
-await shot("tests/inspect_mobile_discover.png");
+await sleep(1500);
+
+const maxContentInfo = await js(`
+  const p = document.querySelector(".lobby .picker");
+  const items = [];
+  for (const el of p.querySelectorAll("*")) {
+    const clone = el.cloneNode(true);
+    clone.style.width = "max-content";
+    clone.style.position = "absolute";
+    clone.style.visibility = "hidden";
+    document.body.appendChild(clone);
+    const maxW = clone.offsetWidth;
+    clone.remove();
+    if (maxW > 300) {
+      items.push({ tag: el.tagName, cls: el.className, id: el.id, maxW, text: el.textContent?.slice(0, 30) });
+    }
+  }
+  JSON.stringify(items.sort((a,b) => b.maxW - a.maxW).slice(0, 15));
+`);
+console.log("Max content elements:", maxContentInfo);
+
+await shot("tests/inspect_mobile_play_overflow.png");
+
+// Scroll down to check action button
+await js(`window.scrollTo(0, document.body.scrollHeight)`);
+await sleep(500);
+await shot("tests/inspect_mobile_play_bottom.png");
 
 process.exit(0);
