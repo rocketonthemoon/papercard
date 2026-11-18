@@ -22,14 +22,6 @@ services:
     depends_on:
       - memcached
     restart: unless-stopped
-    # Traefik labels for Dokploy / reverse proxy deployment
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.vokab.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.vokab.entrypoints=websecure"
-      - "traefik.http.routers.vokab.tls=true"
-      - "traefik.http.routers.vokab.tls.certresolver=letsencrypt"
-      - "traefik.http.services.vokab.loadbalancer.server.port=8000"
 
   memcached:
     image: docker.io/library/memcached:1.6-alpine
