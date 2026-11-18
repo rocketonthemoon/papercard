@@ -1651,12 +1651,27 @@ async function renderReview() {
   if (!learnedWords.length) {
     document.body.classList.remove("focus");
     const s = stats || {};
-    $app.innerHTML = `<section class="card finish">
-      <span class="finish-icon">${I.cards}</span>
-      <h1>${s.learned ? "No learned words yet" : "Nothing to review yet"}</h1>
-      <p class="muted">${s.learned ? "Finish a lesson first to unlock flashcard review." : "Complete your first lesson! Words you learn will appear here as shuffled flashcards."}</p>
-      <div class="row" style="justify-content:center"><a class="btn" href="${course?.id ? `#/learn/course/${course.id}` : '#/learn'}">Start a lesson</a></div>
-    </section>`;
+    $app.innerHTML = `
+      <div class="review-empty-stage">
+        <div class="review-empty-header">
+          <span class="mono-tag eyebrow-tag">[ SPACED REPETITION // FLASHCARDS ]</span>
+          <h2 class="review-empty-title">Vocabulary Review</h2>
+        </div>
+        <section class="card review-empty-card">
+          <div class="review-empty-badge">
+            <span class="mono-tag dark-ink">[ 0 CARDS DUE ]</span>
+          </div>
+          <h3 class="review-title-display">${s.learned ? "All caught up for now!" : "Nothing to review yet"}</h3>
+          <p class="review-desc">${s.learned ? "Great job! All your learned vocabulary is fresh. Next review card queues up as words reach their spaced intervals." : "Complete your first lesson! Every word you learn automatically enters your personal spaced-repetition deck."}</p>
+          <div class="review-actions-row">
+            <a class="btn btn-gate-pill" href="${course?.id ? `#/learn/course/${course.id}` : '#/learn'}">START A LESSON →</a>
+            <a class="btn btn-outlined-display" href="#/discover">EXPLORE COURSES</a>
+          </div>
+          <div class="review-info-strip mono-tag">
+            <span>[ SYSTEM NOTICE ]</span> Words return at 1, 3, and 7-day intervals to lock them into long-term memory.
+          </div>
+        </section>
+      </div>`;
     return;
   }
 
@@ -2047,25 +2062,27 @@ const matchLabel = (m) =>
 function courseCard(c) {
   const locked = c.locked && !c.hasAccess;
   const empty = !c.words && !c.mine;
-  const tag = matchLabel(c.match) ?? (empty ? "No lessons yet" : locked ? "🔒 Locked" : c.isCurrent ? "Learning now" : c.enrolled ? "Enrolled" : c.creator.official ? "Official" : c.learners >= 3 ? "Popular" : "New");
+  const tag = matchLabel(c.match) ?? (empty ? "No lessons yet" : locked ? "Locked" : c.isCurrent ? "Learning now" : c.enrolled ? "Enrolled" : c.creator.official ? "Official" : c.learners >= 3 ? "Popular" : "New");
   const pct = c.words ? Math.round((100 * (c.learned ?? 0)) / c.words) : 0;
   const button = empty
-    ? `<a class="btn small outline" href="#/course/${c.id}">View</a>`
+    ? `<a class="btn btn-outlined-display small" href="#/course/${c.id}">View</a>`
     : locked
-    ? `<a class="btn small" href="#/course/${c.id}">${ICON.lock} Unlock</a>`
+    ? `<a class="btn btn-gate-pill small" href="#/course/${c.id}">${ICON.lock} Unlock</a>`
     : c.enrolled
-    ? `<button class="btn small" data-continue="${c.id}">${c.isCurrent ? "Continue" : "Switch to it"}</button>`
-    : `<button class="btn small" data-enroll="${c.id}">Start</button>`;
+    ? `<button class="btn btn-gate-pill small" data-continue="${c.id}">${c.isCurrent ? "Continue →" : "Switch to it"}</button>`
+    : `<button class="btn btn-gate-pill small" data-enroll="${c.id}">Start →</button>`;
   return `<article class="pcard">
     <div class="tile-art ${tint(c.id)}">
-      <span class="tag-chip">${tag}</span>
-      <span class="lang-orb">${esc(flag(c))}</span>
-      <h3 title="${esc(c.title)}"><a href="#/course/${c.id}">${esc(c.title)}</a></h3>
-      <p>${esc(c.description)}</p>
-      <div class="meta"><span>${esc(c.fromLang)} → ${esc(c.toLang)}</span><span>${plural(c.words, "word")}</span><span>${plural(c.learners, "learner")}</span></div>
-      ${c.enrolled ? `<div class="progress-line"><div class="row spread"><span>Progress</span><span>${pct}%</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>` : `<div class="progress-line" aria-hidden="true"></div>`}
+      <div class="pcard-top-row">
+        <span class="tag-chip mono-tag">[ ${tag.toUpperCase()} ]</span>
+        <span class="lang-orb mono-tag">[ ${esc(flag(c))} ]</span>
+      </div>
+      <h3 class="pcard-title" title="${esc(c.title)}"><a href="#/course/${c.id}">${esc(c.title)}</a></h3>
+      <p class="pcard-desc">${esc(c.description || "Comprehensive vocabulary and conversational practice.")}</p>
+      <div class="meta mono-tag"><span>${esc(c.fromLang)} → ${esc(c.toLang)}</span> · <span>${plural(c.words, "word")}</span> · <span>${plural(c.learners, "learner")}</span></div>
+      ${c.enrolled ? `<div class="progress-line"><div class="row spread mono-tag small"><span>Progress</span><span>${pct}%</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>` : `<div class="progress-line empty" aria-hidden="true"></div>`}
     </div>
-    <div class="pcard-foot"><span>by ${userLink(c.creator)}${c.hidden ? ` <span class="pill due">hidden</span>` : ""}</span>${button}</div>
+    <div class="pcard-foot"><span class="creator-meta mono-tag">by ${userLink(c.creator)}${c.hidden ? ` <span class="pill due">hidden</span>` : ""}</span>${button}</div>
   </article>`;
 }
 
@@ -2168,19 +2185,20 @@ async function renderDiscover() {
     <div class="discover">
       <div class="discover-main">
         <section class="discover-hero">
-          <h2>Find your next course</h2>
-          <p>Courses by us and by learners like you. Follow creators to see their new courses first, or <a href="#/studio">make your own</a>.</p>
+          <span class="mono-tag eyebrow-tag">[ COURSE CATALOG // DISCOVER ]</span>
+          <h2 class="discover-title">Find your next course</h2>
+          <p class="discover-subtitle">Courses curated for real fluency, by creators and learners. Follow creators or <a href="#/studio" class="link-disclaimer-underline">make your own</a>.</p>
           <form class="discover-search" id="d-form" role="search">
             <div class="search-input-wrap">
               <svg class="search-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="m13.2 13.2 3.3 3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-              <input type="search" id="d-q" value="${esc(f.q)}" placeholder="Search by course, language, creator…" aria-label="Search courses" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+              <input type="search" id="d-q" value="${esc(f.q)}" placeholder="Search courses, languages, topics…" aria-label="Search courses" autocomplete="off" spellcheck="false">
               <button type="button" class="search-clear-btn" id="d-clear" aria-label="Clear search" ${f.q ? "" : "hidden"}>${I.close}</button>
             </div>
-            <button class="btn search-btn">Search</button>
+            <button class="btn btn-gate-pill search-btn" type="submit">SEARCH →</button>
           </form>
         </section>
         <section class="people-row" id="d-people" hidden></section>
-        <div class="course-grid pastel" id="d-list"><p class="muted loading">Loading…</p></div>
+        <div class="course-grid pastel" id="d-list"><p class="muted loading">Loading courses…</p></div>
       </div>
       <aside class="card filters" aria-label="Filters">
         <div class="widget-head"><h3>Filters</h3><button type="button" class="linkbtn small" id="f-clear">Clear</button></div>
