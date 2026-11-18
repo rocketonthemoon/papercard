@@ -3700,8 +3700,14 @@ input[type="text"].type-box:focus {
 .discover-hero {
   display: flex;
   flex-direction: column;
+  align-items: flex-start !important;
   gap: 12px;
   margin-bottom: 24px;
+}
+
+.discover-hero .eyebrow-tag {
+  align-self: flex-start !important;
+  width: fit-content !important;
 }
 
 .discover-title {
@@ -3941,6 +3947,12 @@ details summary svg {
   color: var(--color-ink-black);
   user-select: none;
   padding: 4px 0;
+  list-style: none !important;
+}
+
+.code-callout-summary::-webkit-details-marker,
+details summary::-webkit-details-marker {
+  display: none !important;
 }
 
 .code-callout-summary:hover {
