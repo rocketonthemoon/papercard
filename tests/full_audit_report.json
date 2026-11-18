@@ -1,0 +1,1107 @@
+{
+  "summary": {
+    "passed": 69,
+    "failed": 0,
+    "warnings": 0
+  },
+  "items": {
+    "Phase 4 - landing_footer: App footer visible on landing page with GitHub and Apache 2.0": {
+      "passed": true,
+      "details": {
+        "footerVisible": true,
+        "footerHasGithub": true,
+        "footerHasApache": true,
+        "overflowing": [],
+        "scrollWidth": 390
+      }
+    },
+    "Phase 4 - landing_no_overflow: No horizontal overflow on landing page at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - learn_no_overflow: No horizontal overflow on learn at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - learn_footer_hidden: App footer hidden in-app on learn": {
+      "passed": true,
+      "details": {
+        "footerDisplay": "none"
+      }
+    },
+    "Phase 4 - learn_padding_bottom: Mobile padding-bottom >= 64px prevents tab bar overlap on learn": {
+      "passed": true,
+      "details": {
+        "paddingBottom": 64
+      }
+    },
+    "Phase 4 - learn_mobile_topbar_title: Mobile top bar shows active page title on learn": {
+      "passed": true,
+      "details": {
+        "titleText": "HOME",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      }
+    },
+    "Phase 4 - course_path_no_overflow: No horizontal overflow on course_path at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - course_path_footer_hidden: App footer hidden in-app on course_path": {
+      "passed": true,
+      "details": {
+        "footerDisplay": "none"
+      }
+    },
+    "Phase 4 - course_path_padding_bottom: Mobile padding-bottom >= 64px prevents tab bar overlap on course_path": {
+      "passed": true,
+      "details": {
+        "paddingBottom": 64
+      }
+    },
+    "Phase 4 - course_path_mobile_topbar_title: Mobile top bar shows active page title on course_path": {
+      "passed": true,
+      "details": {
+        "titleText": "LITHUANIAN VOCABULARY",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      }
+    },
+    "Phase 4 - lesson_no_overflow: No horizontal overflow on lesson at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - lesson_footer_hidden: App footer hidden in-app on lesson": {
+      "passed": true,
+      "details": {
+        "footerDisplay": "none"
+      }
+    },
+    "Phase 4 - lesson_padding_bottom: Mobile padding-bottom >= 64px prevents tab bar overlap on lesson": {
+      "passed": true,
+      "details": {
+        "paddingBottom": 80
+      }
+    },
+    "Phase 4 - review_no_overflow: No horizontal overflow on review at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - review_footer_hidden: App footer hidden in-app on review": {
+      "passed": true,
+      "details": {
+        "footerDisplay": "none"
+      }
+    },
+    "Phase 4 - review_padding_bottom: Mobile padding-bottom >= 64px prevents tab bar overlap on review": {
+      "passed": true,
+      "details": {
+        "paddingBottom": 64
+      }
+    },
+    "Phase 4 - review_mobile_topbar_title: Mobile top bar shows active page title on review": {
+      "passed": true,
+      "details": {
+        "titleText": "REVIEW",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      }
+    },
+    "Phase 4 - words_no_overflow: No horizontal overflow on words at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - words_footer_hidden: App footer hidden in-app on words": {
+      "passed": true,
+      "details": {
+        "footerDisplay": "none"
+      }
+    },
+    "Phase 4 - words_padding_bottom: Mobile padding-bottom >= 64px prevents tab bar overlap on words": {
+      "passed": true,
+      "details": {
+        "paddingBottom": 64
+      }
+    },
+    "Phase 4 - words_mobile_topbar_title: Mobile top bar shows active page title on words": {
+      "passed": true,
+      "details": {
+        "titleText": "YOUR WORDS",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      }
+    },
+    "Phase 4 - discover_no_overflow: No horizontal overflow on discover at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - discover_footer_hidden: App footer hidden in-app on discover": {
+      "passed": true,
+      "details": {
+        "footerDisplay": "none"
+      }
+    },
+    "Phase 4 - discover_padding_bottom: Mobile padding-bottom >= 64px prevents tab bar overlap on discover": {
+      "passed": true,
+      "details": {
+        "paddingBottom": 64
+      }
+    },
+    "Phase 4 - discover_mobile_topbar_title: Mobile top bar shows active page title on discover": {
+      "passed": true,
+      "details": {
+        "titleText": "COURSES",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      }
+    },
+    "Phase 4 - course_overview_no_overflow: No horizontal overflow on course_overview at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - course_overview_footer_hidden: App footer hidden in-app on course_overview": {
+      "passed": true,
+      "details": {
+        "footerDisplay": "none"
+      }
+    },
+    "Phase 4 - course_overview_padding_bottom: Mobile padding-bottom >= 64px prevents tab bar overlap on course_overview": {
+      "passed": true,
+      "details": {
+        "paddingBottom": 64
+      }
+    },
+    "Phase 4 - course_overview_mobile_topbar_title: Mobile top bar shows active page title on course_overview": {
+      "passed": true,
+      "details": {
+        "titleText": "LITHUANIAN VOCABULARY",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      }
+    },
+    "Phase 4 - play_no_overflow: No horizontal overflow on play at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - play_footer_hidden: App footer hidden in-app on play": {
+      "passed": true,
+      "details": {
+        "footerDisplay": "none"
+      }
+    },
+    "Phase 4 - play_padding_bottom: Mobile padding-bottom >= 64px prevents tab bar overlap on play": {
+      "passed": true,
+      "details": {
+        "paddingBottom": 64
+      }
+    },
+    "Phase 4 - play_mobile_topbar_title: Mobile top bar shows active page title on play": {
+      "passed": true,
+      "details": {
+        "titleText": "PLAY",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      }
+    },
+    "Phase 4 - leaderboard_no_overflow: No horizontal overflow on leaderboard at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - leaderboard_footer_hidden: App footer hidden in-app on leaderboard": {
+      "passed": true,
+      "details": {
+        "footerDisplay": "none"
+      }
+    },
+    "Phase 4 - leaderboard_padding_bottom: Mobile padding-bottom >= 64px prevents tab bar overlap on leaderboard": {
+      "passed": true,
+      "details": {
+        "paddingBottom": 64
+      }
+    },
+    "Phase 4 - leaderboard_mobile_topbar_title: Mobile top bar shows active page title on leaderboard": {
+      "passed": true,
+      "details": {
+        "titleText": "LEADERBOARD",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      }
+    },
+    "Phase 4 - studio_no_overflow: No horizontal overflow on studio at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - studio_footer_hidden: App footer hidden in-app on studio": {
+      "passed": true,
+      "details": {
+        "footerDisplay": "none"
+      }
+    },
+    "Phase 4 - studio_padding_bottom: Mobile padding-bottom >= 64px prevents tab bar overlap on studio": {
+      "passed": true,
+      "details": {
+        "paddingBottom": 64
+      }
+    },
+    "Phase 4 - studio_mobile_topbar_title: Mobile top bar shows active page title on studio": {
+      "passed": true,
+      "details": {
+        "titleText": "STUDIO",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      }
+    },
+    "Phase 4 - profile_no_overflow: No horizontal overflow on profile at 390px": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 4 - profile_footer_hidden: App footer hidden in-app on profile": {
+      "passed": true,
+      "details": {
+        "footerDisplay": "none"
+      }
+    },
+    "Phase 4 - profile_padding_bottom: Mobile padding-bottom >= 64px prevents tab bar overlap on profile": {
+      "passed": true,
+      "details": {
+        "paddingBottom": 64
+      }
+    },
+    "Phase 4 - profile_mobile_topbar_title: Mobile top bar shows active page title on profile": {
+      "passed": true,
+      "details": {
+        "titleText": "PROFILE",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      }
+    },
+    "Phase 0 - tokens_colors: Key palette tokens defined in CSS root": {
+      "passed": true,
+      "details": {
+        "duskViolet": "#8584bd",
+        "hiVisYellow": "#f4ed36",
+        "boneWhite": "#f9f5f2",
+        "inkBlack": "#1a1a1a",
+        "radiusCards": "6px",
+        "radiusPill": "100px",
+        "bodyFont": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "headingFont": "Syne, Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "hasGameCss": false
+      }
+    },
+    "Phase 0 - tokens_radii: Radii conform to 6px cards and 100px pills": {
+      "passed": true,
+      "details": {
+        "duskViolet": "#8584bd",
+        "hiVisYellow": "#f4ed36",
+        "boneWhite": "#f9f5f2",
+        "inkBlack": "#1a1a1a",
+        "radiusCards": "6px",
+        "radiusPill": "100px",
+        "bodyFont": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "headingFont": "Syne, Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "hasGameCss": false
+      }
+    },
+    "Phase 0 - font_hierarchy: Font hierarchy matches Syne/Inter/JetBrains Mono": {
+      "passed": true,
+      "details": {
+        "duskViolet": "#8584bd",
+        "hiVisYellow": "#f4ed36",
+        "boneWhite": "#f9f5f2",
+        "inkBlack": "#1a1a1a",
+        "radiusCards": "6px",
+        "radiusPill": "100px",
+        "bodyFont": "Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "headingFont": "Syne, Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+        "hasGameCss": false
+      }
+    },
+    "Phase 0 - game_css_removed: game.css removed from index.html (folded into design.css)": {
+      "passed": true,
+      "details": {
+        "hasGameCss": false
+      }
+    },
+    "Phase 1 - lesson_footer_hint: Lesson keyboard hint hidden on mobile (< 600px)": {
+      "passed": true,
+      "details": {
+        "hintDisplay": "none"
+      }
+    },
+    "Phase 1 - lesson_check_full_width: Lesson CHECK button full width on mobile": {
+      "passed": true,
+      "details": {
+        "checkBtnWidth": 358,
+        "footWidth": 390
+      }
+    },
+    "Phase 1 - lesson_check_no_enter_chip: CHECK button ENTER chip removed": {
+      "passed": true,
+      "details": {
+        "hasEnterChip": false
+      }
+    },
+    "Phase 1 - lesson_disabled_check_contrast: Disabled CHECK button has solid border and readable ink contrast": {
+      "passed": true,
+      "details": {
+        "hintHidden": true,
+        "hintDisplay": "none",
+        "checkBtnFullWidth": true,
+        "checkBtnWidth": 358,
+        "footWidth": 390,
+        "hasEnterChip": false,
+        "checkBtnDisabled": true,
+        "checkBtnColor": "rgba(22, 21, 29, 0.4)",
+        "checkBtnBg": "rgb(249, 245, 242)",
+        "checkBtnBorder": "2px solid rgb(26, 26, 26)",
+        "checkBtnOpacity": "1",
+        "trackBg": "rgb(249, 245, 242)"
+      }
+    },
+    "Phase 1 - words_columns_grid: Words list columns aligned to CSS grid": {
+      "passed": true,
+      "details": {
+        "rowDisplay": "grid",
+        "gridTemplate": "36px 299.297px 299.312px 120.391px 72px",
+        "notYetCount": 0,
+        "activeTabBg": "rgb(26, 26, 26)",
+        "activeTabColor": "rgb(249, 245, 242)",
+        "inactiveTabBg": "rgba(0, 0, 0, 0)",
+        "inactiveTabColor": "rgb(26, 26, 26)"
+      }
+    },
+    "Phase 1 - words_filter_tabs_contrast: Words list filter tabs readable segmented control": {
+      "passed": true,
+      "details": {
+        "rowDisplay": "grid",
+        "gridTemplate": "36px 299.297px 299.312px 120.391px 72px",
+        "notYetCount": 0,
+        "activeTabBg": "rgb(26, 26, 26)",
+        "activeTabColor": "rgb(249, 245, 242)",
+        "inactiveTabBg": "rgba(0, 0, 0, 0)",
+        "inactiveTabColor": "rgb(26, 26, 26)"
+      }
+    },
+    "Phase 2 - words_no_not_yet_pill: Noisy 'not yet' status pills removed from words list": {
+      "passed": true,
+      "details": {
+        "notYetCount": 0
+      }
+    },
+    "Phase 1 - course_page_deck_padding: Course deck list has vertical padding (>= 10px)": {
+      "passed": true,
+      "details": {
+        "deckCount": 12,
+        "deckPaddingTop": "12px",
+        "topBarText": "LITHUANIAN VOCABULARY",
+        "headingText": "LITHUANIAN VOCABULARY"
+      }
+    },
+    "Phase 1 - course_page_topbar_title: Course page top bar shows course title (not generic 'COURSES')": {
+      "passed": true,
+      "details": {
+        "deckCount": 12,
+        "deckPaddingTop": "12px",
+        "topBarText": "LITHUANIAN VOCABULARY",
+        "headingText": "LITHUANIAN VOCABULARY"
+      }
+    },
+    "Phase 2 - buttons_no_filled_yellow: No filled yellow CTAs (DESIGN.md forbids filled yellow CTAs)": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 2 - buttons_sentence_case: Buttons in sentence case (no ALL-CAPS CTA labels)": {
+      "passed": true,
+      "details": []
+    },
+    "Phase 2 - verified_badge_not_blue: Verified badge recoloured away from browser blue to yellow/ink": {
+      "passed": true,
+      "details": "#f4ed36"
+    },
+    "Phase 2 - inputs_accent_color: Native radio & checkboxes styled with ink accent-color": {
+      "passed": true,
+      "details": {
+        "cbAccent": "rgb(26, 26, 26)",
+        "radioAccent": "rgb(26, 26, 26)"
+      }
+    },
+    "Phase 2 - leaderboard_toggle_contrast: Leaderboard toggle selected cream-on-ink, unselected ink-on-cream": {
+      "passed": true,
+      "details": {
+        "activeColor": "rgb(26, 26, 26)",
+        "activeBg": "rgb(26, 26, 26)",
+        "inactiveColor": "rgb(26, 26, 26)",
+        "inactiveBg": "rgba(0, 0, 0, 0)"
+      }
+    },
+    "Phase 3 - home_today_card_merged: Home merged Daily Progress and Quests into Today card or unified widget": {
+      "passed": true,
+      "details": {
+        "hasTodayCard": true,
+        "separateDaily": false,
+        "separateQuests": false,
+        "rankLinkText": null,
+        "enrolledCardFound": true
+      }
+    },
+    "Phase 3 - course_path_about_link_quiet: About course link is a quiet link (not yellow border button)": {
+      "passed": true,
+      "details": {
+        "unitCount": 12,
+        "aboutLinkClass": "linkbtn small quiet-link"
+      }
+    },
+    "Phase 3 - play_collapsed_decks: Play hub deck picker collapses levels or uses compact summary": {
+      "passed": true,
+      "details": {
+        "groupCount": 6,
+        "detailsCollapsedCount": 2,
+        "firstGroupText": "\n              \n                \n       "
+      }
+    },
+    "Phase 3 - discover_mobile_filters: Discover page collapses filters behind toggle/button on mobile": {
+      "passed": true,
+      "details": {
+        "hasFilterDetails": true,
+        "isCollapsedByDefault": true,
+        "summaryText": "Filters\n            0 on\n            Clear"
+      }
+    },
+    "Phase 3 - profile_avatar_mobile_56px: Profile avatar sized to 56px on mobile (not 80px)": {
+      "passed": true,
+      "details": {
+        "avatarWidth": 56,
+        "avatarHeight": 56,
+        "signoutColor": "rgb(0, 0, 0)",
+        "signoutBg": "rgb(249, 245, 242)"
+      }
+    },
+    "Phase 3 - review_empty_state_single_button: Review empty state unified with single primary action": {
+      "passed": true,
+      "details": {
+        "actionButtonCount": 1,
+        "primaryBtnText": "Start a lesson →"
+      }
+    }
+  },
+  "screenshots": {
+    "landing_desktop": "tests\\audit_shots\\landing_1280.png",
+    "landing_mobile": "tests\\audit_shots\\landing_390.png",
+    "learn_desktop": "tests\\audit_shots\\learn_1280.png",
+    "learn_mobile": "tests\\audit_shots\\learn_390.png",
+    "course_path_desktop": "tests\\audit_shots\\course_path_1280.png",
+    "course_path_mobile": "tests\\audit_shots\\course_path_390.png",
+    "lesson_desktop": "tests\\audit_shots\\lesson_1280.png",
+    "lesson_mobile": "tests\\audit_shots\\lesson_390.png",
+    "review_desktop": "tests\\audit_shots\\review_1280.png",
+    "review_mobile": "tests\\audit_shots\\review_390.png",
+    "words_desktop": "tests\\audit_shots\\words_1280.png",
+    "words_mobile": "tests\\audit_shots\\words_390.png",
+    "discover_desktop": "tests\\audit_shots\\discover_1280.png",
+    "discover_mobile": "tests\\audit_shots\\discover_390.png",
+    "course_overview_desktop": "tests\\audit_shots\\course_overview_1280.png",
+    "course_overview_mobile": "tests\\audit_shots\\course_overview_390.png",
+    "play_desktop": "tests\\audit_shots\\play_1280.png",
+    "play_mobile": "tests\\audit_shots\\play_390.png",
+    "leaderboard_desktop": "tests\\audit_shots\\leaderboard_1280.png",
+    "leaderboard_mobile": "tests\\audit_shots\\leaderboard_390.png",
+    "studio_desktop": "tests\\audit_shots\\studio_1280.png",
+    "studio_mobile": "tests\\audit_shots\\studio_390.png",
+    "profile_desktop": "tests\\audit_shots\\profile_1280.png",
+    "profile_mobile": "tests\\audit_shots\\profile_390.png"
+  },
+  "routes": {
+    "learn": {
+      "overflowing": [],
+      "footerHidden": true,
+      "footerDisplay": "none",
+      "paddingBottom": 64,
+      "topBar": {
+        "titleText": "HOME",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      },
+      "smallTargets": [
+        {
+          "tag": "A",
+          "text": "QQA Auditor",
+          "w": 32,
+          "h": 32,
+          "cls": "who-pill profile-pill"
+        },
+        {
+          "tag": "A",
+          "text": "Start →",
+          "w": 230,
+          "h": 38,
+          "cls": "btn btn-gate-pill small"
+        },
+        {
+          "tag": "A",
+          "text": "About",
+          "w": 78,
+          "h": 38,
+          "cls": "btn btn-outlined-display small"
+        },
+        {
+          "tag": "SUMMARY",
+          "text": "Today\n          \n        ",
+          "w": 326,
+          "h": 25,
+          "cls": "widget-head dash-collapsible-s"
+        },
+        {
+          "tag": "A",
+          "text": "All your words",
+          "w": 326,
+          "h": 16,
+          "cls": "small mono-tag"
+        },
+        {
+          "tag": "A",
+          "text": "Leaderboard\n          Vie",
+          "w": 322,
+          "h": 18,
+          "cls": "dash-rank-line"
+        }
+      ]
+    },
+    "course_path": {
+      "overflowing": [],
+      "footerHidden": true,
+      "footerDisplay": "none",
+      "paddingBottom": 64,
+      "topBar": {
+        "titleText": "LITHUANIAN VOCABULARY",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      },
+      "smallTargets": [
+        {
+          "tag": "A",
+          "text": "QQA Auditor",
+          "w": 32,
+          "h": 32,
+          "cls": "who-pill profile-pill"
+        },
+        {
+          "tag": "A",
+          "text": "My courses",
+          "w": 103,
+          "h": 16,
+          "cls": "back mono-tag"
+        },
+        {
+          "tag": "A",
+          "text": "About course",
+          "w": 91,
+          "h": 17,
+          "cls": "linkbtn small quiet-link"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "w": 28,
+          "h": 28,
+          "cls": "chev icon-btn"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "w": 28,
+          "h": 28,
+          "cls": "chev icon-btn"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "w": 28,
+          "h": 28,
+          "cls": "chev icon-btn"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "w": 28,
+          "h": 28,
+          "cls": "chev icon-btn"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "w": 28,
+          "h": 28,
+          "cls": "chev icon-btn"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "w": 28,
+          "h": 28,
+          "cls": "chev icon-btn"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "w": 28,
+          "h": 28,
+          "cls": "chev icon-btn"
+        }
+      ]
+    },
+    "lesson": {
+      "overflowing": [],
+      "footerHidden": true,
+      "footerDisplay": "none",
+      "paddingBottom": 80,
+      "topBar": {
+        "titleText": "HOME",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      },
+      "smallTargets": [
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "w": 40,
+          "h": 40,
+          "cls": "icon-btn"
+        }
+      ]
+    },
+    "review": {
+      "overflowing": [],
+      "footerHidden": true,
+      "footerDisplay": "none",
+      "paddingBottom": 64,
+      "topBar": {
+        "titleText": "REVIEW",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      },
+      "smallTargets": [
+        {
+          "tag": "A",
+          "text": "QQA Auditor",
+          "w": 32,
+          "h": 32,
+          "cls": "who-pill profile-pill"
+        }
+      ]
+    },
+    "words": {
+      "overflowing": [],
+      "footerHidden": true,
+      "footerDisplay": "none",
+      "paddingBottom": 64,
+      "topBar": {
+        "titleText": "YOUR WORDS",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      },
+      "smallTargets": [
+        {
+          "tag": "A",
+          "text": "QQA Auditor",
+          "w": 32,
+          "h": 32,
+          "cls": "who-pill profile-pill"
+        },
+        {
+          "tag": "A",
+          "text": "Learn",
+          "w": 263,
+          "h": 33,
+          "cls": "back mono-tag"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "All",
+          "w": 45,
+          "h": 28,
+          "cls": ""
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Learned",
+          "w": 80,
+          "h": 28,
+          "cls": ""
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Due",
+          "w": 53,
+          "h": 28,
+          "cls": ""
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Not yet",
+          "w": 74,
+          "h": 28,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 326,
+          "h": 40,
+          "cls": ""
+        }
+      ]
+    },
+    "discover": {
+      "overflowing": [],
+      "footerHidden": true,
+      "footerDisplay": "none",
+      "paddingBottom": 64,
+      "topBar": {
+        "titleText": "COURSES",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      },
+      "smallTargets": [
+        {
+          "tag": "A",
+          "text": "QQA Auditor",
+          "w": 32,
+          "h": 32,
+          "cls": "who-pill profile-pill"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 122,
+          "h": 22,
+          "cls": ""
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Search →",
+          "w": 116,
+          "h": 42,
+          "cls": "btn btn-gate-pill search-btn"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 13,
+          "h": 13,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 13,
+          "h": 13,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 13,
+          "h": 13,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 13,
+          "h": 13,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 13,
+          "h": 13,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 13,
+          "h": 13,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 13,
+          "h": 13,
+          "cls": ""
+        }
+      ]
+    },
+    "course_overview": {
+      "overflowing": [],
+      "footerHidden": true,
+      "footerDisplay": "none",
+      "paddingBottom": 64,
+      "topBar": {
+        "titleText": "LITHUANIAN VOCABULARY",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      },
+      "smallTargets": [
+        {
+          "tag": "A",
+          "text": "QQA Auditor",
+          "w": 32,
+          "h": 32,
+          "cls": "who-pill profile-pill"
+        },
+        {
+          "tag": "A",
+          "text": "Courses",
+          "w": 78,
+          "h": 16,
+          "cls": "back mono-tag"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Leave course",
+          "w": 94,
+          "h": 10,
+          "cls": "link-disclaimer-underline"
+        }
+      ]
+    },
+    "play": {
+      "overflowing": [],
+      "footerHidden": true,
+      "footerDisplay": "none",
+      "paddingBottom": 64,
+      "topBar": {
+        "titleText": "PLAY",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      },
+      "smallTargets": [
+        {
+          "tag": "A",
+          "text": "QQA Auditor",
+          "w": 32,
+          "h": 32,
+          "cls": "who-pill profile-pill"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 18,
+          "h": 18,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 18,
+          "h": 18,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 18,
+          "h": 18,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 18,
+          "h": 18,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 18,
+          "h": 18,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 18,
+          "h": 18,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 18,
+          "h": 18,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 18,
+          "h": 18,
+          "cls": ""
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "w": 18,
+          "h": 18,
+          "cls": ""
+        }
+      ]
+    },
+    "leaderboard": {
+      "overflowing": [],
+      "footerHidden": true,
+      "footerDisplay": "none",
+      "paddingBottom": 64,
+      "topBar": {
+        "titleText": "LEADERBOARD",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      },
+      "smallTargets": [
+        {
+          "tag": "A",
+          "text": "QQA Auditor",
+          "w": 32,
+          "h": 32,
+          "cls": "who-pill profile-pill"
+        },
+        {
+          "tag": "A",
+          "text": "Weekly",
+          "w": 75,
+          "h": 28,
+          "cls": ""
+        },
+        {
+          "tag": "A",
+          "text": "All time",
+          "w": 76,
+          "h": 28,
+          "cls": ""
+        },
+        {
+          "tag": "A",
+          "text": "Tester 853",
+          "w": 178,
+          "h": 16,
+          "cls": ""
+        },
+        {
+          "tag": "A",
+          "text": "Abdul Salam",
+          "w": 178,
+          "h": 16,
+          "cls": ""
+        },
+        {
+          "tag": "A",
+          "text": "Learner",
+          "w": 185,
+          "h": 16,
+          "cls": ""
+        },
+        {
+          "tag": "A",
+          "text": "Abdul Salam Poothamkottil",
+          "w": 185,
+          "h": 16,
+          "cls": ""
+        }
+      ]
+    },
+    "studio": {
+      "overflowing": [],
+      "footerHidden": true,
+      "footerDisplay": "none",
+      "paddingBottom": 64,
+      "topBar": {
+        "titleText": "STUDIO",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      },
+      "smallTargets": [
+        {
+          "tag": "A",
+          "text": "QQA Auditor",
+          "w": 32,
+          "h": 32,
+          "cls": "who-pill profile-pill"
+        }
+      ]
+    },
+    "profile": {
+      "overflowing": [],
+      "footerHidden": true,
+      "footerDisplay": "none",
+      "paddingBottom": 64,
+      "topBar": {
+        "titleText": "PROFILE",
+        "titleDisplay": "block",
+        "brandDisplay": "inline",
+        "brandHidden": true
+      },
+      "smallTargets": [
+        {
+          "tag": "A",
+          "text": "QQA Auditor",
+          "w": 32,
+          "h": 32,
+          "cls": "who-pill profile-pill"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "0 followers",
+          "w": 78,
+          "h": 17,
+          "cls": "linkbtn"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "0 following",
+          "w": 77,
+          "h": 17,
+          "cls": "linkbtn"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Edit profile",
+          "w": 236,
+          "h": 40,
+          "cls": "btn outline"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Sign out",
+          "w": 80,
+          "h": 29,
+          "cls": "linkbtn quiet-link"
+        }
+      ]
+    }
+  }
+}

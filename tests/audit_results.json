@@ -1,0 +1,221 @@
+{
+  "routes": {
+    "landing_desktop": "tests\\audit_shots\\landing_1280.png",
+    "landing_mobile": "tests\\audit_shots\\landing_390.png",
+    "learn_desktop": "tests\\audit_shots\\learn_1280.png",
+    "learn_mobile": "tests\\audit_shots\\learn_390.png",
+    "course_path_desktop": "tests\\audit_shots\\course_path_1280.png",
+    "course_path_mobile": "tests\\audit_shots\\course_path_390.png",
+    "lesson_desktop": "tests\\audit_shots\\lesson_1280.png",
+    "lesson_mobile": "tests\\audit_shots\\lesson_390.png",
+    "review_desktop": "tests\\audit_shots\\review_1280.png",
+    "review_mobile": "tests\\audit_shots\\review_390.png",
+    "words_desktop": "tests\\audit_shots\\words_1280.png",
+    "words_mobile": "tests\\audit_shots\\words_390.png",
+    "discover_desktop": "tests\\audit_shots\\discover_1280.png",
+    "discover_mobile": "tests\\audit_shots\\discover_390.png",
+    "course_desktop": "tests\\audit_shots\\course_1280.png",
+    "course_mobile": "tests\\audit_shots\\course_390.png",
+    "play_desktop": "tests\\audit_shots\\play_1280.png",
+    "play_mobile": "tests\\audit_shots\\play_390.png",
+    "leaderboard_desktop": "tests\\audit_shots\\leaderboard_1280.png",
+    "leaderboard_mobile": "tests\\audit_shots\\leaderboard_390.png",
+    "studio_desktop": "tests\\audit_shots\\studio_1280.png",
+    "studio_mobile": "tests\\audit_shots\\studio_390.png",
+    "profile_desktop": "tests\\audit_shots\\profile_1280.png",
+    "profile_mobile": "tests\\audit_shots\\profile_390.png"
+  },
+  "overflowChecks": {
+    "landing": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    },
+    "learn": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    },
+    "course_path": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    },
+    "lesson": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    },
+    "review": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    },
+    "words": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    },
+    "discover": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    },
+    "course": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    },
+    "play": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    },
+    "leaderboard": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    },
+    "studio": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    },
+    "profile": {
+      "scrollW": 390,
+      "innerW": 390,
+      "overflows": []
+    }
+  },
+  "phase0": {},
+  "phase1": {
+    "lesson": {
+      "footHintDisplay": "none",
+      "checkBtnWidth": null,
+      "footWidth": null,
+      "hasEnterChip": false,
+      "checkBtnText": null,
+      "checkBtnDisabled": null,
+      "checkBtnColor": null,
+      "checkBtnBg": null
+    },
+    "words": {
+      "rowDisplay": null,
+      "filterTabsFound": false,
+      "filterTabsStyle": null,
+      "notYetPillCount": 0
+    },
+    "course": {
+      "deckCount": 0,
+      "firstDeckPadding": null,
+      "topBarTitle": ""
+    }
+  },
+  "phase2": {
+    "buttons": {
+      "yellowCTAs": [],
+      "allCaps": [
+        "START LEARNING →"
+      ],
+      "verifiedColor": null
+    },
+    "leaderboardToggle": []
+  },
+  "phase3": {
+    "home": {
+      "hasTodayCard": false,
+      "hasSeparateDailyProgress": false,
+      "hasSeparateQuests": false,
+      "rankText": null,
+      "enrolledCardStyle": null
+    },
+    "play": {
+      "groupCount": 0,
+      "checkboxCount": 0,
+      "firstGroupSummary": null
+    },
+    "profileMobile": {
+      "avatarWidth": null,
+      "avatarHeight": null
+    }
+  },
+  "phase4": {
+    "learn_shell": {
+      "footerDisplay": "flex",
+      "topTitleText": "",
+      "topTitleDisplay": "none",
+      "brandDisplay": "flex",
+      "appPaddingBottom": "40px"
+    },
+    "course_path_shell": {
+      "footerDisplay": "flex",
+      "topTitleText": "",
+      "topTitleDisplay": "none",
+      "brandDisplay": "flex",
+      "appPaddingBottom": "40px"
+    },
+    "lesson_shell": {
+      "footerDisplay": "flex",
+      "topTitleText": "",
+      "topTitleDisplay": "none",
+      "brandDisplay": "flex",
+      "appPaddingBottom": "40px"
+    },
+    "review_shell": {
+      "footerDisplay": "flex",
+      "topTitleText": "",
+      "topTitleDisplay": "none",
+      "brandDisplay": "flex",
+      "appPaddingBottom": "40px"
+    },
+    "words_shell": {
+      "footerDisplay": "flex",
+      "topTitleText": "",
+      "topTitleDisplay": "none",
+      "brandDisplay": "flex",
+      "appPaddingBottom": "40px"
+    },
+    "discover_shell": {
+      "footerDisplay": "flex",
+      "topTitleText": "",
+      "topTitleDisplay": "none",
+      "brandDisplay": "flex",
+      "appPaddingBottom": "40px"
+    },
+    "course_shell": {
+      "footerDisplay": "flex",
+      "topTitleText": "",
+      "topTitleDisplay": "none",
+      "brandDisplay": "flex",
+      "appPaddingBottom": "40px"
+    },
+    "play_shell": {
+      "footerDisplay": "flex",
+      "topTitleText": "",
+      "topTitleDisplay": "none",
+      "brandDisplay": "flex",
+      "appPaddingBottom": "40px"
+    },
+    "leaderboard_shell": {
+      "footerDisplay": "flex",
+      "topTitleText": "",
+      "topTitleDisplay": "none",
+      "brandDisplay": "flex",
+      "appPaddingBottom": "40px"
+    },
+    "studio_shell": {
+      "footerDisplay": "flex",
+      "topTitleText": "",
+      "topTitleDisplay": "none",
+      "brandDisplay": "flex",
+      "appPaddingBottom": "40px"
+    },
+    "profile_shell": {
+      "footerDisplay": "flex",
+      "topTitleText": "",
+      "topTitleDisplay": "none",
+      "brandDisplay": "flex",
+      "appPaddingBottom": "40px"
+    }
+  }
+}

@@ -73,6 +73,21 @@ function errorCard(message, back = ["#/learn", "Back to Learn"]) {
   return `<section class="card picker"><header class="picker-head"><h2>Hmm.</h2><p class="muted">${esc(message)}</p></header><div class="row" style="justify-content:center"><a class="btn" href="${back[0]}">${back[1]}</a></div></section>`;
 }
 
+function emptyStateHtml({ icon, title, desc, actionText, actionHref, actionId }) {
+  return `<section class="card picker empty-state-card">
+    <header class="picker-head">
+      ${icon ? `<span class="board-icon empty-state-icon">${icon}</span>` : ""}
+      <h2>${esc(title)}</h2>
+      <p class="muted">${esc(desc)}</p>
+    </header>
+    ${actionText ? `<div class="row" style="justify-content:center">${
+      actionHref
+        ? `<a class="btn btn-gate-pill" href="${actionHref}">${esc(actionText)}</a>`
+        : `<button class="btn btn-gate-pill" id="${actionId || 'empty-action'}">${esc(actionText)}</button>`
+    }</div>` : ""}
+  </section>`;
+}
+
 // ---------------------------------------------------------------- the course: levels, parts of speech, letters
 
 const LEVELS = {
@@ -98,7 +113,7 @@ const levelChip = (level) => (level ? `<span class="level-chip mono-tag">${esc(S
 // ---------------------------------------------------------------- icons (inline SVG, gradients defined in index.html)
 
 const I = {
-  join: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="10" width="40" height="40" rx="4" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><rect x="32" y="30" width="40" height="40" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><text x="22" y="37" font-size="18" font-weight="800" text-anchor="middle" fill="#16151d" font-family="JetBrains Mono, monospace">A</text><text x="52" y="58" font-size="18" font-weight="800" text-anchor="middle" fill="#16151d" font-family="JetBrains Mono, monospace">B</text></svg>`,
+  join: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h5M13 7l3 3-3 3M7 10h9"/></svg>`,
   share: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="16" width="44" height="44" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><rect x="28" y="28" width="44" height="40" rx="4" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><path d="M38 48h18m-6-6 6 6-6 6" stroke="#16151d" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   decks: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="10" y="22" width="34" height="46" rx="4" fill="#8584bd" stroke="#16151d" stroke-width="2.5"/><rect x="22" y="16" width="34" height="46" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><rect x="34" y="10" width="34" height="46" rx="4" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><text x="51" y="40" font-size="17" font-weight="800" text-anchor="middle" fill="#16151d" font-family="JetBrains Mono, monospace">A1</text></svg>`,
   answer: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="10" width="64" height="60" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><rect x="16" y="20" width="48" height="10" rx="3" fill="#f4ed36"/><rect x="16" y="36" width="48" height="10" rx="3" fill="#8584bd"/><rect x="16" y="52" width="48" height="10" rx="3" fill="#f4ed36"/><path d="M22 41l3 3 5-6" stroke="#16151d" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -112,7 +127,7 @@ const I = {
   send: `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10 17 3l-4 14-3-6z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>`,
   trophy: `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3h8v4a4 4 0 0 1-8 0zM6 5H3a3 3 0 0 0 3 3m8-3h3a3 3 0 0 1-3 3M10 11v4m-3 2h6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   learn: `<svg viewBox="0 0 80 80" aria-hidden="true"><path d="M10 18c10-4 20-4 30 2v46c-10-6-20-6-30-2z" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><path d="M70 18c-10-4-20-4-30 2v46c10-6 20-6 30-2z" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><path d="M18 30q4-3 8 0t8 0M18 40h14M48 30h14M48 40h14M48 50h10" stroke="#16151d" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>`,
-  room: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="8" width="28" height="28" rx="4" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><rect x="44" y="8" width="28" height="28" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><rect x="8" y="44" width="28" height="28" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><rect x="44" y="44" width="28" height="28" rx="4" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><path d="M58 52v12M52 58h12" stroke="#16151d" stroke-width="3.4" stroke-linecap="round"/></svg>`,
+  room: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M10 6v8M6 10h8"/></svg>`,
   heart: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.5-9.3C1.1 8.3 3.2 4.5 7 4.5c2.1 0 3.6 1.1 5 2.9 1.4-1.8 2.9-2.9 5-2.9 3.8 0 5.9 3.8 4.5 7.2C19.5 16.4 12 21 12 21z" fill="#ff4b62"/></svg>`,
   fire: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 10.5A5 5 0 0 1 7 13c0-2 1-3.5 2-4.5.3 1.7 1.2 2.7 2.2 3C10.6 8.5 11 5 12 2z" fill="#ff9a1f"/><path d="M12 13c.6 1.6 2 2.2 2 4a2 2 0 0 1-4 0c0-1 .5-1.6 1-2 .1.8.5 1.2 1 1.3-.2-1.3-.3-2.3 0-3.3z" fill="#ffd56b"/></svg>`,
   bolt: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4 14h7l-1.5 8L20 10h-7z" fill="#ffc21a"/></svg>`,
@@ -502,7 +517,7 @@ function renderNav() {
       .map(([key, href, label, ic]) => `<a href="${href}" class="side-pill" data-nav="${key}"${page() === key ? ' aria-current="page"' : ""}>${ICON[ic]}<span>${label}</span></a>`)
       .join("");
     const bottom = document.getElementById("side-bottom");
-    bottom.innerHTML = `<button class="btn-gate-pill small" id="logout" title="Sign out" aria-label="Sign out">SIGN OUT</button>`;
+    bottom.innerHTML = `<button class="btn-gate-pill small" id="logout" title="Sign out" aria-label="Sign out">Sign out</button>`;
     if (themeBtn) bottom.prepend(themeBtn);
   }
   if (mobileNav) {
@@ -530,13 +545,13 @@ function renderNav() {
       .map(([key, href, label]) => `<a href="${href}" class="nav-pill" data-nav="${key}"${page() === key ? ' aria-current="page"' : ""}>${label}</a>`)
       .join("");
   }
-  const learnCourseMatch = /^#\/learn\/course\/(\d+)$/.exec(location.hash);
+  const courseMatch = /^#\/(?:learn\/)?course\/(\d+)$/.exec(location.hash);
   const pageTitle = document.getElementById("page-title");
   if (pageTitle) {
     pageTitle.textContent = location.hash.startsWith("#/learn/words")
       ? "YOUR WORDS"
-      : learnCourseMatch
-        ? (course?.title?.toUpperCase() || "LEARN")
+      : courseMatch
+        ? (course?.title?.toUpperCase() || "COURSE")
         : (TITLES[page()]?.toUpperCase() ?? "PAPERCARD");
   }
   $account.innerHTML = `<a class="who-pill profile-pill" href="#/u/${esc(me.username)}" title="Your profile (@${esc(me.username)})">${avatar(me)}<span>${esc(me.name)}</span></a>`;
@@ -639,7 +654,7 @@ function landingHtml() {
 
       <section class="landing-cta">
         <h2>READY?</h2>
-        <button type="button" class="btn-gate-pill big" id="landing-cta-btn">START LEARNING →</button>
+        <button type="button" class="btn-gate-pill big" id="landing-cta-btn">Start learning →</button>
       </section>
     </div>`;
 }
@@ -728,18 +743,20 @@ async function renderPlayHub() {
           <div class="row spread"><h3>Which decks?</h3><span class="muted small" id="deck-count"></span></div>
           <div class="deck-picker" id="decks"><p class="muted">Loading decks…</p></div>
           <p id="create-error" class="error" hidden></p>
-          <div class="pane-actions"><span class="muted small mono-tag">10 RANDOM WORDS · YOU PLAY FIRST</span><button class="btn btn-gate-pill" id="create">CREATE ROOM →</button></div>
+          <div class="pane-actions"><span class="muted small mono-tag">10 RANDOM WORDS · YOU PLAY FIRST</span><button class="btn btn-gate-pill" id="create">Create room →</button></div>
         </div>
         <form class="pane" id="pane-join" hidden>
           <label class="field">Room code
-            <span class="row" style="gap:12px;margin-top:4px;"><input type="text" id="join-code" placeholder="e.g. K7QX4M" maxlength="6" autocomplete="off" style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:.12em"><button class="btn btn-gate-pill">JOIN →</button></span>
+            <span class="row" style="gap:12px;margin-top:4px;"><input type="text" id="join-code" placeholder="e.g. K7QX4M" maxlength="6" autocomplete="off" style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:.12em"><button class="btn btn-gate-pill">Join →</button></span>
           </label>
         </form>
       </section>
-      <aside class="card list-card">
-        <div class="list-head"><h3>Your rooms <span class="muted" id="duel-count"></span></h3></div>
-        <ul class="rows" id="my-duels"><li class="empty-row">Loading…</li></ul>
-      </aside>
+      <div id="my-duels-wrap" class="lobby-rooms-wrap">
+        <aside class="card list-card">
+          <div class="list-head"><h3>Your rooms <span class="muted" id="duel-count"></span></h3></div>
+          <ul class="rows" id="my-duels"><li class="empty-row">Loading…</li></ul>
+        </aside>
+      </div>
     </div>`;
 
   for (const b of $app.querySelectorAll(".tile")) {
@@ -772,25 +789,60 @@ async function renderPlayHub() {
       // Start with the decks you've begun (or the first one).
       for (const u of units) if (unitLearned(u) > 0) picked.add(u.id);
       if (!picked.size && units[0]) picked.add(units[0].id);
+      const updateDeckSummaries = () => {
+        for (const grp of decks.querySelectorAll(".deck-group")) {
+          const lvl = grp.dataset.levelGroup;
+          const cbs = grp.querySelectorAll("input[type=checkbox]");
+          const sel = [...cbs].filter((x) => x.checked).length;
+          const cntEl = grp.querySelector(".deck-sel-count");
+          if (cntEl) cntEl.textContent = `${lvl} · ${sel} of ${cbs.length} selected`;
+        }
+      };
       decks.innerHTML = byLevel(units)
         .map(
-          ([level, us]) => `<div class="deck-group"><div class="row spread"><b>${levelChip(level)} ${esc(LEVELS[level]?.[0] ?? "")}</b><button type="button" class="linkbtn small" data-level="${esc(level)}">Select all</button></div>
-            <div class="deck-chips">${us
-              .map(
-                (u) => `<label class="deck-chip"><input type="checkbox" value="${u.id}" ${picked.has(u.id) ? "checked" : ""}><span>${esc(u.title)}<small>${unitWords(u)} words${unitLearned(u) ? ` · ${unitLearned(u)} learned` : ""}</small></span></label>`,
-              )
-              .join("")}</div></div>`,
+          ([level, us], idx) => {
+            const countSel = us.filter((u) => picked.has(u.id)).length;
+            return `<details class="deck-group" data-level-group="${esc(level)}" ${idx === 0 || countSel > 0 ? "open" : ""}>
+              <summary class="deck-group-summary">
+                <div class="row spread deck-summary-row">
+                  <span class="deck-summary-title">
+                    <span class="deck-summary-chev">${ICON.chev}</span>
+                    <b>${levelChip(level)} <span class="deck-sel-count mono-tag">${level} · ${countSel} of ${us.length} selected</span></b>
+                  </span>
+                  <button type="button" class="linkbtn small select-all-btn" data-level="${esc(level)}">Select all</button>
+                </div>
+              </summary>
+              <div class="deck-chips">${us
+                .map(
+                  (u) => `<label class="deck-chip"><input type="checkbox" value="${u.id}" ${picked.has(u.id) ? "checked" : ""}><span>${esc(u.title)}<small>${unitWords(u)} words${unitLearned(u) ? ` · ${unitLearned(u)} learned` : ""}</small></span></label>`,
+                )
+                .join("")}</div>
+            </details>`;
+          },
         )
         .join("");
-      for (const cb of decks.querySelectorAll("input[type=checkbox]")) cb.onchange = () => ((cb.checked ? picked.add(Number(cb.value)) : picked.delete(Number(cb.value))), countPicked(units));
+      for (const cb of decks.querySelectorAll("input[type=checkbox]")) {
+        cb.onchange = () => {
+          if (cb.checked) picked.add(Number(cb.value));
+          else picked.delete(Number(cb.value));
+          countPicked(units);
+          updateDeckSummaries();
+        };
+      }
       for (const b of decks.querySelectorAll("[data-level]")) {
-        b.onclick = () => {
-          const group = b.closest(".deck-group").querySelectorAll("input[type=checkbox]");
+        b.onclick = (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          const grp = b.closest(".deck-group");
+          const group = grp.querySelectorAll("input[type=checkbox]");
           const all = [...group].every((x) => x.checked);
           for (const x of group) {
             x.checked = !all;
-            x.onchange();
+            if (x.checked) picked.add(Number(x.value));
+            else picked.delete(Number(x.value));
           }
+          countPicked(units);
+          updateDeckSummaries();
         };
       }
       countPicked(units);
@@ -822,18 +874,24 @@ async function renderPlayHub() {
 
   try {
     const { duels } = await api("/duels");
-    const list = document.getElementById("my-duels");
-    if (!list) return;
-    document.getElementById("duel-count").textContent = duels.length ? `(${duels.length})` : "";
-    list.innerHTML = duels.length
-      ? duels
-        .map(
-          (d) => `<li><a class="duel-row" href="#/duel/${esc(d.code)}"><span class="code-chip">${esc(d.code)}</span>
-              <span>${esc(d.title)}<br><span class="muted small">by ${esc(d.creator)} · ${d.players} played</span></span>
-              <span class="act">${d.myPoints == null ? "Play" : `${d.myPoints} pts`}</span></a></li>`,
-        )
-        .join("")
-      : `<li class="empty-row">No rooms yet. Create your first one!</li>`;
+    const wrap = document.getElementById("my-duels-wrap");
+    if (!wrap) return;
+    if (!duels.length) {
+      wrap.innerHTML = `<p class="muted small center empty-rooms-line" style="margin-top:16px;">No active rooms yet.</p>`;
+    } else {
+      wrap.innerHTML = `<aside class="card list-card">
+        <div class="list-head"><h3>Your rooms <span class="muted">(${duels.length})</span></h3></div>
+        <ul class="rows" id="my-duels">
+          ${duels
+            .map(
+              (d) => `<li><a class="duel-row" href="#/duel/${esc(d.code)}"><span class="code-chip">${esc(d.code)}</span>
+                  <span>${esc(d.title)}<br><span class="muted small">by ${esc(d.creator)} · ${d.players} played</span></span>
+                  <span class="act">${d.myPoints == null ? "Play" : `${d.myPoints} pts`}</span></a></li>`,
+            )
+            .join("")}
+        </ul>
+      </aside>`;
+    }
   } catch {
     /* the hub still works without the list */
   }
@@ -946,19 +1004,21 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
     .join("");
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 900;
-  const isProgOpen = !isMobile || localStorage.getItem("vokab_dash_progress_open") === "true";
-  const isBoardOpen = !isMobile || localStorage.getItem("vokab_dash_board_open") === "true";
-  const isQuestsOpen = !isMobile || localStorage.getItem("vokab_dash_quests_open") === "true";
+  const isTodayOpen = !isMobile || localStorage.getItem("vokab_dash_today_open") !== "false";
   const isFeedOpen = !isMobile || localStorage.getItem("vokab_dash_feed_open") === "true";
   const chevSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
 
+  const myRow = board?.rows?.find((r) => r.isYou);
+  const myRank = myRow ? myRow.rank : board?.me?.rank;
+  const rankText = myRank ? `#${myRank} this week →` : "View weekly board →";
+
   return `
     <aside class="dash-side">
-      <details class="card widget dash-collapsible-card dash-progress-card profile-card" id="dash-progress-widget" ${isProgOpen ? "open" : ""}>
-        <summary class="widget-head dash-collapsible-summary dash-progress-summary">
+      <details class="card widget dash-collapsible-card dash-today-card profile-card" id="dash-today-widget" ${isTodayOpen ? "open" : ""}>
+        <summary class="widget-head dash-collapsible-summary dash-today-summary">
           <div class="dash-collapsible-title-wrap">
             <span class="dash-collapsible-chev" aria-hidden="true">${chevSvg}</span>
-            <h3>Daily Progress</h3>
+            <h3>Today</h3>
           </div>
           <div class="dash-progress-summary-meta">
             ${stats?.due ? `<span class="pill due mono-tag">${stats.due} DUE</span>` : ""}
@@ -974,36 +1034,19 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
           ${stats?.due ? `<a class="btn btn-gate-pill block" href="#/learn/review">${FC_ICONS.shuffle} Review ${plural(stats.due, "word")} now</a>` : stats?.learned ? `<p class="stat-note">All caught up! Next review ${fmtUntil(stats.nextDueAt)}.</p>` : ""}
           ${stats && stats.hearts < stats.maxHearts ? `<p class="stat-note small mono-tag">Next heart in ${fmtMinutes(stats.nextHeartMs)}.</p>` : ""}
           ${stats?.days?.length ? `<div class="dash-activity-wrap"><div class="dash-activity-head"><span class="muted small mono-tag">XP · last 14 days</span></div>${activityHtml(stats.days)}</div>` : ""}
+          ${quests ? `<div class="dash-today-quests"><div class="dash-activity-head"><span class="muted small mono-tag">Active quests</span></div><ul class="quests">${quests}</ul></div>` : ""}
           <div class="dash-side-links">
             <a class="small mono-tag" href="#/learn/words">${I.list} All your words</a>
             ${stats?.learned ? `<a class="small mono-tag" href="#/learn/review">${I.cards} Shuffled flashcards</a>` : ""}
           </div>
         </div>
       </details>
-      <details class="card widget dash-collapsible-card" id="dash-board-widget" ${isBoardOpen ? "open" : ""}>
-        <summary class="widget-head dash-collapsible-summary">
-          <div class="dash-collapsible-title-wrap">
-            <span class="dash-collapsible-chev" aria-hidden="true">${chevSvg}</span>
-            <h3>Leaderboard</h3>
-          </div>
-          <div class="dash-collapsible-actions" onclick="event.stopPropagation()">
-            <select id="board-period" class="mono-tag" aria-label="Period"><option value="week">Weekly</option><option value="all">All time</option></select>
-          </div>
-        </summary>
-        <div id="board-body" class="dash-collapsible-body">${boardHtml(board?.rows ?? [])}</div>
-      </details>
-      ${quests ? `<details class="card widget dash-collapsible-card" id="dash-quests-widget" ${isQuestsOpen ? "open" : ""}>
-        <summary class="widget-head dash-collapsible-summary">
-          <div class="dash-collapsible-title-wrap">
-            <span class="dash-collapsible-chev" aria-hidden="true">${chevSvg}</span>
-            <h3>Quests</h3>
-          </div>
-          <span class="pill mono-tag quests-pill">${questList.slice(0, 3).length} ACTIVE</span>
-        </summary>
-        <div class="dash-collapsible-body">
-          <ul class="quests">${quests}</ul>
-        </div>
-      </details>` : ""}
+      <div class="card widget dash-rank-card">
+        <a href="#/leaderboard" class="dash-rank-line">
+          <span class="dash-rank-title">Leaderboard</span>
+          <span class="dash-rank-val mono-tag">${rankText}</span>
+        </a>
+      </div>
       ${fresh.length
       ? `<details class="card widget dash-collapsible-card" id="dash-feed-widget" ${isFeedOpen ? "open" : ""}>
         <summary class="widget-head dash-collapsible-summary">
@@ -1025,9 +1068,7 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
 function wireDashSide(root = $app) {
   wireChartTips(root);
   const collapsibles = [
-    ["#dash-progress-widget", "vokab_dash_progress_open"],
-    ["#dash-board-widget", "vokab_dash_board_open"],
-    ["#dash-quests-widget", "vokab_dash_quests_open"],
+    ["#dash-today-widget", "vokab_dash_today_open"],
     ["#dash-feed-widget", "vokab_dash_feed_open"]
   ];
   for (const [sel, key] of collapsibles) {
@@ -1039,18 +1080,6 @@ function wireDashSide(root = $app) {
         }
       });
     }
-  }
-  const period = root.querySelector("#board-period");
-  if (period) {
-    period.onchange = async (e) => {
-      try {
-        const b = await api(`/leaderboard?period=${e.target.value}`);
-        const body = root.querySelector("#board-body");
-        if (body) body.innerHTML = boardHtml(b.rows);
-      } catch (x) {
-        toast(x.message);
-      }
-    };
   }
 }
 
@@ -1100,7 +1129,7 @@ async function renderEnrolledCourses() {
           <div class="bar"><i style="width:${pct}%"></i></div>
         </div>
         <div class="enrolled-foot">
-          <a class="btn btn-gate-pill small" href="#/learn/course/${c.id}">${c.learned ? "Continue →" : "Start course →"}</a>
+          <a class="btn btn-gate-pill small" href="#/learn/course/${c.id}">${c.learned ? "Continue →" : "Start →"}</a>
           <a class="btn btn-outlined-display small" href="#/course/${c.id}" title="Course details">About</a>
         </div>
       </div>`;
@@ -1194,7 +1223,7 @@ async function renderCoursePath(courseId) {
     const currentLessonIdx = u.lessons.findIndex((l) => l.id === current);
 
     const action = hasCurrent && currentLesson
-      ? `<a class="btn unit-primary-btn" href="#/learn/lesson/${current}"><span>${learned ? "Resume Lesson" : "Start Lesson"} →</span><small class="unit-btn-sub">Lesson ${currentLessonIdx + 1}: ${esc(currentLesson.title)} · ${plural(currentLesson.total, "word")}</small></a>`
+      ? `<a class="btn unit-primary-btn" href="#/learn/lesson/${current}"><span>${learned ? "Continue →" : "Start course →"}</span><small class="unit-btn-sub">Lesson ${currentLessonIdx + 1}: ${esc(currentLesson.title)} · ${plural(currentLesson.total, "word")}</small></a>`
       : done
         ? `<a class="btn outline unit-secondary-btn" href="#/learn/lesson/${u.lessons[0].id}"><span>Practise Unit</span> <span class="btn-arrow">↺</span></a>`
         : allLocked
@@ -1279,22 +1308,17 @@ async function renderCoursePath(courseId) {
           </div>
           <div class="toolbar-actions">
             ${course.mine ? `<a class="btn outline small" href="#/studio/${course.id}">${I.edit} Edit in Studio</a>` : ""}
-            <a class="btn outline small" href="#/course/${course.id}">About course</a>
+            <a class="linkbtn small quiet-link" href="#/course/${course.id}">About course</a>
           </div>
         </div>
 
         <section class="card course-hero-path ${tint(course.id)}">
           <div class="course-hero-inner">
-            <span class="lang-orb mono-tag">${esc(flag(course))}</span>
             <div class="course-hero-text">
-              <div class="row spread hero-meta-row">
-                <div class="hero-badges">
-                  <span class="tag-chip mono-tag">${course.creator?.official ? "OFFICIAL" : "COURSE"}</span>
-                  <span class="meta-lang mono-tag">${esc(course.fromLang)} → ${esc(course.toLang)}</span>
-                </div>
-                <span class="meta-words mono-tag">${learnedWords}/${totalWords} words learned · ${plural(units.length, "deck")}</span>
-              </div>
               <h1 class="course-hero-title">${esc(course.title)}</h1>
+              <div class="course-hero-meta mono-tag">
+                <span>${course.creator?.official ? "Official · " : ""}${esc(course.fromLang)} → ${esc(course.toLang)} · ${plural(totalWords, "word")} · ${plural(units.length, "deck")}</span>
+              </div>
               ${course.description ? `<p class="course-hero-desc">${esc(course.description)}</p>` : ""}
               <div class="course-path-progress">
                 <div class="row spread small mono-tag">
@@ -1305,9 +1329,8 @@ async function renderCoursePath(courseId) {
               </div>
               ${current ? `
               <div class="course-hero-cta">
-                <a class="btn btn-hero-primary" href="#/learn/lesson/${current}">
-                  <span>${learnedWords > 0 ? "Resume Learning" : "Start Learning"}</span>
-                  <span class="hero-cta-arrow">→</span>
+                <a class="btn btn-gate-pill small" href="#/learn/lesson/${current}">
+                  <span>${learnedWords > 0 ? "Continue →" : "Start →"}</span>
                 </a>
               </div>` : ""}
             </div>
@@ -1821,14 +1844,13 @@ async function renderReview() {
     const s = stats || {};
     $app.innerHTML = `
       <div class="review-empty-stage">
-        <section class="card review-empty-card">
-          <h3 class="review-title-display">${s.learned ? "All caught up for now!" : "Nothing to review yet"}</h3>
-          <p class="review-desc">${s.learned ? "Your words are fresh. Come back when they're due." : "Words you learn in lessons show up here, right before you'd forget them."}</p>
-          <div class="review-actions-row">
-            <a class="btn btn-gate-pill" href="${course?.id ? `#/learn/course/${course.id}` : '#/learn'}">START A LESSON →</a>
-            <a class="btn btn-outlined-display" href="#/discover">EXPLORE COURSES</a>
-          </div>
-        </section>
+        ${emptyStateHtml({
+          icon: I.cards,
+          title: s.learned ? "All caught up for now!" : "Nothing to review yet",
+          desc: s.learned ? "Your words are fresh. Come back when they're due." : "Words you learn in lessons show up here, right before you'd forget them.",
+          actionText: "Start a lesson →",
+          actionHref: course?.id ? `#/learn/course/${course.id}` : "#/learn",
+        })}
       </div>`;
     return;
   }
@@ -1863,7 +1885,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
           <div class="feedback" id="feedback"></div>
           <div class="foot-actions">
             <span class="foot-hint mono-tag" id="foot-hint">Press 1-4 · Enter to check</span>
-            <button class="btn big action-btn" id="action" disabled>Check <span class="kbd-pill">[Enter]</span></button>
+            <button class="btn big action-btn" id="action" disabled>Check</button>
           </div>
         </div>
       </footer>
@@ -1906,7 +1928,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
   const ready = (ok) => {
     action.disabled = !ok;
     if (mode2 === "check") {
-      action.innerHTML = ok ? `Check <span class="kbd-pill">[Enter]</span> →` : `Check <span class="kbd-pill">[Enter]</span>`;
+      action.textContent = "Check";
     }
   };
 
@@ -1921,7 +1943,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
       else if (challenge.kind === "type_lt") footHint.textContent = "Type answer · Enter to check";
       else if (challenge.kind === "build") footHint.textContent = "Backspace undo · Enter to check";
     }
-    action.innerHTML = `Check <span class="kbd-pill">[Enter]</span>`;
+    action.textContent = "Check";
     ready(false);
     const c = challenge;
     if (c.kind === "pick_en" || c.kind === "pick_lt") {
@@ -2041,7 +2063,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
     stats = res.stats;
     setHearts();
     mode2 = "continue";
-    action.innerHTML = `Continue <span class="kbd-pill">[Enter]</span> →`;
+    action.textContent = "Continue →";
     if (footHint) footHint.textContent = "Press Enter to continue";
     const input = document.getElementById("typed");
     if (input) input.readOnly = true;
@@ -2121,7 +2143,7 @@ async function renderWords() {
 
   $app.innerHTML = `
     <div class="toolbar">
-      <div class="page-head"><a class="back" href="#/learn">${I.back} Learn</a><h1>Your words${course ? ` <span class="muted">· ${esc(course.title)}</span>` : ""}</h1><p class="muted">${stats.learned} of ${allWords.length} learned · ${stats.due} due for review</p></div>
+      <div class="page-head"><a class="back mono-tag" href="#/learn">${I.back} Learn</a><p class="muted">${stats.learned} of ${allWords.length} learned · ${stats.due} due for review</p></div>
       <div class="toolbar-actions">${stats.due ? `<a class="btn" href="#/learn/review">${I.refresh} Review ${stats.due} now</a>` : ""}</div>
     </div>
     <section class="card words-filter">
@@ -2144,8 +2166,14 @@ async function renderWords() {
           <ul class="word-list">${words
             .map((w) => {
               const s = status(w);
-              const badge = s === "new" ? `<span class="pill">not yet</span>` : s === "due" ? `<span class="pill due">due</span>` : `<span class="pill ok" title="Next review">${fmtUntil(w.dueAt, now)}</span>`;
-              return `<li class="${s}"><span class="w-lt"${L()}><button type="button" class="icon-btn w-speak" data-text="${esc(w.lt)}" title="Listen to pronunciation" aria-label="Listen to pronunciation">${FC_ICONS.speaker}</button>${esc(w.lt)}</span><span class="w-en">${esc(w.en)}${w.note ? `<small>${esc(w.note)}</small>` : ""}</span>${w.pos !== "phrase" ? wordTag(w) : "<span></span>"}${badge}</li>`;
+              const badge = s === "due" ? `<span class="pill due">due</span>` : s === "later" ? `<span class="pill ok" title="Next review">✓</span>` : "";
+              return `<li class="${s}">
+                <button type="button" class="icon-btn w-speak" data-text="${esc(w.lt)}" title="Listen to pronunciation" aria-label="Listen to pronunciation">${FC_ICONS.speaker}</button>
+                <span class="w-lt"${L()}>${esc(w.lt)}</span>
+                <span class="w-en">${esc(w.en)}${w.note ? `<small>${esc(w.note)}</small>` : ""}</span>
+                <span class="w-tag-wrap">${w.pos !== "phrase" ? wordTag(w) : ""}</span>
+                <span class="w-status-wrap">${badge}</span>
+              </li>`;
             })
             .join("")}</ul>
         </section>`;
@@ -2193,15 +2221,20 @@ async function renderLeaderboard() {
         <a role="tab" href="#/leaderboard" aria-selected="${period === "week"}">Weekly</a>
         <a role="tab" href="#/leaderboard/all" aria-selected="${period === "all"}">All time</a>
       </div>
-      ${boardHtml(data.rows, 20)}
+      ${data.rows.length ? boardHtml(data.rows, 20) : emptyStateHtml({
+        icon: I.trophy,
+        title: "No learners on the board yet",
+        desc: "Earn XP in lessons and reviews to take the top spot.",
+        actionText: "Start learning →",
+        actionHref: "#/learn"
+      })}
       ${data.me && !data.rows.some((r) => r.isYou) ? `<p class="muted center">You're #${data.me.rank} with ${data.me.xp} XP.</p>` : ""}
-      ${!data.me ? `<div class="row" style="justify-content:center"><a class="btn" href="#/learn">Start learning</a></div>` : ""}
     </section>`;
 }
 
 // ---------------------------------------------------------------- accounts and courses: links, cards, follow buttons
 
-I.verified = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5l2.2 1.6 2.7-.2.9 2.6 2.3 1.5-.9 2.6.9 2.6-2.3 1.5-.9 2.6-2.7-.2L10 18.5l-2.2-1.6-2.7.2-.9-2.6-2.3-1.5.9-2.6-.9-2.6 2.3-1.5.9-2.6 2.7.2z" fill="#3b82f6"/><path d="M6.6 10.2l2.2 2.2 4.6-4.8" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+I.verified = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5l2.2 1.6 2.7-.2.9 2.6 2.3 1.5-.9 2.6.9 2.6-2.3 1.5-.9 2.6-2.7-.2L10 18.5l-2.2-1.6-2.7.2-.9-2.6-2.3-1.5.9-2.6-.9-2.6 2.3-1.5.9-2.6 2.7.2z" fill="#f4ed36" stroke="#1a1a1a" stroke-width="1.2"/><path d="M6.6 10.2l2.2 2.2 4.6-4.8" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 I.upload = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 13V3m-4 4 4-4 4 4M4 13v3h12v-3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 I.download = `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 13v3h12v-3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
@@ -2261,7 +2294,7 @@ async function redeemCode(code, errEl) {
 const codeFormHtml = (id, label = "Access code") => `<form class="code-form" id="${id}">
     <div class="code-input-row">
       <input type="text" class="code-input" placeholder="Enter invite code…" aria-label="${label}" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40">
-      <button class="btn btn-gate-pill code-btn" type="submit">UNLOCK COURSE →</button>
+      <button class="btn btn-gate-pill code-btn" type="submit">Unlock course →</button>
     </div>
     <p class="error" hidden></p>
   </form>`;
@@ -2341,6 +2374,10 @@ async function renderDiscover() {
   const params = new URLSearchParams(location.hash.split("?")[1] ?? "");
   const f = { tab: params.get("tab") ?? "popular", q: params.get("q") ?? "", langs: new Set(), official: false, sort: "learners" };
   let courses = [];
+  let filtersOpen = false;
+  try {
+    filtersOpen = localStorage.getItem("vokab_discover_filters_open") === "true";
+  } catch { }
   $app.innerHTML = `
     <div class="discover">
       <div class="discover-main">
@@ -2351,34 +2388,41 @@ async function renderDiscover() {
               <input type="search" id="d-q" value="${esc(f.q)}" placeholder="Search courses, languages, topics…" aria-label="Search courses" autocomplete="off" spellcheck="false">
               <button type="button" class="search-clear-btn" id="d-clear" aria-label="Clear search" ${f.q ? "" : "hidden"}>${I.close}</button>
             </div>
-            <button class="btn btn-gate-pill search-btn" type="submit">SEARCH →</button>
+            <button class="btn btn-gate-pill search-btn" type="submit">Search →</button>
           </form>
         </section>
+        <details class="card filters filters-bar" id="d-filters" ${filtersOpen ? "open" : ""}>
+          <summary class="filters-summary">
+            <span class="filters-chev" aria-hidden="true">${ICON.chev}</span>
+            <h3>Filters</h3>
+            <span class="pill mono-tag filters-count" id="f-count" hidden></span>
+            <button type="button" class="linkbtn small" id="f-clear">Clear</button>
+          </summary>
+          <div class="filters-body">
+            <div class="filter-group"><span>Show</span>
+              ${[["popular", "All courses"], ["following", "From people I follow"], ["enrolled", "My courses"]].map(([k, l]) => `<label><input type="radio" name="f-tab" value="${k}" ${k === f.tab ? "checked" : ""}> ${l}</label>`).join("")}
+            </div>
+            <div class="filter-group" id="f-langs"><span>Language</span></div>
+            <div class="filter-group"><span>Made by</span><label><input type="checkbox" id="f-official"> Official courses only</label></div>
+            <div class="filter-group"><span>Sort by</span>
+              ${[["learners", "Most learners"], ["updatedAt", "Recently updated"], ["words", "Most words"]].map(([k, l]) => `<label><input type="radio" name="f-sort" value="${k}" ${k === f.sort ? "checked" : ""}> ${l}</label>`).join("")}
+            </div>
+            <details class="code-callout-collapsible">
+              <summary class="code-callout-summary">
+                <span class="code-lock-icon">${ICON.lock}</span>
+                <span>Have an invite code?</span>
+              </summary>
+              <div class="code-callout-inner">
+                <p class="code-callout-desc">Have a private access code? Enter it below to unlock the course.</p>
+                ${codeFormHtml("discover-code")}
+              </div>
+            </details>
+          </div>
+        </details>
+        <div class="active-filters" id="f-active"></div>
         <section class="people-row" id="d-people" hidden></section>
         <div class="course-grid pastel" id="d-list"><p class="muted loading">Loading courses…</p></div>
       </div>
-      <aside class="card filters" aria-label="Filters">
-        <div class="widget-head"><h3>Filters</h3><button type="button" class="linkbtn small" id="f-clear">Clear</button></div>
-        <div class="active-filters" id="f-active"></div>
-        <div class="filter-group"><span>Show</span>
-          ${[["popular", "All courses"], ["following", "From people I follow"], ["enrolled", "My courses"]].map(([k, l]) => `<label><input type="radio" name="f-tab" value="${k}" ${k === f.tab ? "checked" : ""}> ${l}</label>`).join("")}
-        </div>
-        <div class="filter-group" id="f-langs"><span>Language</span></div>
-        <div class="filter-group"><span>Made by</span><label><input type="checkbox" id="f-official"> Official courses only</label></div>
-        <div class="filter-group"><span>Sort by</span>
-          ${[["learners", "Most learners"], ["updatedAt", "Recently updated"], ["words", "Most words"]].map(([k, l]) => `<label><input type="radio" name="f-sort" value="${k}" ${k === f.sort ? "checked" : ""}> ${l}</label>`).join("")}
-        </div>
-        <details class="code-callout-collapsible">
-          <summary class="code-callout-summary">
-            <span class="code-lock-icon">${ICON.lock}</span>
-            <span>Have an invite code?</span>
-          </summary>
-          <div class="code-callout-inner">
-            <p class="code-callout-desc">Have a private access code? Enter it below to unlock the course.</p>
-            ${codeFormHtml("discover-code")}
-          </div>
-        </details>
-      </aside>
     </div>`;
   const list = document.getElementById("d-list");
   const empty = {
@@ -2437,6 +2481,11 @@ async function renderDiscover() {
     const chips = [...f.langs].map((l) => ["lang", l, l]);
     if (f.official) chips.push(["official", "", "Official"]);
     if (f.q) chips.push(["q", "", `“${f.q}”`]);
+    const active = chips.filter(([k]) => k !== "q").length + (f.tab !== "popular" ? 1 : 0) + (f.sort !== "learners" ? 1 : 0);
+    const count = document.getElementById("f-count");
+    count.hidden = !active;
+    count.textContent = `${active} on`;
+    document.getElementById("f-clear").hidden = !active && !f.q;
     document.getElementById("f-active").innerHTML = chips.map(([k, v, l]) => `<button type="button" data-off="${k}" data-v="${esc(v)}" aria-label="Remove filter ${esc(l)}">${esc(l)} ✕</button>`).join("");
     for (const b of document.querySelectorAll("[data-off]")) {
       b.onclick = () => {
@@ -2464,9 +2513,17 @@ async function renderDiscover() {
     }
     drawPeople();
     const langs = [...new Set(courses.map((c) => c.toLang))].sort();
-    document.getElementById("f-langs").innerHTML =
-      `<span>Language</span>` + (langs.map((l) => `<label><input type="checkbox" value="${esc(l)}" ${f.langs.has(l) ? "checked" : ""}> ${esc(l)}</label>`).join("") || `<span class="muted small">—</span>`);
-    for (const cb of document.querySelectorAll("#f-langs input")) cb.onchange = () => ((cb.checked ? f.langs.add(cb.value) : f.langs.delete(cb.value)), draw());
+    const langGroup = document.getElementById("f-langs");
+    if (langGroup) {
+      if (langs.length <= 1) {
+        langGroup.hidden = true;
+      } else {
+        langGroup.hidden = false;
+        langGroup.innerHTML =
+          `<span>Language</span>` + (langs.map((l) => `<label><input type="checkbox" value="${esc(l)}" ${f.langs.has(l) ? "checked" : ""}> ${esc(l)}</label>`).join(""));
+        for (const cb of document.querySelectorAll("#f-langs input")) cb.onchange = () => ((cb.checked ? f.langs.add(cb.value) : f.langs.delete(cb.value)), draw());
+      }
+    }
     draw();
   };
   wireCodeForm("discover-code");
@@ -2506,7 +2563,13 @@ async function renderDiscover() {
   for (const r of document.querySelectorAll('input[name="f-tab"]')) r.onchange = () => ((f.tab = r.value), load());
   for (const r of document.querySelectorAll('input[name="f-sort"]')) r.onchange = () => ((f.sort = r.value), draw());
   document.getElementById("f-official").onchange = (e) => ((f.official = e.target.checked), draw());
-  document.getElementById("f-clear").onclick = () => {
+  document.getElementById("d-filters").addEventListener("toggle", (e) => {
+    try {
+      localStorage.setItem("vokab_discover_filters_open", String(e.target.open));
+    } catch { }
+  });
+  document.getElementById("f-clear").onclick = (e) => {
+    e.preventDefault(); // it sits in the <summary>; don't toggle the panel
     f.langs.clear();
     f.official = document.getElementById("f-official").checked = false;
     f.q = qInput.value = "";
@@ -2528,6 +2591,9 @@ async function renderCourse(id) {
     return;
   }
   const c = d.course;
+  course = c;
+  const pageTitle = document.getElementById("page-title");
+  if (pageTitle) pageTitle.textContent = c.title ? c.title.toUpperCase() : "COURSE";
   $app.innerHTML = `
     <div class="toolbar course-breadcrumb-bar">
       <div class="breadcrumb-trail">
@@ -2537,12 +2603,6 @@ async function renderCourse(id) {
       </div>
       <div class="toolbar-actions">
         ${d.canEdit ? `<a class="btn outline small" href="#/studio/${c.id}">${I.edit} Edit course</a>` : ""}
-        ${c.locked && !c.hasAccess
-      ? ""
-      : c.enrolled
-        ? `<button class="btn outline small" id="leave">Leave course</button><button class="btn primary small" data-continue="${c.id}">Continue learning →</button>`
-        : `<button class="btn primary small" data-enroll="${c.id}">Start learning →</button>`
-    }
       </div>
     </div>
     <div class="course-page">
@@ -2561,8 +2621,8 @@ async function renderCourse(id) {
               ${c.locked && !c.hasAccess
       ? ""
       : c.enrolled
-        ? `<button class="btn btn-hero-primary" data-continue="${c.id}">Continue learning →</button>`
-        : `<button class="btn btn-hero-primary" data-enroll="${c.id}">Start learning →</button>`
+        ? `<button class="btn btn-hero-primary" data-continue="${c.id}">Continue →</button>`
+        : `<button class="btn btn-hero-primary" data-enroll="${c.id}">Start course →</button>`
     }
             </div>
           </div>
@@ -2587,6 +2647,7 @@ async function renderCourse(id) {
       .join("") || `<li class="empty-row">No decks yet.</li>`
     }</ul>
         </section>
+        ${c.enrolled ? `<div class="course-leave-row"><button class="link-disclaimer-underline" id="leave">Leave course</button></div>` : ""}
       </div>
       <aside class="card side-card">${d.creator ? `<h3>Made by</h3>${profileMini(d.creator)}` : ""}</aside>
     </div>`;
@@ -2626,7 +2687,7 @@ async function renderProfile(name) {
           ${u.bio ? `<p>${esc(u.bio)}</p>` : ""}
           <div class="row"><button class="linkbtn" data-list="followers"><b data-followers="${esc(u.username)}">${u.followers}</b> followers</button><button class="linkbtn" data-list="following"><b>${u.following}</b> following</button></div>
         </div>
-        <div class="profile-actions">${u.isYou ? `<button class="btn outline" id="edit-profile">${I.edit} Edit profile</button><button class="btn outline" id="profile-logout">${ICON.logout} Sign out</button>` : followBtn(u)}</div>
+        <div class="profile-actions">${u.isYou ? `<button class="btn outline" id="edit-profile">${I.edit} Edit profile</button><button class="linkbtn quiet-link" id="profile-logout">Sign out</button>` : followBtn(u)}</div>
       </section>
       <form class="card form profile-edit" id="pf" hidden>
         <div class="form-two">
@@ -2636,8 +2697,8 @@ async function renderProfile(name) {
         <p class="error" id="pf-err" hidden></p>
         <div class="row" style="justify-content:flex-end"><button type="button" class="btn outline" id="pf-cancel">Cancel</button><button class="btn">Save</button></div>
       </form>
-      <div class="row spread section-row"><h2>${u.isYou ? "Your courses" : "Courses"}</h2>${u.isYou ? `<a class="btn small outline" href="#/studio">${I.plus} New course</a>` : ""}</div>
-      <div class="course-grid">${d.courses.length ? d.courses.map(courseCard).join("") : `<section class="card picker"><p class="muted center">${u.isYou ? `You haven't made a course yet. <a href="#/studio">Open the Studio</a> to start one.` : "No courses yet."}</p></section>`}</div>
+      <div class="row spread section-row"><h2>${u.isYou ? "Your courses" : "Courses"}</h2>${u.isYou && d.courses.length ? `<a class="btn small outline" href="#/studio">${I.plus} New course</a>` : ""}</div>
+      <div class="course-grid">${d.courses.length ? d.courses.map(courseCard).join("") : `<p class="muted empty-line center" style="padding:24px 0;">${u.isYou ? `You haven't made a course yet. <a href="#/studio" class="quiet-link-inline">Open the Studio to create one →</a>` : "No courses yet."}</p>`}</div>
     </div>`;
   wireCourseCards();
   wireFollow();
@@ -2732,7 +2793,7 @@ async function renderStudioHome() {
       </div>
       <div class="toolbar-actions">
         <label class="btn btn-gate-pill small" title="Upload a course file exported from Papercard">${I.upload} Import .db<input type="file" id="import" accept=".db,.sqlite,application/vnd.sqlite3" hidden></label>
-        <button class="btn btn-gate-pill small" id="new-course">${I.plus} NEW COURSE →</button>
+        <button class="btn btn-gate-pill small" id="new-course">${I.plus} New course →</button>
       </div>
     </div>
     <form class="card form new-course" id="nc" hidden>
@@ -2750,7 +2811,13 @@ async function renderStudioHome() {
               </article>`,
         )
         .join("")}</div>`
-      : `<section class="card picker studio-empty-card"><div class="picker-head"><span class="board-icon">${I.decks}</span><h2>No custom courses yet</h2><p class="muted">Create one from scratch, or import a course file someone shared with you.</p></div></section>`
+      : emptyStateHtml({
+          icon: I.decks,
+          title: "No custom courses yet",
+          desc: "Create one from scratch, or import a course file someone shared with you.",
+          actionText: "New course →",
+          actionId: "studio-empty-new"
+        })
     }</div>
     ${official.length
       ? `<div class="studio-section">
@@ -2771,6 +2838,8 @@ async function renderStudioHome() {
     }`;
   const form = document.getElementById("nc");
   document.getElementById("new-course").onclick = () => ((form.hidden = false), document.getElementById("c-title").focus());
+  const emptyNew = document.getElementById("studio-empty-new");
+  if (emptyNew) emptyNew.onclick = () => ((form.hidden = false), document.getElementById("c-title").focus());
   document.getElementById("nc-cancel").onclick = () => (form.hidden = true);
   form.onsubmit = async (e) => {
     e.preventDefault();
@@ -2799,10 +2868,29 @@ async function renderStudioHome() {
   };
 }
 
-const cms = { cid: null, content: null, lessonId: null, editing: null };
+const cms = { cid: null, content: null, lessonId: null, editing: null, closed: null };
+
+/** Collapsed decks in the Studio tree, remembered per course. null = not chosen yet (open only the active deck). */
+const closedKey = () => `vokab_studio_closed_${cms.cid}`;
+function loadClosedDecks() {
+  try {
+    const raw = localStorage.getItem(closedKey());
+    cms.closed = raw ? new Set(JSON.parse(raw)) : null;
+  } catch {
+    cms.closed = null;
+  }
+}
+function saveClosedDecks() {
+  try {
+    localStorage.setItem(closedKey(), JSON.stringify([...cms.closed]));
+  } catch { }
+}
 
 async function renderStudio(cid) {
-  if (cms.cid !== cid) Object.assign(cms, { cid, lessonId: null, editing: null });
+  if (cms.cid !== cid) {
+    Object.assign(cms, { cid, lessonId: null, editing: null });
+    loadClosedDecks();
+  }
   $app.innerHTML = `<p class="muted loading">Loading course…</p>`;
   try {
     cms.content = await api(`/studio/${cid}/content`);
@@ -2868,20 +2956,28 @@ function drawStudio() {
       <button class="icon-btn sm" data-move="${kind}:${id}:1" title="Move down">${I.down}</button>
       <button class="icon-btn sm" data-edit="${kind}:${id}" title="Edit">${I.edit}</button>
       <button class="icon-btn sm danger" data-del="${kind}:${id}" title="Delete">${I.trash}</button></span>`;
+  if (!cms.closed) {
+    const activeUnit = allLessons().find((l) => l.id === cms.lessonId)?.unit.id;
+    cms.closed = new Set(units.filter((u) => u.id !== activeUnit).map((u) => u.id));
+  }
   const tree = units
-    .map(
-      (u, ui) => `<li class="tree-unit"><div class="tree-row unit-row"><span><span class="muted small">${u.level ? `${esc(u.level)} · ` : ""}Deck ${ui + 1}</span>${u.newFeedback ? ` <button class="count" data-goto-feedback title="New suggestions for this deck">${u.newFeedback} new</button>` : ""}<br><b>${esc(u.title)}</b></span>${tools("unit", u.id)}</div>
-        <ul>${u.lessons
+    .map((u, ui) => {
+      const closed = cms.closed.has(u.id);
+      return `<li class="tree-unit ${closed ? "closed" : ""}" data-unit="${u.id}"><div class="tree-row unit-row" data-toggle-unit="${u.id}">
+          <button class="icon-btn sm tree-toggle" aria-expanded="${!closed}" aria-controls="tree-unit-${u.id}" title="${closed ? "Show" : "Hide"} lessons">${ICON.chev}</button>
+          <span class="unit-label"><span class="muted small">${u.level ? `${esc(u.level)} · ` : ""}Deck ${ui + 1}<span class="unit-count"> · ${plural(u.lessons.length, "lesson")}</span></span>${u.newFeedback ? ` <button class="count" data-goto-feedback title="New suggestions for this deck">${u.newFeedback} new</button>` : ""}<br><b>${esc(u.title)}</b></span>${tools("unit", u.id)}</div>
+        <ul id="tree-unit-${u.id}">${u.lessons
           .map((l) => `<li><div class="tree-row lesson-row ${l.id === cms.lessonId ? "active" : ""}" data-pick="${l.id}"><span>${esc(l.title)} <span class="muted small">(${l.words.length})</span></span>${tools("lesson", l.id)}</div></li>`)
           .join("")}
-          <li><button class="linkbtn small" data-add-lesson="${u.id}">${I.plus} Add lesson</button></li></ul></li>`,
-    )
+          <li><button class="linkbtn small" data-add-lesson="${u.id}">${I.plus} Add lesson</button></li></ul></li>`;
+    })
     .join("");
+  const allClosed = units.length > 0 && units.every((u) => cms.closed.has(u.id));
   const lesson = allLessons().find((l) => l.id === cms.lessonId);
 
   $app.innerHTML = `${studioToolbar("content")}
     <div class="cms">
-      <aside class="card cms-tree"><ul class="tree">${tree || `<li class="muted small">No decks yet. Add one with “New deck”!</li>`}</ul></aside>
+      <aside class="card cms-tree">${units.length > 1 ? `<div class="tree-head"><span class="muted small mono-tag">${plural(units.length, "deck")}</span><button class="linkbtn small" id="tree-all">${allClosed ? "Expand all" : "Collapse all"}</button></div>` : ""}<ul class="tree">${tree || `<li class="muted small">No decks yet. Add one with “New deck”!</li>`}</ul></aside>
       <section class="card cms-main" id="cms-main"></section>
     </div>`;
   wireStudioTabs();
@@ -2908,15 +3004,55 @@ function drawStudio() {
   } else main.innerHTML = `<p class="empty-row">${units.length ? "Add a lesson to a deck to start adding words." : "Start with a deck (a topic, like “At the café”), then add lessons and words to it."}</p>`;
 
   for (const b of $app.querySelectorAll("[data-goto-feedback]")) b.onclick = () => drawFeedback();
+  const setClosed = (li, closed) => {
+    const id = Number(li.dataset.unit);
+    li.classList.toggle("closed", closed);
+    const t = li.querySelector(".tree-toggle");
+    t.setAttribute("aria-expanded", String(!closed));
+    t.title = `${closed ? "Show" : "Hide"} lessons`;
+    if (closed) cms.closed.add(id);
+    else cms.closed.delete(id);
+  };
+  const syncAllBtn = () => {
+    const btn = document.getElementById("tree-all");
+    if (btn) btn.textContent = units.every((u) => cms.closed.has(u.id)) ? "Expand all" : "Collapse all";
+  };
+  for (const row of $app.querySelectorAll("[data-toggle-unit]")) {
+    row.onclick = (e) => {
+      if (e.target.closest("button:not(.tree-toggle)")) return;
+      const li = row.closest(".tree-unit");
+      setClosed(li, !li.classList.contains("closed"));
+      saveClosedDecks();
+      syncAllBtn();
+    };
+  }
+  const allBtn = document.getElementById("tree-all");
+  if (allBtn) {
+    allBtn.onclick = () => {
+      const close = !units.every((u) => cms.closed.has(u.id));
+      for (const li of $app.querySelectorAll(".tree-unit")) setClosed(li, close);
+      saveClosedDecks();
+      syncAllBtn();
+    };
+  }
   document.getElementById("add-unit").onclick = async () => {
     const d = promptDeck();
-    if (d && (await cmsDo("POST", "/units", d))) drawStudio();
+    if (d && (await cmsDo("POST", "/units", d))) {
+      const added = cms.content.units.at(-1);
+      if (added) {
+        cms.closed.delete(added.id);
+        saveClosedDecks();
+      }
+      drawStudio();
+    }
   };
   for (const b of $app.querySelectorAll("[data-add-lesson]")) {
     b.onclick = async () => {
       const title = prompt("Lesson title:");
       if (title && (await cmsDo("POST", "/lessons", { unitId: Number(b.dataset.addLesson), title }))) {
         cms.lessonId = cms.content.units.find((u) => u.id === Number(b.dataset.addLesson))?.lessons.at(-1)?.id ?? cms.lessonId;
+        cms.closed.delete(Number(b.dataset.addLesson));
+        saveClosedDecks();
         drawStudio();
       }
     };
