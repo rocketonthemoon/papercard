@@ -2101,8 +2101,10 @@ async function redeemCode(code, errEl) {
 }
 
 const codeFormHtml = (id, label = "Access code") => `<form class="code-form" id="${id}">
-    <input type="text" placeholder="XXXXX-XXXXX-XXXXX" aria-label="${label}" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40">
-    <button class="btn">Unlock</button>
+    <div class="code-input-row">
+      <input type="text" class="code-input" placeholder="Enter invite code…" aria-label="${label}" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40">
+      <button class="btn btn-gate-pill code-btn" type="submit">UNLOCK COURSE →</button>
+    </div>
     <p class="error" hidden></p>
   </form>`;
 
@@ -2212,9 +2214,12 @@ async function renderDiscover() {
           ${[["learners", "Most learners"], ["updatedAt", "Recently updated"], ["words", "Most words"]].map(([k, l]) => `<label><input type="radio" name="f-sort" value="${k}" ${k === f.sort ? "checked" : ""}> ${l}</label>`).join("")}
         </div>
         <details class="code-callout-collapsible">
-          <summary class="small muted">${ICON.lock} Have an access code?</summary>
+          <summary class="code-callout-summary">
+            <span class="code-lock-icon">${ICON.lock}</span>
+            <span>Have an invite code?</span>
+          </summary>
           <div class="code-callout-inner">
-            <p class="muted small">Enter your invite code to unlock a private course.</p>
+            <p class="code-callout-desc">Enter a private access code from an instructor or friend to unlock restricted decks.</p>
             ${codeFormHtml("discover-code")}
           </div>
         </details>

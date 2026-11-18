@@ -57,6 +57,8 @@ await shot("tests/inspect_review_fixed.png");
 // Discover page
 await js(`location.hash = '#/discover'`);
 await sleep(1500);
+await js(`document.querySelector(".code-callout-collapsible").open = true`);
+await sleep(500);
 await shot("tests/inspect_courses_fixed.png");
 
 process.exit(0);
