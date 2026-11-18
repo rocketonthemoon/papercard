@@ -363,27 +363,6 @@ body.shell .page-title {
   white-space: nowrap;
 }
 
-.top-search {
-  position: relative;
-  flex: 0 1 380px;
-}
-
-.top-search svg {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  translate: 0 -50%;
-  width: 17px;
-  height: 17px;
-  color: var(--muted);
-}
-
-.top-search input {
-  padding: 10px 16px 10px 40px;
-  border-radius: 999px;
-  font-size: 14px;
-}
-
 .top-chips {
   margin-left: auto;
   display: flex;
@@ -1518,10 +1497,6 @@ input[type="search"]::-webkit-search-results-decoration {
   .course-tiles {
     grid-template-columns: 1fr 1fr;
   }
-
-  .top-search {
-    display: none;
-  }
 }
 
 /* Phones: the sidebar becomes a bottom tab bar. */
@@ -1623,7 +1598,6 @@ input[type="search"]::-webkit-search-results-decoration {
   /* Prevent iOS Safari from auto-zooming when focusing inputs */
   .discover-search input,
   .search-input-wrap input,
-  .top-search input,
   .words-filter input {
     font-size: 16px;
     height: 42px;
@@ -2297,11 +2271,105 @@ label.check span {
   .enrolled-grid {
     grid-template-columns: 1fr;
   }
-  .course-hero-path .course-hero-inner {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+  .course-hero-path {
+    padding: 16px;
+    margin-bottom: 16px;
   }
+  .course-hero-path .course-hero-inner {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: left;
+    gap: 14px;
+  }
+  .course-hero-path .lang-orb {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+  .course-hero-path h2 {
+    font-size: 18px;
+  }
+  .module-progress {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .module-progress .btn {
+    grid-row: auto;
+    grid-column: auto;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ---------------------------------------------------------------- unified daily progress card */
+.dash-progress-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dash-activity-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.dash-activity-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dash-side-links {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+
+.dash-side-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.dash-side-links a:hover {
+  color: var(--green);
+}
+
+.code-callout-collapsible {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.code-callout-collapsible summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+}
+
+.code-callout-collapsible summary svg {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+
+.code-callout-inner {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
 }
 
 /* ---------------------------------------------------------------- flashcards review */

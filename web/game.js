@@ -470,8 +470,6 @@ function renderNav() {
   document.body.classList.toggle("shell", signedIn);
   document.getElementById("sidebar").hidden = !signedIn;
   const themeBtn = document.getElementById("theme");
-  const search = document.getElementById("top-search");
-  search.hidden = !signedIn;
   if (!signedIn) {
     document.querySelector(".nav-inner").append(themeBtn);
     document.getElementById("page-title").textContent = "";
@@ -504,11 +502,6 @@ function renderNav() {
     topStats = null;
     location.hash = "#/";
     route();
-  };
-  search.onsubmit = (e) => {
-    e.preventDefault();
-    const q = document.getElementById("top-q").value.trim();
-    location.hash = `#/discover?q=${encodeURIComponent(q)}`;
   };
   setTopStats();
 }
@@ -935,20 +928,24 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
 
   return `
     <aside class="dash-side">
-      <section class="card widget">
-        <div class="widget-head"><h3>${today ? `You earned ${today} XP today!` : "No XP yet today"}</h3></div>
-        ${stats?.days?.length ? activityHtml(stats.days) : ""}
-      </section>
-      <section class="card widget">
+      <section class="card widget dash-progress-card">
+        <div class="widget-head">
+          <h3>Daily Progress</h3>
+          ${today ? `<span class="pill ok">+${today} XP today</span>` : `<span class="pill">0 XP today</span>`}
+        </div>
         <div class="stat-row">
-          <div><span>Streak</span><b>${stats?.streak ?? 0}</b></div>
+          <div><span>Streak</span><b>${stats?.streak ?? 0}d</b></div>
           <div><span>Learned</span><b>${stats?.learned ?? 0}</b></div>
           <div><span>Due</span><b>${stats?.due ?? 0}</b></div>
           <div><span>Hearts</span><b>${stats?.hearts ?? 0}</b></div>
         </div>
-        ${stats?.due ? `<a class="btn block" href="#/learn/review">Review ${plural(stats.due, "word")}</a>` : `<p class="stat-note">${stats?.learned ? `Nothing to review. Next review ${fmtUntil(stats.nextDueAt)}.` : "Words you learn come back for review just before you'd forget them."}</p>`}
-        ${stats && stats.hearts < stats.maxHearts ? `<p class="stat-note">Next heart in ${fmtMinutes(stats.nextHeartMs)}.</p>` : ""}
-        <a class="small" href="#/learn/words">${I.list} All your words</a>
+        ${stats?.due ? `<a class="btn block" href="#/learn/review">${FC_ICONS.shuffle} Review ${plural(stats.due, "word")} now</a>` : `<p class="stat-note">${stats?.learned ? `All caught up! Next review ${fmtUntil(stats.nextDueAt)}.` : "Words you learn come back for review just before you'd forget them."}</p>`}
+        ${stats && stats.hearts < stats.maxHearts ? `<p class="stat-note small">Next heart in ${fmtMinutes(stats.nextHeartMs)}.</p>` : ""}
+        ${stats?.days?.length ? `<div class="dash-activity-wrap"><div class="dash-activity-head"><span class="muted small">14-Day Momentum</span><span class="muted small">XP per day</span></div>${activityHtml(stats.days)}</div>` : ""}
+        <div class="dash-side-links">
+          <a class="small" href="#/learn/words">${I.list} All your words</a>
+          ${stats?.learned ? `<a class="small" href="#/learn/review">${I.cards} Shuffled flashcards</a>` : ""}
+        </div>
       </section>
       <section class="card widget" id="board-widget">
         <div class="widget-head"><h3>Leaderboard</h3><select id="board-period" aria-label="Period"><option value="week">Weekly</option><option value="all">All time</option></select></div>
@@ -958,7 +955,7 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
         fresh.length
           ? `<section class="card widget"><div class="widget-head"><h3>From people you follow</h3><a href="#/discover?tab=following" class="small">All</a></div>
               <ul class="feed">${fresh.slice(0, 3).map((c) => `<li><a href="#/course/${c.id}"><b>${esc(c.title)}</b></a><span class="muted small">by ${userLink(c.creator)} · ${plural(c.words, "word")}</span></li>`).join("")}</ul></section>`
-          : `<section class="card widget"><h3>Follow creators</h3><p class="stat-note">Follow accounts to see their new courses here. Start with us: <a href="#/u/vokab">@vokab</a></p></section>`
+          : ""
       }
       ${quests ? `<section class="card widget"><h3>Quests</h3><ul class="quests">${quests}</ul></section>` : ""}
     </aside>`;
@@ -2230,11 +2227,13 @@ async function renderDiscover() {
         <div class="filter-group"><span>Sort by</span>
           ${[["learners", "Most learners"], ["updatedAt", "Recently updated"], ["words", "Most words"]].map(([k, l]) => `<label><input type="radio" name="f-sort" value="${k}" ${k === f.sort ? "checked" : ""}> ${l}</label>`).join("")}
         </div>
-        <section class="code-callout">
-          <h4>${ICON.lock} Access code</h4>
-          <p class="muted small">Have an invite code for a private course? Enter it below to unlock.</p>
-          ${codeFormHtml("discover-code")}
-        </section>
+        <details class="code-callout-collapsible">
+          <summary class="small muted">${ICON.lock} Have an access code?</summary>
+          <div class="code-callout-inner">
+            <p class="muted small">Enter your invite code to unlock a private course.</p>
+            ${codeFormHtml("discover-code")}
+          </div>
+        </details>
       </aside>
     </div>`;
   const list = document.getElementById("d-list");
@@ -3173,44 +3172,40 @@ async function renderAdmin() {
   }
 }
 
-// ---------------------------------------------------------------- theme switch (System → Light → Dark)
+// ---------------------------------------------------------------- theme switch (Light ⇄ Dark)
 
-const THEMES = {
-  system: { next: "light", label: "Theme: system (click for light)", icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.9" fill="none"/><path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>` },
-  light: { next: "dark", label: "Theme: light (click for dark)", icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.9" fill="none"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>` },
-  dark: { next: "system", label: "Theme: dark (click for system)", icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" stroke="currentColor" stroke-width="1.9" fill="none" stroke-linejoin="round"/></svg>` },
-};
+const SUN_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+const MOON_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
 
 function currentTheme() {
   const t = document.documentElement.dataset.theme;
-  return t === "light" || t === "dark" ? t : "system";
+  return t === "light" || t === "dark" ? t : (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 }
 
 function isDark() {
-  const t = currentTheme();
-  return t === "dark" || (t === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+  return currentTheme() === "dark";
 }
 
 function setTheme(theme) {
-  if (theme === "system") delete document.documentElement.dataset.theme;
-  else document.documentElement.dataset.theme = theme;
+  document.documentElement.dataset.theme = theme;
   try {
-    if (theme === "system") localStorage.removeItem("theme");
-    else localStorage.setItem("theme", theme);
+    localStorage.setItem("theme", theme);
   } catch {}
   drawThemeButton();
 }
 
 function drawThemeButton() {
   const btn = document.getElementById("theme");
-  const t = THEMES[currentTheme()];
-  btn.innerHTML = t.icon;
-  btn.title = t.label;
-  btn.setAttribute("aria-label", t.label);
+  if (!btn) return;
+  const dark = isDark();
+  btn.innerHTML = dark ? SUN_ICON : MOON_ICON;
+  const label = dark ? "Switch to light theme" : "Switch to dark theme";
+  btn.title = label;
+  btn.setAttribute("aria-label", label);
 }
 
 document.getElementById("theme").onclick = () => {
-  setTheme(THEMES[currentTheme()].next);
+  setTheme(isDark() ? "light" : "dark");
   // Redraw the Google button in the matching style.
   if (!me && document.getElementById("gsi") && window.google?.accounts?.id && config.googleClientId) {
     document.getElementById("gsi").innerHTML = "";
