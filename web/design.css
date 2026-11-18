@@ -4374,8 +4374,189 @@ input[type="text"].type-box:focus {
 }
 
 /* ==========================================================================
-   Word Duels Arena
+   Word Duels Arena & Workspace
    ========================================================================== */
+
+.workspace.two {
+  display: grid !important;
+  grid-template-columns: 300px 1fr !important;
+  gap: 24px !important;
+  align-items: start !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 10px !important;
+}
+
+@media (max-width: 899px) {
+  .workspace.two {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 18px !important;
+  }
+}
+
+.workspace aside.card.side {
+  background: var(--color-bone-white) !important;
+  border: 2px solid var(--color-ink-black) !important;
+  border-radius: var(--radius-cards, 6px) !important;
+  padding: 22px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 18px !important;
+  box-shadow: none !important;
+}
+
+.workspace aside.card.side section {
+  border-bottom: 1.5px solid rgba(22, 21, 29, 0.12) !important;
+  padding-bottom: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.workspace aside.card.side section:last-child {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+
+.workspace aside.card.side section h3 {
+  font-family: var(--font-bergenmonoregular), monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: rgba(22, 21, 29, 0.6) !important;
+  margin: 0 !important;
+}
+
+.code-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 3px 9px !important;
+  background: var(--color-hi-vis-yellow) !important;
+  color: var(--color-ink-black) !important;
+  border: 1.5px solid var(--color-ink-black) !important;
+  border-radius: 4px !important;
+  font-family: var(--font-bergenmonoregular), monospace !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  width: fit-content !important;
+}
+
+.big-num {
+  font-family: var(--font-degularvariable), sans-serif !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: var(--color-ink-black) !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 6px !important;
+}
+
+.big-num b {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+}
+
+.big-num small {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: rgba(22, 21, 29, 0.55) !important;
+}
+
+.workspace .bar {
+  width: 100% !important;
+  height: 8px !important;
+  background: rgba(22, 21, 29, 0.08) !important;
+  border: 1.5px solid var(--color-ink-black) !important;
+  border-radius: 100px !important;
+  overflow: hidden !important;
+  margin-top: 6px !important;
+}
+
+.workspace .bar i {
+  display: block !important;
+  height: 100% !important;
+  background: var(--color-hi-vis-yellow) !important;
+  transition: width 0.2s ease !important;
+}
+
+.timer {
+  font-family: var(--font-bergenmonoregular), monospace !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: var(--color-ink-black) !important;
+  margin: 0 !important;
+  letter-spacing: 0.04em !important;
+}
+
+.checks {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.checks li {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 12.5px !important;
+  color: var(--color-ink-black) !important;
+  line-height: 1.35 !important;
+}
+
+.checks li svg,
+svg.check-icon {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  max-width: 16px !important;
+  min-height: 16px !important;
+  max-height: 16px !important;
+  flex: 0 0 16px !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+.workspace .people {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.workspace .people li {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 13px !important;
+}
+
+.workspace .people .played {
+  margin-left: auto !important;
+  font-family: var(--font-bergenmonoregular) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  background: var(--color-matcha-cream) !important;
+  color: var(--color-ink-black) !important;
+  border: 1px solid var(--color-ink-black) !important;
+  padding: 2px 7px !important;
+  border-radius: 100px !important;
+}
+
+.sheet-wrap {
+  min-width: 0 !important;
+  width: 100% !important;
+}
 
 .duel-sheet,
 .duel-arena {
