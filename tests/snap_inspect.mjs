@@ -87,11 +87,60 @@ await js(`
 await sleep(1500);
 await shot("tests/inspect_admin_fixed.png");
 
+// Flashcard Review
+await js(`
+  window.fetch = async (url, opts) => {
+    if (url === '/api/learn/words') {
+      return new Response(JSON.stringify({
+        course: { id: 1, toLang: "Lithuanian", fromLang: "English" },
+        units: [{
+          id: 1,
+          lessons: [{
+            id: 1,
+            words: [
+              { id: 101, lt: "universitetas", en: "university", pos: "noun", gender: "m", learned: true, dueAt: Date.now() + 100000 }
+            ]
+          }]
+        }],
+        stats: { learned: 1, due: 0, hearts: 5, maxHearts: 5 },
+        now: Date.now()
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (url === '/api/admin/courses') {
+      return new Response(JSON.stringify({
+        courses: [
+          { id: 1, title: "Spanish for travellers", toCode: "es", toLang: "Spanish", words: 1, learners: 1, updatedAt: 1731934800000, creator: { id: 2, name: "Tester 399", official: false }, hidden: false },
+          { id: 2, title: "Lithuanian History", toCode: "lt", toLang: "Lithuanian", words: 198, learners: 3, updatedAt: 1731934800000, creator: { id: 1, name: "Vokab", official: true }, hidden: false },
+          { id: 3, title: "Lithuanian Vocabulary", toCode: "lt", toLang: "Lithuanian", words: 333, learners: 10, updatedAt: 1731934800000, creator: { id: 1, name: "Vokab", official: true }, hidden: false }
+        ],
+        players: 10,
+        xpToday: 980
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    return fetch(url, opts);
+  };
+  location.hash = '#/learn/review';
+  window.__app.route();
+`);
+await sleep(1500);
+await shot("tests/inspect_flashcard_fixed.png");
+
+// Flip card to verify the back face
+await js(`document.getElementById("fc-card").click()`);
+await sleep(500);
+await shot("tests/inspect_flashcard_back.png");
+
+// Discover search page with search "abdul"
+await js(`
+  location.hash = '#/discover?q=abdul';
+  window.__app.route();
+`);
+await sleep(1500);
+await shot("tests/inspect_search_abdul.png");
+
 // Discover page
 await js(`location.hash = '#/discover'`);
 await sleep(1500);
-await js(`document.querySelector(".code-callout-collapsible").open = true`);
-await sleep(500);
 await shot("tests/inspect_courses_fixed.png");
 
 process.exit(0);

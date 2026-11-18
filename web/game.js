@@ -117,7 +117,7 @@ const I = {
   fire: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 10.5A5 5 0 0 1 7 13c0-2 1-3.5 2-4.5.3 1.7 1.2 2.7 2.2 3C10.6 8.5 11 5 12 2z" fill="#ff9a1f"/><path d="M12 13c.6 1.6 2 2.2 2 4a2 2 0 0 1-4 0c0-1 .5-1.6 1-2 .1.8.5 1.2 1 1.3-.2-1.3-.3-2.3 0-3.3z" fill="#ffd56b"/></svg>`,
   bolt: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4 14h7l-1.5 8L20 10h-7z" fill="#ffc21a"/></svg>`,
   star: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z" fill="currentColor"/></svg>`,
-  lock: `<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="currentColor" stroke-width="2.2" fill="none"/></svg>`,
+  lock: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="currentColor" stroke-width="2.2" fill="none"/></svg>`,
   tick: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   close: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>`,
   cup: `<svg viewBox="0 0 80 80" aria-hidden="true"><path d="M24 12h32v18a16 16 0 0 1-32 0z" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><path d="M24 18H14a10 10 0 0 0 10 12M56 18h10a10 10 0 0 1-10 12" stroke="#16151d" stroke-width="3" fill="none"/><rect x="36" y="44" width="8" height="12" fill="#16151d"/><rect x="26" y="56" width="28" height="10" rx="3" fill="#16151d"/><path d="m40 19 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#f9f5f2"/></svg>`,
@@ -183,7 +183,7 @@ const sfx = (() => {
     try {
       ctx ??= new (window.AudioContext || window.webkitAudioContext)();
       notes.forEach((n) => tone(...n));
-    } catch {}
+    } catch { }
   };
   return {
     right: () => play([[660, 0, 0.12], [880, 0.1, 0.18]]),
@@ -242,7 +242,7 @@ function renderDuelPlay(duel) {
   try {
     const saved = JSON.parse(localStorage.getItem(draftKey) ?? "null");
     if (Array.isArray(saved) && saved.length === duel.count) answers = saved;
-  } catch {}
+  } catch { }
   let at = answers.indexOf(null);
   if (at < 0) at = duel.count - 1;
 
@@ -260,11 +260,10 @@ function renderDuelPlay(duel) {
         <section><h3>Answered</h3><p class="big-num"><b id="answered">0</b> <small>of ${duel.count}</small></p><div class="bar"><i id="answered-bar"></i></div></section>
         <section><h3>Time</h3><p class="timer" id="clock" title="Time since you first opened this duel">0:00</p></section>
         <section><h3>Scoring</h3><ul class="checks"><li>${I.check} +10 per right answer</li><li>${I.check} One try; answers are revealed at the end</li><li>${I.check} Ties go to the faster player</li></ul></section>
-        <section><h3>Players (${duel.players.length})</h3>${
-          duel.players.length
-            ? `<ul class="people">${duel.players.map((p) => `<li>${avatar(p)}<span>${esc(p.name)}</span><span class="played">played</span></li>`).join("")}</ul>`
-            : `<p class="muted small">Nobody has played yet. Be the first, then send the link.</p>`
-        }</section>
+        <section><h3>Players (${duel.players.length})</h3>${duel.players.length
+      ? `<ul class="people">${duel.players.map((p) => `<li>${avatar(p)}<span>${esc(p.name)}</span><span class="played">played</span></li>`).join("")}</ul>`
+      : `<p class="muted small">Nobody has played yet. Be the first, then send the link.</p>`
+    }</section>
       </aside>
       <div class="sheet-wrap">
         <div class="sheet duel-sheet duel-arena">
@@ -281,7 +280,7 @@ function renderDuelPlay(duel) {
   const save = () => {
     try {
       localStorage.setItem(draftKey, JSON.stringify(answers));
-    } catch {}
+    } catch { }
   };
   const draw = () => {
     const q = duel.questions[at];
@@ -328,7 +327,7 @@ function renderDuelPlay(duel) {
       const result = await api(`/duels/${duel.code}/submit`, { method: "POST", body: { answers } });
       try {
         localStorage.removeItem(draftKey);
-      } catch {}
+      } catch { }
       stopTimers();
       sfx.done();
       renderResults(result, true);
@@ -369,22 +368,22 @@ function renderResults(duel, justSubmitted = false) {
         </ul></section>
         <section><h3>Scoreboard</h3>${verdict}
           <ul class="people">${duel.players
-            .map(
-              (p) => `<li class="${p.isYou ? "you" : ""}"><span class="muted small">#${p.rank}</span>${avatar(p)}<span>${esc(p.name)}${p.isYou ? " (you)" : ""}<br><span class="muted small">${p.correct}/${duel.count} right · ${fmtTime(p.elapsedMs)}</span></span><span class="pts">${p.points}</span></li>`,
-            )
-            .join("")}</ul>
+      .map(
+        (p) => `<li class="${p.isYou ? "you" : ""}"><span class="muted small">#${p.rank}</span>${avatar(p)}<span>${esc(p.name)}${p.isYou ? " (you)" : ""}<br><span class="muted small">${p.correct}/${duel.count} right · ${fmtTime(p.elapsedMs)}</span></span><span class="pts">${p.points}</span></li>`,
+      )
+      .join("")}</ul>
           ${others.length ? "" : `<button class="btn dashed block" data-copy="${esc(shareLink(duel.code))}">${I.copy} Copy invite link</button>`}
         </section>
       </aside>
       <section class="card list-card">
         <div class="list-head"><h3>Answer key · ${esc(duel.title)}</h3><span class="muted small">${duel.you.correct} of ${duel.count} right</span></div>
         <ul class="rows">${duel.key
-          .map(
-            (k) => `<li class="answer">${k.right ? I.ok : I.miss}<div><span class="found"${k.kind === "pick_en" ? L() : ""}>${esc(k.prompt)}</span> → <b${k.kind === "pick_lt" ? L() : ""}>${esc(k.answer)}</b>
+      .map(
+        (k) => `<li class="answer">${k.right ? I.ok : I.miss}<div><span class="found"${k.kind === "pick_en" ? L() : ""}>${esc(k.prompt)}</span> → <b${k.kind === "pick_lt" ? L() : ""}>${esc(k.answer)}</b>
               ${k.right ? "" : `<p class="muted small">You said: ${k.yours != null ? esc(k.yours) : "(no answer)"}</p>`}</div>
               <span class="tag ${k.right ? "ok" : "miss"}">${k.right ? "right" : "wrong"}</span></li>`,
-          )
-          .join("")}</ul>
+      )
+      .join("")}</ul>
       </section>
     </div>`;
   wireCopy();
@@ -401,7 +400,7 @@ function renderResults(duel, justSubmitted = false) {
           toast("Someone just finished!");
           renderResults(fresh);
         }
-      } catch {}
+      } catch { }
     }, 5000);
   }
 }
@@ -422,7 +421,7 @@ const page = () => {
 };
 
 /** Line icons for the sidebar and widgets (20×20, drawn in currentColor). */
-const icon = (d) => `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const icon = (d) => `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICON = {
   home: icon(`<path d="M3.5 9 10 3.5 16.5 9v7a1 1 0 0 1-1 1H12v-4.5H8V17H4.5a1 1 0 0 1-1-1z"/>`),
   review: icon(`<rect x="3" y="5.5" width="10.5" height="11.5" rx="2"/><path d="M7 3h7.5A2.5 2.5 0 0 1 17 5.5v8.5"/>`),
@@ -463,7 +462,7 @@ function setTopStats(stats) {
 const refreshTopStats = () =>
   api("/learn")
     .then((d) => setTopStats(d.stats))
-    .catch(() => {});
+    .catch(() => { });
 
 function renderNav() {
   const signedIn = !!me;
@@ -516,7 +515,7 @@ function renderNav() {
     topStats = null;
     location.hash = "#/";
     window.__app = { get me() { return me; }, set me(v) { me = v; }, route };
-  route();
+    route();
   });
   setTopStats();
 }
@@ -709,12 +708,12 @@ async function renderPlayHub() {
     document.getElementById("duel-count").textContent = duels.length ? `(${duels.length})` : "";
     list.innerHTML = duels.length
       ? duels
-          .map(
-            (d) => `<li><a class="duel-row" href="#/duel/${esc(d.code)}"><span class="code-chip">${esc(d.code)}</span>
+        .map(
+          (d) => `<li><a class="duel-row" href="#/duel/${esc(d.code)}"><span class="code-chip">${esc(d.code)}</span>
               <span>${esc(d.title)}<br><span class="muted small">by ${esc(d.creator)} · ${d.players} played</span></span>
               <span class="act">${d.myPoints == null ? "Play" : `${d.myPoints} pts`}</span></a></li>`,
-          )
-          .join("")
+        )
+        .join("")
       : `<li class="empty-row">No rooms yet. Create your first one!</li>`;
   } catch {
     /* the hub still works without the list */
@@ -743,10 +742,9 @@ function reviewCardHtml(stats) {
   return `<section class="card side-card review-card">
     <div class="row spread"><h3>Review</h3><a href="#/learn/words" class="small">Your words</a></div>
     <div class="review-count"><span class="review-icon">${I.cards}</span><div><b>${stats.due}</b> <span class="muted small">word${stats.due === 1 ? "" : "s"} due</span><br><span class="muted small">${stats.learned} learned so far</span></div></div>
-    ${
-      stats.due
-        ? `<a class="btn small" href="#/learn/review">Review now</a>`
-        : `<p class="muted small">${stats.learned ? `Nothing due. Next review ${fmtUntil(stats.nextDueAt)}.` : "Words you learn come back here for review, just before you'd forget them."}</p>`
+    ${stats.due
+      ? `<a class="btn small" href="#/learn/review">Review now</a>`
+      : `<p class="muted small">${stats.learned ? `Nothing due. Next review ${fmtUntil(stats.nextDueAt)}.` : "Words you learn come back here for review, just before you'd forget them."}</p>`
     }
   </section>`;
 }
@@ -852,12 +850,11 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
         <div class="widget-head"><h3>Leaderboard</h3><select id="board-period" class="mono-tag" aria-label="Period"><option value="week">Weekly</option><option value="all">All time</option></select></div>
         <div id="board-body">${boardHtml(board?.rows ?? [])}</div>
       </section>
-      ${
-        fresh.length
-          ? `<section class="card widget"><div class="widget-head"><h3>From people you follow</h3><a href="#/discover?tab=following" class="small mono-tag">All</a></div>
+      ${fresh.length
+      ? `<section class="card widget"><div class="widget-head"><h3>From people you follow</h3><a href="#/discover?tab=following" class="small mono-tag">All</a></div>
               <ul class="feed">${fresh.slice(0, 3).map((c) => `<li><a href="#/course/${c.id}"><b>${esc(c.title)}</b></a><span class="muted small mono-tag">by ${userLink(c.creator)} · ${plural(c.words, "word")}</span></li>`).join("")}</ul></section>`
-          : ""
-      }
+      : ""
+    }
       ${quests ? `<section class="card widget"><h3>Quests</h3><ul class="quests">${quests}</ul></section>` : ""}
     </aside>`;
 }
@@ -1063,11 +1060,10 @@ async function renderCoursePath(courseId) {
           </div>
           <span class="lesson-state mono-tag">${ringHtml(l.done, l.total)} <span class="lesson-cta-text">${isDone ? "Review" : isCur ? "Start →" : isLock ? "Locked" : "Open"}</span></span>
           <span class="lesson-end">${isLock ? ICON.lock : ICON.chev.replace("m5 7.5 5 5 5-5", "m7.5 5 5 5-5 5")}</span>`;
-        return `<li>${
-          isLock
-            ? `<div class="lesson-row-link lesson-node locked" title="Finish the lessons before this one first">${inner}</div>`
-            : `<a class="lesson-row-link lesson-node ${isCur ? "current" : isDone ? "done" : ""}" href="#/learn/lesson/${l.id}" title="${isDone ? "Practise" : isCur ? "Up next" : "Open"}">${inner}</a>`
-        }</li>`;
+        return `<li>${isLock
+          ? `<div class="lesson-row-link lesson-node locked" title="Finish the lessons before this one first">${inner}</div>`
+          : `<a class="lesson-row-link lesson-node ${isCur ? "current" : isDone ? "done" : ""}" href="#/learn/lesson/${l.id}" title="${isDone ? "Practise" : isCur ? "Up next" : "Open"}">${inner}</a>`
+          }</li>`;
       })
       .join("");
     const feedbackBlock =
@@ -1189,7 +1185,7 @@ const FEEDBACK_CATEGORIES = [
   ["idea", "Idea"],
 ];
 
-function openFeedback(unit, rating = 0, onSent = () => {}) {
+function openFeedback(unit, rating = 0, onSent = () => { }) {
   let stars = rating;
   let category = null;
   const back = document.createElement("div");
@@ -1293,7 +1289,7 @@ function speakWord(text, lang = "lt-LT", el = null) {
       u.onerror = () => el.classList.remove("speaking");
     }
     window.speechSynthesis.speak(u);
-  } catch {}
+  } catch { }
 }
 
 /** Lightweight celebratory confetti particle explosion. */
@@ -1369,9 +1365,9 @@ function launchConfetti(durationMs = 2400) {
 }
 
 const FC_ICONS = {
-  shuffle: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h3v3M3.5 16.5l4-4 2 2 4 4h3M16.5 13.5v3h-3M3.5 3.5l6 6M12 12l4.5 4.5"/></svg>`,
-  flip: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11a3 3 0 0 1 3 3v1M6 4 3 7l3 3M17 13H6a3 3 0 0 1-3-3V9M14 16l3-3-3-3"/></svg>`,
-  speaker: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4.5 4.5 8H2v4h2.5L9 15.5V4.5z"/><path d="M13 7a4 4 0 0 1 0 6"/><path d="M15.5 4.5a7.5 7.5 0 0 1 0 11"/></svg>`,
+  shuffle: `<svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h3v3M3.5 16.5l4-4 2 2 4 4h3M16.5 13.5v3h-3M3.5 3.5l6 6M12 12l4.5 4.5"/></svg>`,
+  flip: `<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11a3 3 0 0 1 3 3v1M6 4 3 7l3 3M17 13H6a3 3 0 0 1-3-3V9M14 16l3-3-3-3"/></svg>`,
+  speaker: `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4.5 4.5 8H2v4h2.5L9 15.5V4.5z"/><path d="M13 7a4 4 0 0 1 0 6"/><path d="M15.5 4.5a7.5 7.5 0 0 1 0 11"/></svg>`,
 };
 
 /** Interactive Flashcards session for learned words in shuffled order. */
@@ -1577,7 +1573,7 @@ function runFlashcards({ words, stats, course, now }) {
     document.getElementById("fc-mastered")?.addEventListener("click", () => {
       mastered.add(w.id);
       if (w.dueAt && w.dueAt <= now) {
-        api(`/learn/words/${w.id}/answer`, { method: "POST", body: { review: true, text: w.lt, kind: "type_lt" } }).catch(() => {});
+        api(`/learn/words/${w.id}/answer`, { method: "POST", body: { review: true, text: w.lt, kind: "type_lt" } }).catch(() => { });
       }
       index++;
       flipped = false;
@@ -1608,7 +1604,7 @@ function runFlashcards({ words, stats, course, now }) {
       if (flipped) {
         mastered.add(deck[index]?.id);
         if (deck[index]?.dueAt && deck[index]?.dueAt <= now) {
-          api(`/learn/words/${deck[index].id}/answer`, { method: "POST", body: { review: true, text: deck[index].lt, kind: "type_lt" } }).catch(() => {});
+          api(`/learn/words/${deck[index].id}/answer`, { method: "POST", body: { review: true, text: deck[index].lt, kind: "type_lt" } }).catch(() => { });
         }
         index++;
         flipped = false;
@@ -1855,7 +1851,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
         slot.innerHTML = `<div class="unit-done compact"><div><b>You finished the deck “${esc(u.title)}”!</b><p class="muted small">Is there anything we should change? Your suggestion goes straight to the people who write the lessons.</p></div><button class="btn outline small" id="finish-fb">Suggest an improvement</button></div>`;
         document.getElementById("finish-fb").onclick = () => openFeedback(u, 0, () => (slot.innerHTML = `<p class="unit-thanks">${I.check} Thanks for your feedback!</p>`));
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   /** "knyga = book" with the word's note, for the feedback footer. */
@@ -2069,10 +2065,10 @@ function courseCard(c) {
   const button = empty
     ? `<a class="btn btn-outlined-display small" href="#/course/${c.id}">View</a>`
     : locked
-    ? `<a class="btn btn-gate-pill small" href="#/course/${c.id}">${ICON.lock} Unlock</a>`
-    : c.enrolled
-    ? `<button class="btn btn-gate-pill small" data-continue="${c.id}">${c.isCurrent ? "Continue →" : "Switch to it"}</button>`
-    : `<button class="btn btn-gate-pill small" data-enroll="${c.id}">Start →</button>`;
+      ? `<a class="btn btn-gate-pill small" href="#/course/${c.id}">${ICON.lock} Unlock</a>`
+      : c.enrolled
+        ? `<button class="btn btn-gate-pill small" data-continue="${c.id}">${c.isCurrent ? "Continue →" : "Switch to it"}</button>`
+        : `<button class="btn btn-gate-pill small" data-enroll="${c.id}">Start →</button>`;
   return `<article class="pcard">
     <div class="tile-art ${tint(c.id)}">
       <div class="pcard-top-row">
@@ -2384,13 +2380,12 @@ async function renderCourse(id) {
       </div>
       <div class="toolbar-actions">
         ${d.canEdit ? `<a class="btn outline small" href="#/studio/${c.id}">${I.edit} Edit course</a>` : ""}
-        ${
-          c.locked && !c.hasAccess
-            ? ""
-            : c.enrolled
-              ? `<button class="btn outline small" id="leave">Leave course</button><button class="btn primary small" data-continue="${c.id}">Continue learning →</button>`
-              : `<button class="btn primary small" data-enroll="${c.id}">Start learning →</button>`
-        }
+        ${c.locked && !c.hasAccess
+      ? ""
+      : c.enrolled
+        ? `<button class="btn outline small" id="leave">Leave course</button><button class="btn primary small" data-continue="${c.id}">Continue learning →</button>`
+        : `<button class="btn primary small" data-enroll="${c.id}">Start learning →</button>`
+    }
       </div>
     </div>
     <div class="course-page">
@@ -2406,27 +2401,24 @@ async function renderCourse(id) {
             <p class="muted course-stats-row">${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p>
             ${c.description ? `<p class="course-description-text">${esc(c.description)}</p>` : ""}
             <div class="course-hero-actions">
-              ${
-                c.locked && !c.hasAccess
-                  ? ""
-                  : c.enrolled
-                    ? `<button class="btn btn-hero-primary" data-continue="${c.id}">Continue learning →</button>`
-                    : `<button class="btn btn-hero-primary" data-enroll="${c.id}">Start learning →</button>`
-              }
+              ${c.locked && !c.hasAccess
+      ? ""
+      : c.enrolled
+        ? `<button class="btn btn-hero-primary" data-continue="${c.id}">Continue learning →</button>`
+        : `<button class="btn btn-hero-primary" data-enroll="${c.id}">Start learning →</button>`
+    }
             </div>
           </div>
         </section>
-        ${
-          c.locked && !c.hasAccess
-            ? `<section class="card unlock-card"><div><h3>${ICON.lock} This course is locked</h3><p class="muted small">Enter the access code you got from ${userLink(c.creator)}. Each code works once, for one person.</p></div>${codeFormHtml("unlock-form")}</section>`
-            : ""
-        }
+        ${c.locked && !c.hasAccess
+      ? `<section class="card unlock-card"><div><h3>${ICON.lock} This course is locked</h3><p class="muted small">Enter the access code you got from ${userLink(c.creator)}. Each code works once, for one person.</p></div>${codeFormHtml("unlock-form")}</section>`
+      : ""
+    }
         <section class="card list-card">
           <div class="list-head"><h3>Decks (${d.units.length})</h3></div>
-          <ul class="rows">${
-            d.units
-              .map(
-                (u, i) => `<li class="deck-row">
+          <ul class="rows">${d.units
+      .map(
+        (u, i) => `<li class="deck-row">
                   <span class="level-chip-badge">${u.level ? esc(u.level) : String(i + 1).padStart(2, '0')}</span>
                   <div class="deck-info">
                     <b>Deck ${i + 1}: ${esc(u.title)}</b>
@@ -2434,9 +2426,9 @@ async function renderCourse(id) {
                   </div>
                   <span class="deck-meta mono-tag muted small">${u.learned ? `${u.learned}/` : ""}${plural(u.words, "word")}</span>
                 </li>`,
-              )
-              .join("") || `<li class="empty-row">No decks yet.</li>`
-          }</ul>
+      )
+      .join("") || `<li class="empty-row">No decks yet.</li>`
+    }</ul>
         </section>
       </div>
       <aside class="card side-card">${d.creator ? `<h3>Made by</h3>${profileMini(d.creator)}` : ""}</aside>
@@ -2593,35 +2585,33 @@ async function renderStudioHome() {
       <p class="error" id="nc-err" hidden></p>
       <div class="row" style="justify-content:flex-end"><button type="button" class="btn outline" id="nc-cancel">Cancel</button><button class="btn">Create course</button></div>
     </form>
-    <div class="studio-main-grid">${
-      courses.length
-        ? `<div class="studio-course-grid">${courses
-            .map(
-              (c) => `<article class="card studio-course-card">
+    <div class="studio-main-grid">${courses.length
+      ? `<div class="studio-course-grid">${courses
+        .map(
+          (c) => `<article class="card studio-course-card">
                 <a class="course-main" href="#/studio/${c.id}"><span class="course-flag">${esc(flag(c))}</span><div class="course-main-info"><h3>${esc(c.title)}</h3><p class="muted small mono-tag-desc">${esc(c.toLang)} · ${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p></div></a>
                 <div class="course-foot">${c.hidden ? `<span class="pill due">hidden</span>` : `<a class="small mono-tag" href="#/course/${c.id}">View as a learner</a>`}<a class="btn btn-gate-pill small" href="#/studio/${c.id}">${I.edit} Edit →</a></div>
               </article>`,
-            )
-            .join("")}</div>`
-        : `<section class="card picker studio-empty-card"><div class="picker-head"><span class="board-icon">${I.decks}</span><h2>No custom courses yet</h2><p class="muted">Create one from scratch, or import a course file someone shared with you.</p></div></section>`
+        )
+        .join("")}</div>`
+      : `<section class="card picker studio-empty-card"><div class="picker-head"><span class="board-icon">${I.decks}</span><h2>No custom courses yet</h2><p class="muted">Create one from scratch, or import a course file someone shared with you.</p></div></section>`
     }</div>
-    ${
-      official.length
-        ? `<div class="studio-section">
+    ${official.length
+      ? `<div class="studio-section">
             <div class="row spread section-row">
               <h2>Official courses</h2>
               <span class="muted small mono-tag">[ ADMIN EDIT PRIVILEGES ]</span>
             </div>
             <div class="studio-course-grid">${official
-              .map(
-                (c) => `<article class="card studio-course-card">
+        .map(
+          (c) => `<article class="card studio-course-card">
                   <a class="course-main" href="#/studio/${c.id}"><span class="course-flag">${esc(flag(c))}</span><div class="course-main-info"><h3>${esc(c.title)}</h3><p class="muted small mono-tag-desc">${esc(c.toLang)} · ${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p></div></a>
                   <div class="course-foot"><span class="creator-meta mono-tag">by ${userLink(c.creator)}</span><a class="btn btn-gate-pill small" href="#/studio/${c.id}">${I.edit} Edit →</a></div>
                 </article>`,
-              )
-              .join("")}</div>
+        )
+        .join("")}</div>
           </div>`
-        : ""
+      : ""
     }`;
   const form = document.getElementById("nc");
   document.getElementById("new-course").onclick = () => ((form.hidden = false), document.getElementById("c-title").focus());
@@ -2747,14 +2737,13 @@ function drawStudio() {
       <div class="list-head"><div><span class="muted small">${esc(lesson.unit.title)}</span><h2>${esc(lesson.title)}</h2></div>
         <button class="btn" id="add-word">${I.plus} Add word</button></div>
       <p class="muted small">Each word becomes four exercises: pick its meaning, pick the ${esc(toLang())}, type it, or (for phrases) build it from tiles.</p>
-      <ul class="rows">${
-        lesson.words
-          .map(
-            (w, i) => `<li class="ch-row"><span class="badge ${w.pos}">${esc(POS_LABELS[w.pos] ?? w.pos)}</span>
+      <ul class="rows">${lesson.words
+        .map(
+          (w, i) => `<li class="ch-row"><span class="badge ${w.pos}">${esc(POS_LABELS[w.pos] ?? w.pos)}</span>
               <div><b${L()}>${i + 1}. ${esc(w.lt)}</b> <span class="muted">= ${esc(w.en)}</span> ${GENDERS[w.gender] ? `<span class="pill">${GENDERS[w.gender]}</span>` : ""}
                 ${w.also || w.note ? `<p class="muted small">${w.also ? `Also accepted: <span${L()}>${esc(w.also.split(";").map((s) => s.trim()).join(", "))}</span>` : ""}${w.also && w.note ? " · " : ""}${esc(w.note)}</p>` : ""}</div>${tools("word", w.id)}</li>`,
-          )
-          .join("") || `<li class="empty-row">No words yet. Add the first one!</li>`
+        )
+        .join("") || `<li class="empty-row">No words yet. Add the first one!</li>`
       }</ul>`;
     document.getElementById("add-word").onclick = () => {
       cms.editing = { lessonId: lesson.id, lt: "", en: "", pos: "noun", gender: "", also: "", note: "" };
@@ -2938,8 +2927,8 @@ async function drawArrange() {
     <p class="muted arrange-help">Drag lessons to reorder them or move them to another deck. Drag a deck by ${I.grip.replace("<svg", '<svg class="inline-grip"')} to reorder decks. Click a name to rename it.</p>
     <div class="board" id="board">
       ${units
-        .map(
-          (u, ui) => `<section class="board-col card" data-unit="${u.id}">
+      .map(
+        (u, ui) => `<section class="board-col card" data-unit="${u.id}">
             <header class="board-col-head">
               <span class="drag-handle deck-handle" title="Drag to reorder decks" aria-label="Drag to reorder decks">${I.grip}</span>
               <span class="module-no">${ui + 1}</span>
@@ -2948,19 +2937,19 @@ async function drawArrange() {
               <button class="icon-btn sm danger" data-del-unit="${u.id}" title="Delete deck">${I.trash}</button>
             </header>
             <ul class="board-cards" data-unit="${u.id}">${u.lessons
-              .map(
-                (l) => `<li class="board-card" data-lesson="${l.id}">
+            .map(
+              (l) => `<li class="board-card" data-lesson="${l.id}">
                   <span class="drag-handle" aria-hidden="true">${I.grip}</span>
                   <button class="rename" data-rename="lesson:${l.id}" title="Rename">${esc(l.title)}</button>
                   <span class="muted small">${plural(words(l), "word")}</span>
                   <button class="icon-btn sm" data-open="${l.id}" title="Edit its words">${I.arrow}</button>
                 </li>`,
-              )
-              .join("")}</ul>
+            )
+            .join("")}</ul>
             <form class="board-add" data-add-lesson-in="${u.id}"><input type="text" maxlength="80" placeholder="+ Add a lesson" aria-label="New lesson in ${esc(u.title)}"></form>
           </section>`,
-        )
-        .join("")}
+      )
+      .join("")}
       <form class="board-col board-new card" id="board-new-deck"><input type="text" maxlength="80" placeholder="+ New deck" aria-label="New deck"></form>
     </div>`;
   wireStudioTabs();
@@ -3077,10 +3066,9 @@ async function drawFeedback(filter = "new") {
       <div class="list-head"><div class="segmented" role="tablist" aria-label="Filter">
         ${["new", "done", "all"].map((f) => `<button role="tab" data-filter="${f}" aria-selected="${f === filter}">${{ new: "New", done: "Done", all: "All" }[f]}</button>`).join("")}
       </div><span class="muted small">${data.newCount} new</span></div>
-      <ul class="rows">${
-        data.items
-          .map(
-            (f) => `<li class="fb-row ${f.status}">${avatar({ name: f.user, picture: f.picture })}
+      <ul class="rows">${data.items
+      .map(
+        (f) => `<li class="fb-row ${f.status}">${avatar({ name: f.user, picture: f.picture })}
               <div><div class="row"><a href="#/u/${esc(f.username)}"><b>${esc(f.user)}</b></a><span class="muted small">on <b>${esc(f.unitTitle)}</b> · ${fmtDate(f.createdAt)}</span>
                 ${f.rating ? `<span class="mini-stars" aria-label="${f.rating} of 5 stars">${"★".repeat(f.rating)}<span>${"★".repeat(5 - f.rating)}</span></span>` : ""}
                 ${f.category ? `<span class="pill">${esc(catLabel[f.category] ?? f.category)}</span>` : ""}</div>
@@ -3089,9 +3077,9 @@ async function drawFeedback(filter = "new") {
                 <button class="btn outline small" data-mark="${f.id}:${f.status === "new" ? "done" : "new"}">${f.status === "new" ? `${I.check} Mark done` : "Reopen"}</button>
                 <button class="icon-btn sm danger" data-del-fb="${f.id}" title="Delete">${I.trash}</button>
               </span></li>`,
-          )
-          .join("") || `<li class="empty-row">${filter === "new" ? "No new suggestions. Learners can send one from any deck on their Learn page." : "Nothing here."}</li>`
-      }</ul>
+      )
+      .join("") || `<li class="empty-row">${filter === "new" ? "No new suggestions. Learners can send one from any deck on their Learn page." : "Nothing here."}</li>`
+    }</ul>
     </section>`;
   wireStudioTabs();
   for (const b of $app.querySelectorAll("[data-filter]")) b.onclick = () => drawFeedback(b.dataset.filter);
@@ -3221,8 +3209,8 @@ async function renderAdmin() {
         <span class="muted small mono-tag">Moderation &amp; Discovery Controls</span>
       </div>
       <ul class="admin-rows">${d.courses
-        .map(
-          (c) => `<li class="admin-course-row ${c.hidden ? "is-hidden" : ""}">
+      .map(
+        (c) => `<li class="admin-course-row ${c.hidden ? "is-hidden" : ""}">
             <div class="admin-course-left">
               <span class="course-flag">${esc(flag(c))}</span>
               <div class="admin-course-info">
@@ -3249,8 +3237,8 @@ async function renderAdmin() {
               <button class="btn btn-outlined-display small ${c.hidden ? "btn-unhide" : "btn-hide"}" data-hide="${c.id}">${c.hidden ? "Unhide" : "Hide"}</button>
             </div>
           </li>`,
-        )
-        .join("")}</ul>
+      )
+      .join("")}</ul>
     </section>`;
   for (const b of $app.querySelectorAll("[data-hide]")) {
     b.onclick = async () => {
@@ -3283,7 +3271,7 @@ function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
   try {
     localStorage.setItem("theme", theme);
-  } catch {}
+  } catch { }
   drawThemeButton();
 }
 
@@ -3353,7 +3341,7 @@ async function start() {
   if (!me && config?.devLogin && (location.hash.startsWith("#/learn") || location.hash.startsWith("#/course") || location.hash.startsWith("#/discover") || location.hash.startsWith("#/play") || location.hash.startsWith("#/leaderboard") || location.hash.startsWith("#/studio"))) {
     try {
       ({ user: me } = await api("/auth/dev", { method: "POST", body: { name: "Learner" } }));
-    } catch {}
+    } catch { }
   }
   window.__app = { get me() { return me; }, set me(v) { me = v; }, route };
   route();

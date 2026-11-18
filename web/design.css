@@ -121,14 +121,17 @@
    Global Reset & Stage Canvas
    ========================================================================== */
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   box-shadow: none !important;
   text-shadow: none !important;
   -webkit-font-smoothing: antialiased;
 }
 
-html, body {
+html,
+body {
   background-color: var(--color-dusk-violet) !important;
   color: var(--color-bone-white);
   font-family: var(--font-degularvariable);
@@ -162,7 +165,12 @@ body {
    Typography Rules
    ========================================================================== */
 
-h1, h2, h3, h4, h5, h6,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
 .display-title,
 .brand-wordmark {
   font-family: var(--font-obviouslyvariable);
@@ -563,7 +571,7 @@ body.shell {
       "sidebar footer";
   }
 
-  body.shell > .sidebar {
+  body.shell>.sidebar {
     grid-area: sidebar;
     position: sticky;
     top: 0;
@@ -571,12 +579,12 @@ body.shell {
     overflow-y: auto;
   }
 
-  body.shell > .nav {
+  body.shell>.nav {
     grid-area: nav;
     display: block !important;
   }
 
-  body.shell > .app {
+  body.shell>.app {
     grid-area: main;
     width: 100%;
     max-width: 1300px;
@@ -584,7 +592,7 @@ body.shell {
     padding: 28px 32px 64px;
   }
 
-  body.shell > .footer {
+  body.shell>.footer {
     grid-area: footer;
     width: 100%;
   }
@@ -1305,12 +1313,35 @@ body.shell .account {
   color: var(--color-bone-white);
 }
 
-.tile-art.tint-0 { background: var(--color-bubblegum-pink); color: var(--color-ink-black); }
-.tile-art.tint-1 { background: var(--color-matcha-cream); color: var(--color-ink-black); }
-.tile-art.tint-2 { background: var(--color-buttery-yellow); color: var(--color-ink-black); }
-.tile-art.tint-3 { background: var(--color-bone-white); color: var(--color-ink-black); }
-.tile-art.tint-4 { background: var(--color-magenta-punch); color: var(--color-bone-white); }
-.tile-art.tint-5 { background: var(--color-firecracker-red); color: var(--color-bone-white); }
+.tile-art.tint-0 {
+  background: var(--color-bubblegum-pink);
+  color: var(--color-ink-black);
+}
+
+.tile-art.tint-1 {
+  background: var(--color-matcha-cream);
+  color: var(--color-ink-black);
+}
+
+.tile-art.tint-2 {
+  background: var(--color-buttery-yellow);
+  color: var(--color-ink-black);
+}
+
+.tile-art.tint-3 {
+  background: var(--color-bone-white);
+  color: var(--color-ink-black);
+}
+
+.tile-art.tint-4 {
+  background: var(--color-magenta-punch);
+  color: var(--color-bone-white);
+}
+
+.tile-art.tint-5 {
+  background: var(--color-firecracker-red);
+  color: var(--color-bone-white);
+}
 
 .tile-art-top {
   display: flex;
@@ -1399,10 +1430,10 @@ body.shell .account {
   box-shadow: none !important;
 }
 
-.enrolled-progress .bar > i,
-.module-progress .bar > i,
-.course-path-progress .bar > i,
-.bar > i {
+.enrolled-progress .bar>i,
+.module-progress .bar>i,
+.course-path-progress .bar>i,
+.bar>i {
   display: block;
   height: 100%;
   background: var(--color-hi-vis-yellow);
@@ -1583,12 +1614,29 @@ body.shell .account {
   margin-bottom: 24px;
 }
 
-.course-hero-path.tint-0 { background: #fce7f3 !important; }
-.course-hero-path.tint-1 { background: #e2f0d9 !important; }
-.course-hero-path.tint-2 { background: #fef3c7 !important; }
-.course-hero-path.tint-3 { background: var(--color-bone-white) !important; }
-.course-hero-path.tint-4 { background: #fae8ff !important; }
-.course-hero-path.tint-5 { background: #fee2e2 !important; }
+.course-hero-path.tint-0 {
+  background: #fce7f3 !important;
+}
+
+.course-hero-path.tint-1 {
+  background: #e2f0d9 !important;
+}
+
+.course-hero-path.tint-2 {
+  background: #fef3c7 !important;
+}
+
+.course-hero-path.tint-3 {
+  background: var(--color-bone-white) !important;
+}
+
+.course-hero-path.tint-4 {
+  background: #fae8ff !important;
+}
+
+.course-hero-path.tint-5 {
+  background: #fee2e2 !important;
+}
 
 .course-hero-inner {
   display: flex;
@@ -2191,7 +2239,7 @@ svg.ring {
 }
 
 .stat-box,
-.stat-row > div {
+.stat-row>div {
   background: #ffffff;
   border: 1.5px solid var(--color-ink-black);
   border-radius: var(--radius-cards);
@@ -2203,7 +2251,7 @@ svg.ring {
 }
 
 .stat-box span,
-.stat-row > div span {
+.stat-row>div span {
   font-family: var(--font-bergenmonoregular) !important;
   font-size: 10px;
   line-height: 0.80;
@@ -2213,7 +2261,7 @@ svg.ring {
 }
 
 .stat-box b,
-.stat-row > div b {
+.stat-row>div b {
   font-family: var(--font-bergenmonoregular) !important;
   font-size: 16px;
   line-height: 1;
@@ -2684,10 +2732,10 @@ body.focus .app {
   box-shadow: none !important;
 }
 
-.progress > i,
-.progress-bar > span,
-.lesson-bar > span,
-.bar > i {
+.progress>i,
+.progress-bar>span,
+.lesson-bar>span,
+.bar>i {
   display: block;
   height: 100%;
   background: #f4ed36 !important;
@@ -3214,14 +3262,40 @@ input[type="text"].type-box:focus {
 }
 
 .fc-top-actions .btn {
+  background: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
+  border: 2px solid var(--color-ink-black) !important;
   border-radius: 100px !important;
+  font-family: var(--font-bergenmonoregular) !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  padding: 0 16px !important;
+  height: 34px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: none !important;
+}
+
+.fc-top-actions .btn:hover {
+  background: var(--color-hi-vis-yellow) !important;
+}
+
+.fc-top-actions .btn svg {
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px !important;
+  max-width: 14px !important;
+  flex: none !important;
 }
 
 .flashcard,
 .fc-card {
   position: relative;
   width: 100%;
-  min-height: 340px;
+  max-width: 580px;
+  margin: 0 auto;
+  min-height: 380px;
   background: var(--color-bone-white) !important;
   border: 2.5px solid var(--color-ink-black) !important;
   border-radius: 6px !important;
@@ -3240,11 +3314,12 @@ input[type="text"].type-box:focus {
 }
 
 .flashcard-face {
-  padding: 36px 32px;
+  padding: 32px 32px 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 340px;
+  min-height: 380px;
+  box-sizing: border-box;
   width: 100%;
   border-radius: 6px !important;
 }
@@ -3300,7 +3375,7 @@ input[type="text"].type-box:focus {
   justify-content: center;
   text-align: center;
   gap: 12px;
-  margin: 24px 0;
+  margin: 20px 0;
 }
 
 .fc-word,
@@ -3328,11 +3403,28 @@ input[type="text"].type-box:focus {
   border: 1.5px solid var(--color-ink-black) !important;
   background: var(--color-bone-white) !important;
   color: var(--color-ink-black) !important;
-  width: 38px;
-  height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.fc-speaker svg {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  max-width: 18px !important;
+  flex: none !important;
+}
+
+.fc-speaker:hover {
+  background: var(--color-hi-vis-yellow) !important;
 }
 
 .fc-foot {
@@ -3340,6 +3432,28 @@ input[type="text"].type-box:focus {
   font-family: var(--font-bergenmonoregular);
   font-size: 12px;
   color: var(--color-lilac-shadow);
+  border-top: 1.5px dashed rgba(22, 21, 29, 0.15);
+  padding-top: 14px;
+}
+
+.fc-foot span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.fc-foot svg {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  max-width: 16px !important;
+  min-height: 16px !important;
+  max-height: 16px !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  flex: none !important;
+  stroke: currentColor;
 }
 
 .fc-controls {
@@ -3347,7 +3461,7 @@ input[type="text"].type-box:focus {
   flex-direction: column;
   gap: 14px;
   align-items: center;
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .fc-actions,
@@ -3368,12 +3482,39 @@ input[type="text"].type-box:focus {
   font-weight: 700;
   padding: 12px 20px;
   box-shadow: none !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.fc-actions .btn svg,
+.fc-rate-row .btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  max-width: 16px !important;
+  flex: none !important;
+}
+
+.fc-actions .btn.outline {
+  background: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
+  border: 2px solid var(--color-ink-black) !important;
+}
+
+.fc-actions .btn.outline:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
 }
 
 .btn.fc-flip {
   background: #f4ed36 !important;
   color: #000000 !important;
   border: 2px solid #000000 !important;
+}
+
+.btn.fc-flip:hover {
+  filter: brightness(1.05);
 }
 
 .btn.learning {
@@ -3390,6 +3531,16 @@ input[type="text"].type-box:focus {
 
 .fc-keyboard-hints {
   font-family: var(--font-bergenmonoregular);
+  font-size: 11px;
+  color: var(--color-bone-white);
+  opacity: 0.8;
+  margin: 0;
+  text-align: center;
+}
+
+.fc-keyboard-hints b {
+  color: #f4ed36;
+}
   font-size: 12px;
   color: var(--color-bone-white);
   text-align: center;
@@ -3825,10 +3976,21 @@ input[type="text"].type-box:focus {
   background: #f9f5f2;
 }
 
-.pcard .tile-art.tint-0 { background: rgba(168, 197, 156, 0.35); }
-.pcard .tile-art.tint-1 { background: rgba(244, 237, 54, 0.35); }
-.pcard .tile-art.tint-2 { background: rgba(248, 154, 158, 0.3); }
-.pcard .tile-art.tint-3 { background: rgba(133, 132, 189, 0.3); }
+.pcard .tile-art.tint-0 {
+  background: rgba(168, 197, 156, 0.35);
+}
+
+.pcard .tile-art.tint-1 {
+  background: rgba(244, 237, 54, 0.35);
+}
+
+.pcard .tile-art.tint-2 {
+  background: rgba(248, 154, 158, 0.3);
+}
+
+.pcard .tile-art.tint-3 {
+  background: rgba(133, 132, 189, 0.3);
+}
 
 .pcard-top-row {
   display: flex;
@@ -4057,7 +4219,7 @@ details summary::-webkit-details-marker {
   font-size: 13.5px;
 }
 
-.filter-group > span {
+.filter-group>span {
   font-family: var(--font-bergenmonoregular);
   font-size: 11px;
   text-transform: uppercase;
@@ -4323,15 +4485,18 @@ details summary::-webkit-details-marker {
 .card a:not(.btn):not(.tag-chip) {
   color: var(--color-ink-black) !important;
 }
+
 .card a:not(.btn):not(.tag-chip):hover {
   text-decoration: underline;
 }
+
 .card .btn.outline,
 .card .btn-outlined-display {
   color: var(--color-ink-black) !important;
   border-color: var(--color-ink-black) !important;
   background: transparent !important;
 }
+
 .card .btn.outline:hover,
 .card .btn-outlined-display:hover {
   background: rgba(22, 21, 29, 0.08) !important;
@@ -4723,20 +4888,431 @@ label.field {
   border-color: var(--color-ink-black) !important;
 }
 
-/* Tab tiles inside Play lobby */
-.tiles .tile {
-  background: #ffffff !important;
+/* ==========================================================================
+   Discover Search People & Empty States
+   ========================================================================== */
+
+.search-people-card {
+  background: var(--color-bone-white) !important;
+  border: 2.5px solid var(--color-ink-black) !important;
+  border-radius: 6px !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.search-people-head {
+  padding: 14px 20px;
+  border-bottom: 2px solid var(--color-ink-black);
+  background: rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.search-people-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-person-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1.5px dashed rgba(22, 21, 29, 0.2);
+  transition: background 0.12s ease;
+}
+
+.search-person-row:last-child {
+  border-bottom: none;
+}
+
+.search-person-row:hover {
+  background: rgba(244, 237, 54, 0.05);
+}
+
+.search-person-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  text-decoration: none !important;
+  color: var(--color-ink-black) !important;
+  flex: 1;
+}
+
+.search-person-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.search-person-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-degulardisplay-bold);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-ink-black) !important;
+  letter-spacing: -0.01em;
+}
+
+.search-person-link:hover .search-person-name b {
+  text-decoration: underline;
+}
+
+.you-pill {
+  font-family: var(--font-bergenmonoregular);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  background: var(--color-hi-vis-yellow);
+  color: var(--color-ink-black);
+  border: 1.5px solid var(--color-ink-black);
+  border-radius: var(--radius-buttons);
+}
+
+.search-person-meta {
+  font-size: 12px;
+  color: #666;
+}
+
+.search-person-action {
+  flex-shrink: 0;
+}
+
+.search-person-action .btn-gate-pill.small {
+  height: 36px;
+  padding: 0 16px !important;
+  font-size: 13px;
+}
+
+.search-person-action .btn-following {
+  background: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
+  border: 1.5px solid var(--color-ink-black) !important;
+}
+
+.discover-empty-card {
+  background: var(--color-bone-white) !important;
+  border: 2.5px solid var(--color-ink-black) !important;
+  border-radius: 6px !important;
+  padding: 32px 24px !important;
+  box-shadow: none !important;
+  text-align: center;
+}
+
+.discover-empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.discover-empty-text {
+  font-family: var(--font-degularvariable);
+  font-size: 15px;
+  color: #444;
+  margin: 0;
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+
+
+/* ==========================================================================
+   Universal Form Controls & Text Contrast Safeguards (Papercard High-Contrast)
+   ========================================================================== */
+
+/* 1. All Form Controls (Inputs, Selects, Textareas) */
+select,
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea {
+  background-color: #ffffff !important;
+  color: var(--color-ink-black) !important;
   border: 2px solid var(--color-ink-black) !important;
   border-radius: var(--radius-cards) !important;
+  padding: 10px 14px !important;
+  font-family: var(--font-degularvariable) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+select:focus,
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+  border-color: var(--color-ink-black) !important;
+  outline: 2px solid var(--color-hi-vis-yellow) !important;
+  outline-offset: 1px !important;
+}
+
+select option {
+  background-color: #ffffff !important;
+  color: var(--color-ink-black) !important;
+  font-family: var(--font-degularvariable) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  padding: 8px 12px !important;
+}
+
+label.field {
+  color: var(--color-ink-black) !important;
+  font-family: var(--font-degulardisplay-bold) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+/* 2. Remove broken legacy hover tooltips that collide with headers */
+.tip {
+  display: none !important;
+}
+
+/* 3. Flat Risograph Language Badges (.course-flag) across Admin, Studio, Courses */
+.course-flag {
+  flex: none !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: var(--radius-cards) !important;
+  display: grid !important;
+  place-items: center !important;
+  font-family: var(--font-bergenmonoregular) !important;
+  font-weight: 800 !important;
+  font-size: 15px !important;
+  letter-spacing: 0.06em !important;
+  color: var(--color-ink-black) !important;
+  background: var(--color-buttery-yellow) !important;
+  border: 2px solid var(--color-ink-black) !important;
+  box-shadow: none !important;
+}
+
+.course-flag.big {
+  width: 64px !important;
+  height: 64px !important;
+  font-size: 22px !important;
+}
+
+/* 4. Strict Card Text Contrast: No white or yellow text on white card surfaces */
+.card,
+.card h1,
+.card h2,
+.card h3,
+.card h4,
+.card p,
+.card label,
+.card span:not(.mono-tag):not(.badge-dot):not(.wtag):not(.admin-badge):not(.pill):not(.key),
+.picker,
+.list-card,
+.deck-group h3,
+.deck-group b {
   color: var(--color-ink-black) !important;
 }
 
-.tiles .tile-name {
-  color: var(--color-ink-black) !important;
+.card .muted,
+.picker .muted,
+.list-card .muted {
+  color: #555555 !important;
 }
 
-.tiles .tile[aria-selected="true"] {
-  background: var(--color-hi-vis-yellow) !important;
+/* Links inside cards: Dark Ink with underline (never invisible yellow!) */
+.card a:not(.btn):not(.wtag):not(.admin-badge):not(.mono-tag),
+.picker a:not(.btn):not(.wtag),
+.list-card a:not(.btn) {
+  color: var(--color-ink-black) !important;
+  text-decoration: underline !important;
+}
+
+.card a:not(.btn):hover,
+.picker a:not(.btn):hover,
+.list-card a:not(.btn):hover {
+  color: #000000 !important;
+}
+
+/* Outline buttons inside cards must have dark ink borders and text */
+.card .btn.outline,
+.picker .btn.outline,
+.list-card .btn.outline,
+.pane-actions .btn.outline {
+  color: var(--color-ink-black) !important;
+  border-color: var(--color-ink-black) !important;
+  background: transparent !important;
+}
+
+.card .btn.outline:hover,
+.picker .btn.outline:hover,
+.list-card .btn.outline:hover {
+  background: rgba(22, 21, 29, 0.08) !important;
+}
+
+/* Deck chips in duel picker */
+.deck-chip {
+  background: #ffffff !important;
+  color: var(--color-ink-black) !important;
+  border: 2px solid var(--color-ink-black) !important;
+  border-radius: var(--radius-cards) !important;
+  box-shadow: none !important;
+}
+
+.deck-chip small {
+  color: #555555 !important;
+}
+
+.deck-chip:has(input:checked) {
+  background: var(--color-matcha-green) !important;
   border-color: var(--color-ink-black) !important;
 }
 
+/* ==========================================================================
+   Discover Search People & Empty States
+   ========================================================================== */
+
+.search-people-card {
+  background: var(--color-bone-white) !important;
+  border: 2.5px solid var(--color-ink-black) !important;
+  border-radius: 6px !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.search-people-head {
+  padding: 14px 20px;
+  border-bottom: 2px solid var(--color-ink-black);
+  background: rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.search-people-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-person-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1.5px dashed rgba(22, 21, 29, 0.2);
+  transition: background 0.12s ease;
+}
+
+.search-person-row:last-child {
+  border-bottom: none;
+}
+
+.search-person-row:hover {
+  background: rgba(244, 237, 54, 0.05);
+}
+
+.search-person-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  text-decoration: none !important;
+  color: var(--color-ink-black) !important;
+  flex: 1;
+}
+
+.search-person-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.search-person-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-degulardisplay-bold);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-ink-black) !important;
+  letter-spacing: -0.01em;
+}
+
+.search-person-link:hover .search-person-name b {
+  text-decoration: underline;
+}
+
+.you-pill {
+  font-family: var(--font-bergenmonoregular);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  background: var(--color-hi-vis-yellow);
+  color: var(--color-ink-black);
+  border: 1.5px solid var(--color-ink-black);
+  border-radius: var(--radius-buttons);
+}
+
+.search-person-meta {
+  font-size: 12px;
+  color: #666;
+}
+
+.search-person-action {
+  flex-shrink: 0;
+}
+
+.search-person-action .btn-gate-pill.small {
+  height: 36px;
+  padding: 0 16px !important;
+  font-size: 13px;
+}
+
+.search-person-action .btn-following {
+  background: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
+  border: 1.5px solid var(--color-ink-black) !important;
+}
+
+.discover-empty-card {
+  background: var(--color-bone-white) !important;
+  border: 2.5px solid var(--color-ink-black) !important;
+  border-radius: 6px !important;
+  padding: 32px 24px !important;
+  box-shadow: none !important;
+  text-align: center;
+}
+
+.discover-empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.discover-empty-text {
+  font-family: var(--font-degularvariable);
+  font-size: 15px;
+  color: #444;
+  margin: 0;
+  max-width: 480px;
+  line-height: 1.5;
+}
