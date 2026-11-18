@@ -1,0 +1,147 @@
+{
+  "playDesktop": {
+    "lobby": {
+      "display": "grid",
+      "gridTemplateColumns": "597px 340px",
+      "isTwoColumn": true,
+      "pickerRect": {
+        "width": 597,
+        "height": 836
+      },
+      "roomsRect": {
+        "width": 340,
+        "height": 114
+      }
+    },
+    "tabs": {
+      "display": "grid",
+      "gridTemplateColumns": "273.5px 273.5px",
+      "tileCount": 2,
+      "isSideBySide": true,
+      "tile0Width": 274,
+      "tile1Width": 274
+    },
+    "activeTile": {
+      "text": "Create a room",
+      "bg": "rgb(26, 26, 26)",
+      "color": "rgb(249, 245, 242)",
+      "nameColor": "rgb(249, 245, 242)",
+      "iconWidth": "20px",
+      "iconHeight": "20px",
+      "iconStroke": "rgb(249, 245, 242)"
+    },
+    "deckAccordion": {
+      "summaryText": "A1 1 of 5 selected Select all",
+      "hasDuplicateLevel": false,
+      "hasStrayChevron": false,
+      "levelChipText": "A1",
+      "deckCountText": "1 of 5 selected"
+    },
+    "deckChips": {
+      "display": "grid",
+      "gridTemplateColumns": "256.5px 256.5px",
+      "count": 12,
+      "chip0Width": 257,
+      "wrapWidth": 555,
+      "isMultiColumnGrid": true,
+      "isCleanResponsiveGrid": true
+    }
+  },
+  "playMobile": {
+    "lobby": {
+      "display": "flex",
+      "flexDirection": "column"
+    },
+    "tabs": {
+      "display": "grid",
+      "gridTemplateColumns": "157px 157px",
+      "isSideBySide": true,
+      "tile0Width": 157,
+      "tile1Width": 157
+    },
+    "activeTile": {
+      "bg": "rgb(26, 26, 26)",
+      "nameColor": "rgb(249, 245, 242)",
+      "iconWidth": "20px",
+      "iconHeight": "20px"
+    },
+    "deckChips": {
+      "count": 12,
+      "chip0Width": 290,
+      "wrapWidth": 322
+    }
+  },
+  "routesVerification": {
+    "discover": {
+      "desktop": {
+        "inputCount": 11,
+        "styledInputs": false,
+        "searchBars": [
+          {
+            "id": "d-q",
+            "className": "",
+            "width": 467,
+            "height": 22,
+            "visible": true
+          }
+        ],
+        "cardsCount": 1,
+        "cardLayoutValid": true
+      },
+      "mobile": {
+        "inputCount": 11,
+        "searchBars": [
+          {
+            "id": "d-q",
+            "width": 122,
+            "height": 38,
+            "fitsScreen": true
+          }
+        ],
+        "hasHorizontalOverflow": false
+      }
+    },
+    "course_1": {
+      "desktop": {
+        "inputCount": 0,
+        "styledInputs": true,
+        "searchBars": [],
+        "cardsCount": 15,
+        "cardLayoutValid": true
+      },
+      "mobile": {
+        "inputCount": 0,
+        "searchBars": [],
+        "hasHorizontalOverflow": false
+      }
+    },
+    "learn": {
+      "desktop": {
+        "inputCount": 0,
+        "styledInputs": true,
+        "searchBars": [],
+        "cardsCount": 3,
+        "cardLayoutValid": true
+      },
+      "mobile": {
+        "inputCount": 0,
+        "searchBars": [],
+        "hasHorizontalOverflow": false
+      }
+    },
+    "studio": {
+      "desktop": {
+        "inputCount": 7,
+        "styledInputs": false,
+        "searchBars": [],
+        "cardsCount": 2,
+        "cardLayoutValid": false
+      },
+      "mobile": {
+        "inputCount": 7,
+        "searchBars": [],
+        "hasHorizontalOverflow": false
+      }
+    }
+  }
+}
