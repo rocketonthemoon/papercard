@@ -556,45 +556,51 @@ a:hover {
    ========================================================================== */
 
 body.shell {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
 @media (min-width: 900px) {
   body.shell {
-    display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
-    grid-template-rows: auto 1fr auto;
-    grid-template-areas:
-      "sidebar nav"
-      "sidebar main"
-      "sidebar footer";
+    display: flex;
+    flex-direction: column;
+    padding-left: 240px;
+    min-height: 100vh;
   }
 
   body.shell>.sidebar {
-    grid-area: sidebar;
-    position: sticky;
+    position: fixed !important;
+    left: 0;
     top: 0;
-    height: 100vh;
+    bottom: 0;
+    width: 240px;
+    height: 100vh !important;
     overflow-y: auto;
+    z-index: 100;
   }
 
   body.shell>.nav {
-    grid-area: nav;
     display: block !important;
+    width: 100%;
   }
 
   body.shell>.app {
-    grid-area: main;
     width: 100%;
     max-width: 1300px;
     margin: 0 auto;
     padding: 28px 32px 64px;
+    flex: 1;
   }
 
   body.shell>.footer {
-    grid-area: footer;
     width: 100%;
+  }
+}
+
+@media (max-width: 899px) {
+  body.shell>.sidebar {
+    display: none !important;
   }
 }
 
@@ -3289,55 +3295,96 @@ input[type="text"].type-box:focus {
   flex: none !important;
 }
 
+.fc-stage {
+  perspective: 1200px;
+  -webkit-perspective: 1200px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .flashcard,
 .fc-card {
   position: relative;
   width: 100%;
   max-width: 580px;
-  margin: 0 auto;
+  height: 380px;
   min-height: 380px;
-  background: var(--color-bone-white) !important;
-  border: 2.5px solid var(--color-ink-black) !important;
+  margin: 0 auto;
+  background: transparent !important;
+  border: none !important;
   border-radius: 6px !important;
   box-shadow: none !important;
-  color: var(--color-ink-black) !important;
   padding: 0 !important;
   cursor: pointer;
-  transition: transform 0.15s ease;
   outline: none;
-  overflow: hidden;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.34, 1.25, 0.64, 1);
 }
 
-.flashcard:hover,
-.fc-card:hover {
+.flashcard.flipped,
+.fc-card.flipped {
+  transform: rotateY(180deg);
+}
+
+.flashcard:hover .flashcard-face {
   border-color: #000000 !important;
 }
 
 .flashcard-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   padding: 32px 32px 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 380px;
   box-sizing: border-box;
-  width: 100%;
+  background: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
+  border: 2.5px solid var(--color-ink-black) !important;
   border-radius: 6px !important;
+  box-shadow: none !important;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
 }
 
 .flashcard-front {
-  background: var(--color-bone-white);
+  transform: rotateY(0deg);
+  -webkit-transform: rotateY(0deg);
+  z-index: 2;
+  background: var(--color-bone-white) !important;
 }
 
 .flashcard-back {
-  background: #ffffff;
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  z-index: 1;
+  background: #ffffff !important;
 }
 
 .flashcard.flipped .flashcard-front {
-  display: none !important;
+  pointer-events: none;
 }
 
 .flashcard:not(.flipped) .flashcard-back {
-  display: none !important;
+  pointer-events: none;
+}
+
+@keyframes fcShuffle {
+  0% { transform: scale(1) rotate(0deg); }
+  30% { transform: scale(0.95) rotate(-3deg); }
+  65% { transform: scale(0.98) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.fc-card.fc-shuffling {
+  animation: fcShuffle 0.25s ease-in-out !important;
 }
 
 .fc-head {
@@ -4935,6 +4982,7 @@ label.field {
   background: rgba(244, 237, 54, 0.05);
 }
 
+.card a.search-person-link,
 .search-person-link {
   display: flex;
   align-items: center;
@@ -5228,6 +5276,7 @@ label.field {
   background: rgba(244, 237, 54, 0.05);
 }
 
+.card a.search-person-link,
 .search-person-link {
   display: flex;
   align-items: center;

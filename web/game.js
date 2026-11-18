@@ -2250,7 +2250,7 @@ async function renderDiscover() {
                         <b>${esc(u.name)}</b>${officialBadge(u)}
                         ${u.isYou ? `<span class="mono-tag-pill you-pill">YOU</span>` : ""}
                       </div>
-                      <span class="search-person-meta mono-tag">@${esc(u.username)} · <span data-followers="${esc(u.username)}">${u.followers}</span> ${plural(u.followers, "follower")}</span>
+                      <span class="search-person-meta mono-tag">@${esc(u.username)} · <span data-followers="${esc(u.username)}">${u.followers}</span> ${u.followers === 1 ? "follower" : "followers"}</span>
                     </div>
                   </a>
                   <div class="search-person-action">

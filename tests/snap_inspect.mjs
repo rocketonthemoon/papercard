@@ -3,22 +3,27 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+const port = 9355;
 const chrome = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "snap-rev-"));
 const proc = spawn(chrome, [
   "--headless=new",
-  "--remote-debugging-port=9342",
+  `--remote-debugging-port=${port}`,
   `--user-data-dir=${profile}`,
   "--window-size=1280,900",
   "--no-first-run",
   "about:blank",
 ], { stdio: "ignore" });
 
+process.on("exit", () => {
+  try { proc.kill(); } catch {}
+});
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ws;
 for (let i = 0; i < 50 && !ws; i++) {
   try {
-    const page = (await (await fetch("http://127.0.0.1:9342/json")).json()).find((t) => t.type === "page");
+    const page = (await (await fetch(`http://127.0.0.1:${port}/json`)).json()).find((t) => t.type === "page");
     if (page) ws = new WebSocket(page.webSocketDebuggerUrl);
   } catch { await sleep(200); }
 }
@@ -117,7 +122,7 @@ await js(`
         xpToday: 980
       }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
-    return fetch(url, opts);
+    return origFetch(url, opts);
   };
   location.hash = '#/learn/review';
   window.__app.route();
@@ -125,10 +130,24 @@ await js(`
 await sleep(1500);
 await shot("tests/inspect_flashcard_fixed.png");
 
-// Flip card to verify the back face
+// Trigger flip and snap mid-rotation
 await js(`document.getElementById("fc-card").click()`);
+await sleep(200);
+await shot("tests/inspect_flashcard_rotating.png");
+
+// Wait for flip to complete and snap back face
 await sleep(500);
 await shot("tests/inspect_flashcard_back.png");
+
+// Learn page scrolled to test fixed sidebar
+await js(`
+  location.hash = '#/learn';
+  window.__app.route();
+`);
+await sleep(1500);
+await js(`window.scrollTo(0, 600)`);
+await sleep(800);
+await shot("tests/inspect_sidebar_scrolled.png");
 
 // Discover search page with search "abdul"
 await js(`
