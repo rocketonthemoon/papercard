@@ -117,7 +117,7 @@ const I = {
   fire: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 10.5A5 5 0 0 1 7 13c0-2 1-3.5 2-4.5.3 1.7 1.2 2.7 2.2 3C10.6 8.5 11 5 12 2z" fill="#ff9a1f"/><path d="M12 13c.6 1.6 2 2.2 2 4a2 2 0 0 1-4 0c0-1 .5-1.6 1-2 .1.8.5 1.2 1 1.3-.2-1.3-.3-2.3 0-3.3z" fill="#ffd56b"/></svg>`,
   bolt: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4 14h7l-1.5 8L20 10h-7z" fill="#ffc21a"/></svg>`,
   star: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z" fill="currentColor"/></svg>`,
-  lock: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="currentColor" stroke-width="2.2" fill="none"/></svg>`,
+  lock: `<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="currentColor" stroke-width="2.2" fill="none"/></svg>`,
   tick: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   close: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>`,
   cup: `<svg viewBox="0 0 80 80" aria-hidden="true"><path d="M24 12h32v18a16 16 0 0 1-32 0z" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><path d="M24 18H14a10 10 0 0 0 10 12M56 18h10a10 10 0 0 1-10 12" stroke="#16151d" stroke-width="3" fill="none"/><rect x="36" y="44" width="8" height="12" fill="#16151d"/><rect x="26" y="56" width="28" height="10" rx="3" fill="#16151d"/><path d="m40 19 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#f9f5f2"/></svg>`,
@@ -422,7 +422,7 @@ const page = () => {
 };
 
 /** Line icons for the sidebar and widgets (20×20, drawn in currentColor). */
-const icon = (d) => `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const icon = (d) => `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const ICON = {
   home: icon(`<path d="M3.5 9 10 3.5 16.5 9v7a1 1 0 0 1-1 1H12v-4.5H8V17H4.5a1 1 0 0 1-1-1z"/>`),
   review: icon(`<rect x="3" y="5.5" width="10.5" height="11.5" rx="2"/><path d="M7 3h7.5A2.5 2.5 0 0 1 17 5.5v8.5"/>`),
@@ -2238,11 +2238,33 @@ async function renderDiscover() {
     const box = document.getElementById("d-people");
     box.hidden = !people.length;
     box.innerHTML = people.length
-      ? `<h3>People</h3><div class="people-cards">${people
-          .map(
-            (u) => `<div class="card person-card"><a href="#/u/${esc(u.username)}" class="profile-mini-head">${avatar(u)}<span><b>${esc(u.name)}${officialBadge(u)}</b><br><span class="muted small">@${esc(u.username)} · <span data-followers="${esc(u.username)}">${u.followers}</span> followers</span></span></a>${followBtn(u)}</div>`,
-          )
-          .join("")}</div>`
+      ? `<div class="card search-people-card">
+          <div class="search-people-head">
+            <span class="mono-tag">[ PEOPLE // CREATORS &amp; LEARNERS (${people.length}) ]</span>
+            <span class="muted small mono-tag">Community Accounts</span>
+          </div>
+          <div class="search-people-list">
+            ${people
+              .map(
+                (u) => `<div class="search-person-row">
+                  <a href="#/u/${esc(u.username)}" class="search-person-link">
+                    ${avatar(u)}
+                    <div class="search-person-info">
+                      <div class="search-person-name">
+                        <b>${esc(u.name)}</b>${officialBadge(u)}
+                        ${u.isYou ? `<span class="mono-tag-pill you-pill">YOU</span>` : ""}
+                      </div>
+                      <span class="search-person-meta mono-tag">@${esc(u.username)} · <span data-followers="${esc(u.username)}">${u.followers}</span> ${plural(u.followers, "follower")}</span>
+                    </div>
+                  </a>
+                  <div class="search-person-action">
+                    ${u.isYou ? "" : `<button class="btn btn-gate-pill small ${u.youFollow ? "btn-following" : ""}" data-follow="${esc(u.username)}" data-on="${u.youFollow}">${u.youFollow ? "Following" : "Follow +"}</button>`}
+                  </div>
+                </div>`,
+              )
+              .join("")}
+          </div>
+        </div>`
       : "";
     wireFollow(box);
   };
@@ -2250,7 +2272,14 @@ async function renderDiscover() {
     const shown = courses
       .filter((c) => (!f.langs.size || f.langs.has(c.toLang)) && (!f.official || c.creator.official))
       .sort((a, b) => (f.sort === "learners" ? (b.creator.official - a.creator.official) * 1e9 : 0) + (b[f.sort] - a[f.sort]));
-    list.innerHTML = shown.length ? shown.map(courseCard).join("") : `<section class="card picker"><p class="muted center">${empty[f.tab]}</p></section>`;
+    list.innerHTML = shown.length
+      ? shown.map(courseCard).join("")
+      : `<section class="card discover-empty-card">
+          <div class="discover-empty-inner">
+            <span class="mono-tag">[ 0 COURSES MATCHED ]</span>
+            <p class="discover-empty-text">${empty[f.tab]}</p>
+          </div>
+        </section>`;
     wireCourseCards(list);
     const chips = [...f.langs].map((l) => ["lang", l, l]);
     if (f.official) chips.push(["official", "", "Official"]);
