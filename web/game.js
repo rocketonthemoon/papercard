@@ -2657,23 +2657,23 @@ async function renderCourse(id) {
     <div class="course-page">
       <div class="course-page-main">
         <section class="card course-hero">
-          <span class="course-flag big">${esc(flag(c))}</span>
-          <div class="course-hero-details">
+          <div class="course-hero-top">
             <div class="hero-badges">
               <span class="tag-chip mono-tag">${c.creator?.official ? "OFFICIAL" : "COURSE"}</span>
               <span class="meta-lang mono-tag">${esc(c.fromLang)} → ${esc(c.toLang)}</span>
             </div>
-            <h1>${esc(c.title)}${c.hidden ? ` <span class="pill due">hidden</span>` : ""}${c.locked ? ` <span class="pill">${ICON.lock} locked</span>` : ""}</h1>
-            <p class="muted course-stats-row">${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p>
-            ${c.description ? `<p class="course-description-text">${esc(c.description)}</p>` : ""}
-            <div class="course-hero-actions">
-              ${c.locked && !c.hasAccess
+            <span class="course-flag big">${esc(flag(c))}</span>
+          </div>
+          <h1>${esc(c.title)}${c.hidden ? ` <span class="pill due">hidden</span>` : ""}${c.locked ? ` <span class="pill">${ICON.lock} locked</span>` : ""}</h1>
+          <p class="muted course-stats-row">${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p>
+          ${c.description ? `<p class="course-description-text">${esc(c.description)}</p>` : ""}
+          <div class="course-hero-actions">
+            ${c.locked && !c.hasAccess
       ? ""
       : c.enrolled
         ? `<button class="btn btn-hero-primary" data-continue="${c.id}">Continue →</button>`
         : `<button class="btn btn-hero-primary" data-enroll="${c.id}">Start course →</button>`
     }
-            </div>
           </div>
         </section>
         ${c.locked && !c.hasAccess
