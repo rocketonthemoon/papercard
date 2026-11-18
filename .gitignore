@@ -1,3 +1,5 @@
 engine/target/
 *.sqlite*
 .env
+frontend/node_modules/
+frontend/dist/
