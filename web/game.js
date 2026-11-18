@@ -226,12 +226,12 @@ function promptHtml(c) {
   const lt = c.kind === "pick_en";
   const head = { pick_en: "What does this mean?", pick_lt: `How do you say this in ${esc(toLang())}?`, type_lt: `Write this in ${esc(toLang())}`, build: `Translate this into ${esc(toLang())}` }[c.kind];
   return `<h1 class="q">${head}</h1>
-    <div class="prompt-card"><span class="prompt-word"${lt ? L() : ""}>${esc(c.prompt)}</span>${c.pos && c.pos !== "phrase" ? wordTag(c) : ""}</div>`;
+    <div class="prompt-card challenge-card"><span class="prompt-word"${lt ? L() : ""}>${esc(c.prompt)}</span>${c.pos && c.pos !== "phrase" ? wordTag(c) : ""}</div>`;
 }
 
 function optionsHtml(c, picked) {
   return `<div class="options">${c.options
-    .map((o, i) => `<button class="option" data-id="${o.id}" aria-pressed="${o.id === picked}"${c.kind === "pick_lt" ? L() : ""}><span class="key">${i + 1}</span><span>${esc(o.text)}</span></button>`)
+    .map((o, i) => `<button class="option option-tile" data-id="${o.id}" aria-pressed="${o.id === picked}"${c.kind === "pick_lt" ? L() : ""}><span class="key option-key">${i + 1}</span><span>${esc(o.text)}</span></button>`)
     .join("")}</div>`;
 }
 
@@ -267,7 +267,7 @@ function renderDuelPlay(duel) {
         }</section>
       </aside>
       <div class="sheet-wrap">
-        <div class="sheet duel-sheet">
+        <div class="sheet duel-sheet duel-arena">
           <div class="sheet-head"><span><b>Name :</b> ${esc(me.name)}</span><span><b>Date :</b> ${fmtDate(duel.createdAt)}</span></div>
           <nav class="qdots" id="qdots" aria-label="Questions"></nav>
           <div class="duel-q" id="qcard"></div>
@@ -453,11 +453,11 @@ function setTopStats(stats) {
   if (stats) topStats = stats;
   const chips = document.getElementById("top-chips");
   if (!me || !topStats || !chips) return;
-  chips.innerHTML = `<span class="top-chip" title="Day streak">${I.fire}${topStats.streak} day${topStats.streak === 1 ? "" : "s"}</span><span class="top-chip" title="Hearts">${I.heart}${topStats.hearts}</span>`;
+  chips.innerHTML = `<span class="top-chip stat-chip mono-tag" title="Day streak">${I.fire}<b>${topStats.streak}d</b></span><span class="top-chip stat-chip mono-tag" title="Hearts">${I.heart}<b>${topStats.hearts}</b></span>`;
   const review = document.querySelector('.side-links a[data-nav="review"]');
   if (review) {
     review.querySelector(".badge-dot")?.remove();
-    if (topStats.due) review.insertAdjacentHTML("beforeend", `<span class="badge-dot" aria-label="${topStats.due} due">${topStats.due > 99 ? "99+" : topStats.due}</span>`);
+    if (topStats.due) review.insertAdjacentHTML("beforeend", `<span class="badge-dot mono-tag" aria-label="${topStats.due} due">${topStats.due > 99 ? "99+" : topStats.due}</span>`);
   }
 }
 const refreshTopStats = () =>
@@ -509,10 +509,10 @@ function renderNav() {
     pageTitle.textContent = location.hash.startsWith("#/learn/words")
       ? "YOUR WORDS"
       : learnCourseMatch
-        ? (course?.title || "LEARN")
+        ? (course?.title?.toUpperCase() || "LEARN")
         : (TITLES[page()]?.toUpperCase() ?? "FLYING PAPERS");
   }
-  $account.innerHTML = `<a class="who-pill" href="#/u/${esc(me.username)}" title="Your profile (@${esc(me.username)})">${avatar(me)}<span>${esc(me.name)}</span></a>`;
+  $account.innerHTML = `<a class="who-pill profile-pill" href="#/u/${esc(me.username)}" title="Your profile (@${esc(me.username)})">${avatar(me)}<span>${esc(me.name)}</span></a>`;
   document.getElementById("logout")?.addEventListener("click", async () => {
     await api("/auth/logout", { method: "POST", body: {} });
     window.google?.accounts?.id?.disableAutoSelect?.();
@@ -532,13 +532,12 @@ function landingHtml() {
     <div class="landing-page-poster">
       ${challenged ? `<div class="confetti-card confetti-yellow" style="margin-bottom:24px;"><b>WORD DUEL:</b> You've been challenged to duel <b>${esc(challenged)}</b>. Jump into the arena!</div>` : ""}
       
-      <!-- Hero Screen: Bold, Uncluttered Language Learning Poster -->
+      <!-- Hero Screen: Bold, Uncluttered Editorial Language Poster -->
       <section class="poster-hero">
         <span class="mono-tag eyebrow-tag">[ LITHUANIAN LANGUAGE // A1–B1 ]</span>
         <h1 class="poster-display-title">
-          <span class="txt-hi">FLYING</span> <span class="txt-butter">PAPERS</span>
-          <br>
-          <span class="txt-butter">LEARN</span> <span class="txt-hi">LITHUANIAN</span>
+          <span class="poster-title-line"><span class="txt-hi">FLYING</span> <span class="txt-butter">PAPERS</span></span>
+          <span class="poster-title-line"><span class="txt-butter">LEARN</span> <span class="txt-hi">LITHUANIAN</span></span>
         </h1>
         
         <p class="poster-lead">Short, game-like vocabulary lessons, spaced-repetition flashcards, and live word duels with friends. No cramming, no paywalls.</p>
@@ -549,6 +548,14 @@ function landingHtml() {
         </div>
         
         <a href="#signin" class="link-disclaimer-underline" id="cta-signin-link">Already a member? Sign in with Google or account</a>
+
+        <!-- Authentic Language Sample Strip -->
+        <div class="poster-language-sample" aria-label="Authentic Lithuanian sample vocabulary">
+          <span class="sample-chip"><span class="chip-lt">Labas!</span> <span class="chip-en">Hello!</span></span>
+          <span class="sample-chip"><span class="chip-lt">Ačiū</span> <span class="chip-en">Thank you</span></span>
+          <span class="sample-chip"><span class="chip-lt">Prašom</span> <span class="chip-en">Please</span></span>
+          <span class="sample-chip"><span class="chip-lt">Iki pasimatymo!</span> <span class="chip-en">See you!</span></span>
+        </div>
         
         <div class="poster-signin-drawer" id="signin-drawer" hidden>
           <div class="signin-box card">
@@ -563,27 +570,6 @@ function landingHtml() {
                    </form>`
                 : ""
             }
-          </div>
-        </div>
-      </section>
-
-      <!-- Language Learning Features: Simple, Real, Clean -->
-      <section class="poster-section">
-        <div class="confetti-grid">
-          <div class="confetti-card confetti-matcha">
-            <span class="mono-tag dark-ink">[ 01 // VOCABULARY ]</span>
-            <h3>Conversational Lithuanian</h3>
-            <p>Everyday words, phrases, and grammar essentials built for real conversations from day one.</p>
-          </div>
-          <div class="confetti-card confetti-pink">
-            <span class="mono-tag dark-ink">[ 02 // SPACED MEMORY ]</span>
-            <h3>Smart Review</h3>
-            <p>Words return right before you would forget them. A few minutes a day keeps everything fresh.</p>
-          </div>
-          <div class="confetti-card confetti-magenta">
-            <span class="mono-tag light-bone">[ 03 // MULTIPLAYER ]</span>
-            <h3>Word Duels</h3>
-            <p>Challenge a friend to the same 10 words under a live timer. Speed and accuracy take the crown.</p>
           </div>
         </div>
       </section>
@@ -884,38 +870,38 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
   const fresh = (feed?.courses || []).filter((c) => !c.enrolled);
   const quests = stats ? QUESTS.filter((q) => q > stats.xp)
     .slice(0, 3)
-    .map((q) => `<li><div class="row spread"><span>Earn ${q} XP</span><span class="muted small">${stats.xp}/${q}</span></div><div class="bar"><i style="width:${Math.round((100 * stats.xp) / q)}%"></i></div></li>`)
+    .map((q) => `<li><div class="row spread mono-tag"><span>Earn ${q} XP</span><span class="muted small">${stats.xp}/${q}</span></div><div class="bar"><i style="width:${Math.round((100 * stats.xp) / q)}%"></i></div></li>`)
     .join("") : "";
 
   return `
     <aside class="dash-side">
-      <section class="card widget dash-progress-card">
+      <section class="card widget dash-progress-card profile-card">
         <div class="widget-head">
           <h3>Daily Progress</h3>
-          ${today ? `<span class="pill ok">+${today} XP today</span>` : `<span class="pill">0 XP today</span>`}
+          ${today ? `<span class="pill ok mono-tag">+${today} XP today</span>` : `<span class="pill mono-tag">0 XP today</span>`}
         </div>
         <div class="stat-row">
-          <div><span>Streak</span><b>${stats?.streak ?? 0}d</b></div>
-          <div><span>Learned</span><b>${stats?.learned ?? 0}</b></div>
-          <div><span>Due</span><b>${stats?.due ?? 0}</b></div>
-          <div><span>Hearts</span><b>${stats?.hearts ?? 0}</b></div>
+          <div class="stat-box"><span class="mono-tag">Streak</span><b class="mono-tag">${stats?.streak ?? 0}d</b></div>
+          <div class="stat-box"><span class="mono-tag">Learned</span><b class="mono-tag">${stats?.learned ?? 0}</b></div>
+          <div class="stat-box"><span class="mono-tag">Due</span><b class="mono-tag">${stats?.due ?? 0}</b></div>
+          <div class="stat-box"><span class="mono-tag">Hearts</span><b class="mono-tag">${stats?.hearts ?? 0}</b></div>
         </div>
-        ${stats?.due ? `<a class="btn block" href="#/learn/review">${FC_ICONS.shuffle} Review ${plural(stats.due, "word")} now</a>` : `<p class="stat-note">${stats?.learned ? `All caught up! Next review ${fmtUntil(stats.nextDueAt)}.` : "Words you learn come back for review just before you'd forget them."}</p>`}
-        ${stats && stats.hearts < stats.maxHearts ? `<p class="stat-note small">Next heart in ${fmtMinutes(stats.nextHeartMs)}.</p>` : ""}
-        ${stats?.days?.length ? `<div class="dash-activity-wrap"><div class="dash-activity-head"><span class="muted small">14-Day Momentum</span><span class="muted small">XP per day</span></div>${activityHtml(stats.days)}</div>` : ""}
+        ${stats?.due ? `<a class="btn btn-gate-pill block" href="#/learn/review">${FC_ICONS.shuffle} Review ${plural(stats.due, "word")} now</a>` : `<p class="stat-note">${stats?.learned ? `All caught up! Next review ${fmtUntil(stats.nextDueAt)}.` : "Words you learn come back for review just before you'd forget them."}</p>`}
+        ${stats && stats.hearts < stats.maxHearts ? `<p class="stat-note small mono-tag">Next heart in ${fmtMinutes(stats.nextHeartMs)}.</p>` : ""}
+        ${stats?.days?.length ? `<div class="dash-activity-wrap"><div class="dash-activity-head"><span class="muted small mono-tag">14-DAY MOMENTUM</span><span class="muted small mono-tag">XP / DAY</span></div>${activityHtml(stats.days)}</div>` : ""}
         <div class="dash-side-links">
-          <a class="small" href="#/learn/words">${I.list} All your words</a>
-          ${stats?.learned ? `<a class="small" href="#/learn/review">${I.cards} Shuffled flashcards</a>` : ""}
+          <a class="small mono-tag" href="#/learn/words">${I.list} All your words</a>
+          ${stats?.learned ? `<a class="small mono-tag" href="#/learn/review">${I.cards} Shuffled flashcards</a>` : ""}
         </div>
       </section>
       <section class="card widget" id="board-widget">
-        <div class="widget-head"><h3>Leaderboard</h3><select id="board-period" aria-label="Period"><option value="week">Weekly</option><option value="all">All time</option></select></div>
+        <div class="widget-head"><h3>Leaderboard</h3><select id="board-period" class="mono-tag" aria-label="Period"><option value="week">Weekly</option><option value="all">All time</option></select></div>
         <div id="board-body">${boardHtml(board?.rows ?? [])}</div>
       </section>
       ${
         fresh.length
-          ? `<section class="card widget"><div class="widget-head"><h3>From people you follow</h3><a href="#/discover?tab=following" class="small">All</a></div>
-              <ul class="feed">${fresh.slice(0, 3).map((c) => `<li><a href="#/course/${c.id}"><b>${esc(c.title)}</b></a><span class="muted small">by ${userLink(c.creator)} · ${plural(c.words, "word")}</span></li>`).join("")}</ul></section>`
+          ? `<section class="card widget"><div class="widget-head"><h3>From people you follow</h3><a href="#/discover?tab=following" class="small mono-tag">All</a></div>
+              <ul class="feed">${fresh.slice(0, 3).map((c) => `<li><a href="#/course/${c.id}"><b>${esc(c.title)}</b></a><span class="muted small mono-tag">by ${userLink(c.creator)} · ${plural(c.words, "word")}</span></li>`).join("")}</ul></section>`
           : ""
       }
       ${quests ? `<section class="card widget"><h3>Quests</h3><ul class="quests">${quests}</ul></section>` : ""}
@@ -964,10 +950,12 @@ async function renderEnrolledCourses() {
       return `
       <div class="card enrolled-card" data-course="${c.id}">
         <div class="tile-art ${tint(c.id)}">
-          <span class="tag-chip">${c.creator?.official ? "Official" : "Enrolled"}</span>
-          <span class="lang-orb">${esc(flag(c))}</span>
+          <div class="tile-art-top">
+            <span class="tag-chip mono-tag">${c.creator?.official ? "OFFICIAL" : "ENROLLED"}</span>
+            <span class="lang-orb mono-tag">${esc(flag(c))}</span>
+          </div>
           <h3 title="${esc(c.title)}">${esc(c.title)}</h3>
-          <div class="meta">
+          <div class="meta mono-tag">
             <span>${esc(c.fromLang)} → ${esc(c.toLang)}</span>
             <span>${plural(c.units, "deck")}</span>
             <span>${plural(c.words, "word")}</span>
@@ -975,15 +963,15 @@ async function renderEnrolledCourses() {
         </div>
         ${c.description ? `<p class="enrolled-desc">${esc(c.description)}</p>` : ""}
         <div class="enrolled-progress">
-          <div class="row spread small">
-            <span><b>${pct}%</b> completed</span>
-            <span class="muted">${c.learned || 0}/${c.words} words</span>
+          <div class="row spread small mono-tag">
+            <span><b>${pct}%</b> COMPLETED</span>
+            <span class="muted">${c.learned || 0}/${c.words} WORDS</span>
           </div>
           <div class="bar"><i style="width:${pct}%"></i></div>
         </div>
         <div class="enrolled-foot">
-          <a class="btn ${c.learned ? "" : "outline"}" href="#/learn/course/${c.id}">${c.learned ? "Continue learning" : "Start course"}</a>
-          <a class="btn outline small" href="#/course/${c.id}" title="Course details">About</a>
+          <a class="btn btn-gate-pill small ${c.learned ? "" : "outline"}" href="#/learn/course/${c.id}">${c.learned ? "Continue learning" : "Start course"}</a>
+          <a class="btn btn-outlined-display small" href="#/course/${c.id}" title="Course details">About</a>
         </div>
       </div>`;
     })
@@ -994,7 +982,7 @@ async function renderEnrolledCourses() {
       <div>
         <span class="plus">${ICON.plus}</span>
         <b>Find more courses</b>
-        <span class="muted small">Courses by us and by other learners</span>
+        <span class="muted small mono-tag">Courses by us and by other learners</span>
       </div>
     </a>`;
 
@@ -1013,11 +1001,12 @@ async function renderEnrolledCourses() {
 
   $app.innerHTML = `
     <div class="dash">
-      <div class="dash-main">
+      <div class="dash-main course-path">
         <header class="dash-head">
           <div>
-            <h1>My Courses</h1>
-            <p class="muted">${myCourses.length ? "Pick a course to continue learning" : "Start your language journey"}</p>
+            <span class="mono-tag eyebrow-tag">[ LEARNING PATH // COURSES ]</span>
+            <h1 class="dash-title">MY COURSES</h1>
+            <p class="dash-sub muted">${myCourses.length ? "Pick a course to continue learning" : "Start your language journey"}</p>
           </div>
           <a class="btn outline small" href="#/discover">${ICON.plus} Discover</a>
         </header>
@@ -1081,44 +1070,51 @@ async function renderCoursePath(courseId) {
     const hasCurrent = u.lessons.some((l) => l.id === current);
     const allLocked = u.lessons.length > 0 && u.lessons.every((l) => state.get(l.id).locked);
     const action = hasCurrent
-      ? `<a class="btn" href="#/learn/lesson/${current}">${learned ? "Continue learning" : "Start learning"}</a>`
+      ? `<a class="btn btn-gate-pill small" href="#/learn/lesson/${current}">${learned ? "Continue learning" : "Start learning"}</a>`
       : done
-        ? `<a class="btn outline" href="#/learn/lesson/${u.lessons[0].id}">Practise</a>`
+        ? `<a class="btn btn-outlined-display small" href="#/learn/lesson/${u.lessons[0].id}">Practise</a>`
         : allLocked
-          ? `<span class="btn outline" aria-disabled="true">${ICON.lock} Locked</span>`
+          ? `<span class="btn btn-outlined-display small locked-btn" aria-disabled="true">${ICON.lock} Locked</span>`
           : "";
     const rows = u.lessons
       .map((l, li) => {
         const s = state.get(l.id);
-        const inner = `<span class="lesson-num">${li + 1}</span><span class="lesson-title">${esc(l.title)}</span>
-          <span class="lesson-state">${ringHtml(l.done, l.total)}${l.done && !s.done ? `${l.done}/` : ""}${plural(l.total, "word")}</span>
+        const inner = `<span class="lesson-num mono-tag">${String(li + 1).padStart(2, '0')}</span>
+          <span class="lesson-title">${esc(l.title)}</span>
+          <span class="lesson-state mono-tag">${ringHtml(l.done, l.total)} <span>${l.done && !s.done ? `${l.done}/` : ""}${plural(l.total, "word")}</span></span>
           <span class="lesson-end">${s.locked ? ICON.lock : ICON.chev.replace("m5 7.5 5 5 5-5", "m7.5 5 5 5-5 5")}</span>`;
         return `<li>${
           s.locked
-            ? `<div class="lesson-row-link locked" title="Finish the lessons before this one first">${inner}</div>`
-            : `<a class="lesson-row-link ${s.isCurrent ? "current" : ""}" href="#/learn/lesson/${l.id}" title="${s.done ? "Practise" : s.isCurrent ? "Up next" : "Open"}">${inner}</a>`
+            ? `<div class="lesson-row-link lesson-node locked" title="Finish the lessons before this one first">${inner}</div>`
+            : `<a class="lesson-row-link lesson-node ${s.isCurrent ? "current" : s.done ? "done" : ""}" href="#/learn/lesson/${l.id}" title="${s.done ? "Practise" : s.isCurrent ? "Up next" : "Open"}">${inner}</a>`
         }</li>`;
       })
       .join("");
     const feedbackBlock =
       done && !u.feedbackSent
-        ? `<div class="unit-done compact"><div><b>Deck complete! How was it?</b><p class="muted small">Tell the creator what to improve.</p></div>
+        ? `<div class="unit-done compact"><div><b>Deck complete! How was it?</b><p class="muted small mono-tag">Tell the creator what to improve.</p></div>
             <div class="stars" role="group" aria-label="Rate this deck">${[1, 2, 3, 4, 5].map((n) => `<button class="star" data-feedback="${u.id}" data-rating="${n}" aria-label="${n} star${n > 1 ? "s" : ""}">${I.star}</button>`).join("")}</div></div>`
         : "";
-    return `<section class="card module-card ${u.id === openUnit ? "open" : ""}" data-unit="${u.id}">
+    return `<section class="card module-card unit-card ${u.id === openUnit ? "open" : ""}" data-unit="${u.id}">
       <div class="module-head" data-toggle="${u.id}">
-        <span class="module-no">${ui + 1}<small>/${units.length}</small></span>
-        <div><h2>${esc(u.title)}${u.level ? ` <span class="pill">${esc(u.level)}</span>` : ""}</h2>${u.description ? `<p>${esc(u.description)}</p>` : ""}</div>
-        <button class="chev" aria-label="Show lessons" aria-expanded="${u.id === openUnit}">${ICON.chev}</button>
+        <span class="module-no mono-tag">${String(ui + 1).padStart(2, '0')}<small>/${String(units.length).padStart(2, '0')}</small></span>
+        <div class="module-info">
+          <div class="module-title-row">
+            <h2>${esc(u.title)}</h2>
+            ${u.level ? ` <span class="pill level-pill mono-tag">${esc(u.level)}</span>` : ""}
+          </div>
+          ${u.description ? `<p class="module-desc">${esc(u.description)}</p>` : ""}
+        </div>
+        <button class="chev icon-btn" aria-label="Show lessons" aria-expanded="${u.id === openUnit}">${ICON.chev}</button>
       </div>
       <div class="module-progress">
-        <div class="row spread"><span>${pct}% done</span><span class="muted small">${words - learned ? `${plural(words - learned, "word")} left` : "All learned"}</span></div>
+        <div class="row spread mono-tag"><span><b>${pct}%</b> DONE</span><span class="muted small">${words - learned ? `${plural(words - learned, "word")} left` : "All learned"}</span></div>
         <div class="bar"><i style="width:${pct}%"></i></div>
-        ${action}
+        ${action ? `<div class="module-action">${action}</div>` : ""}
       </div>
-      <ul class="lesson-rows">${rows || `<li class="muted small">No lessons yet.</li>`}</ul>
+      <ul class="lesson-rows">${rows || `<li class="muted small mono-tag">No lessons yet.</li>`}</ul>
       ${feedbackBlock}
-      <div class="module-foot"><span class="muted small">${plural(u.lessons.length, "lesson")} · ${plural(words, "word")}</span><button class="linkbtn small" data-feedback="${u.id}">${I.chat} Suggest a change</button></div>
+      <div class="module-foot mono-tag"><span class="muted small">${plural(u.lessons.length, "lesson")} · ${plural(words, "word")}</span><button class="linkbtn small mono-tag" data-feedback="${u.id}">${I.chat} Suggest a change</button></div>
     </section>`;
   };
 
@@ -1128,9 +1124,9 @@ async function renderCoursePath(courseId) {
 
   $app.innerHTML = `
     <div class="dash">
-      <div class="dash-main">
+      <div class="dash-main course-path">
         <div class="toolbar">
-          <a class="back" href="#/learn">${I.back} My courses</a>
+          <a class="back mono-tag" href="#/learn">${I.back} MY COURSES</a>
           <div class="toolbar-actions">
             ${course.mine ? `<a class="btn outline small" href="#/studio/${course.id}">${I.edit} Edit in Studio</a>` : ""}
             <a class="btn outline small" href="#/course/${course.id}">About course</a>
@@ -1139,18 +1135,18 @@ async function renderCoursePath(courseId) {
 
         <section class="card course-hero-path ${tint(course.id)}">
           <div class="course-hero-inner">
-            <span class="lang-orb">${esc(flag(course))}</span>
+            <span class="lang-orb mono-tag">${esc(flag(course))}</span>
             <div class="course-hero-text">
               <div class="row spread">
-                <span class="tag-chip">${course.creator?.official ? "Official" : "Course"}</span>
-                <span class="muted small">${esc(course.fromLang)} → ${esc(course.toLang)}</span>
+                <span class="tag-chip mono-tag">${course.creator?.official ? "OFFICIAL" : "COURSE"}</span>
+                <span class="meta-lang mono-tag">${esc(course.fromLang)} → ${esc(course.toLang)}</span>
               </div>
-              <h2>${esc(course.title)}</h2>
-              ${course.description ? `<p class="muted">${esc(course.description)}</p>` : ""}
+              <h1 class="course-hero-title">${esc(course.title)}</h1>
+              ${course.description ? `<p class="course-hero-desc">${esc(course.description)}</p>` : ""}
               <div class="course-path-progress">
-                <div class="row spread small">
-                  <span><b>${coursePct}%</b> done</span>
-                  <span class="muted">${learnedWords}/${totalWords} words learned · ${plural(units.length, "deck")}</span>
+                <div class="row spread small mono-tag">
+                  <span><b>${coursePct}%</b> DONE</span>
+                  <span class="meta-words">${learnedWords}/${totalWords} words learned · ${plural(units.length, "deck")}</span>
                 </div>
                 <div class="bar"><i style="width:${coursePct}%"></i></div>
               </div>
@@ -1158,7 +1154,9 @@ async function renderCoursePath(courseId) {
           </div>
         </section>
 
-        ${units.map(moduleHtml).join("") || `<section class="card picker"><header class="picker-head"><h2>No lessons yet</h2><p class="muted">${course.mine ? `Add decks and words in the <a href="#/studio/${course.id}">Studio</a>.` : "The creator hasn't added any lessons yet."}</p></header></section>`}
+        <div class="unit-cards-list">
+          ${units.map(moduleHtml).join("") || `<section class="card picker"><header class="picker-head"><h2>No lessons yet</h2><p class="muted">${course.mine ? `Add decks and words in the <a href="#/studio/${course.id}">Studio</a>.` : "The creator hasn't added any lessons yet."}</p></header></section>`}
+        </div>
       </div>
       ${dashSideHtml(stats, board, feed)}
     </div>`;
@@ -1202,7 +1200,7 @@ function openFeedback(unit, rating = 0, onSent = () => {}) {
   let category = null;
   const back = document.createElement("div");
   back.className = "modal-back";
-  back.innerHTML = `<form class="modal card feedback-modal" role="dialog" aria-modal="true" aria-labelledby="fb-title">
+  back.innerHTML = `<form class="modal modal-box card feedback-modal" role="dialog" aria-modal="true" aria-labelledby="fb-title">
     <button type="button" class="icon-btn modal-close" aria-label="Close">${I.close}</button>
     <h2 id="fb-title">Suggest an improvement</h2>
     <p class="muted small">Deck: <b>${esc(unit.title)}</b></p>
@@ -1457,13 +1455,13 @@ function runFlashcards({ words, stats, course, now }) {
               <button class="btn outline small" id="fc-dir" title="Change card direction">${isLtFront ? `${toLanguageName.slice(0, 2).toUpperCase()} → ${fromLanguageName.slice(0, 2).toUpperCase()}` : `${fromLanguageName.slice(0, 2).toUpperCase()} → ${toLanguageName.slice(0, 2).toUpperCase()}`}</button>
             </div>
           </div>
-          <div class="progress" role="progressbar" aria-valuenow="${index + 1}" aria-valuemin="1" aria-valuemax="${deck.length}">
+          <div class="progress progress-bar" role="progressbar" aria-valuenow="${index + 1}" aria-valuemin="1" aria-valuemax="${deck.length}">
             <i style="width: ${progressPct}%"></i>
           </div>
         </header>
 
         <div class="fc-stage">
-          <div class="flashcard ${flipped ? "flipped" : ""}" id="fc-card" tabindex="0" role="button" aria-label="Flashcard: ${esc(frontText)}. Click or press space to flip.">
+          <div class="flashcard fc-card ${flipped ? "flipped" : ""}" id="fc-card" tabindex="0" role="button" aria-label="Flashcard: ${esc(frontText)}. Click or press space to flip.">
             <!-- Front -->
             <div class="flashcard-face flashcard-front">
               <div class="fc-head">
@@ -1688,10 +1686,10 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
   let xpEarned = 0;
 
   $app.innerHTML = `
-    <div class="lesson">
+    <div class="lesson lesson-frame">
       <header class="lesson-top">
         <button class="icon-btn" id="quit" aria-label="Quit">${I.close}</button>
-        <div class="progress" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="${total}"><i id="prog"></i></div>
+        <div class="progress progress-bar lesson-bar" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="${total}"><i id="prog"></i></div>
         <span class="hearts" title="${review ? "Review: no hearts lost" : safe ? "Practice: no hearts lost" : "Hearts"}">${I.heart}<b id="hearts">${safe ? "∞" : stats.hearts}</b></span>
       </header>
       <main class="lesson-body" id="stage"></main>
@@ -1726,7 +1724,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
   const outOfHearts = () => {
     const d = document.createElement("div");
     d.className = "modal-back";
-    d.innerHTML = `<div class="modal card" role="dialog" aria-modal="true" aria-labelledby="oh-title">
+    d.innerHTML = `<div class="modal modal-box card" role="dialog" aria-modal="true" aria-labelledby="oh-title">
       <span class="modal-icon">${I.heart}</span>
       <h2 id="oh-title">You ran out of hearts</h2>
       <p class="muted">Review your words or practise a lesson you've finished to earn hearts back, or wait: the next one comes back in ${fmtMinutes(stats.nextHeartMs)}.</p>
@@ -2439,7 +2437,7 @@ async function openUserList(u, which) {
   }
   const back = document.createElement("div");
   back.className = "modal-back";
-  back.innerHTML = `<div class="modal card user-list" role="dialog" aria-modal="true" aria-labelledby="ul-title">
+  back.innerHTML = `<div class="modal modal-box card user-list" role="dialog" aria-modal="true" aria-labelledby="ul-title">
     <button type="button" class="icon-btn modal-close" aria-label="Close">${I.close}</button>
     <h2 id="ul-title">${which === "followers" ? `Following ${esc(u.name)}` : `${esc(u.name)} follows`}</h2>
     <ul class="people">${list.map((p) => `<li>${avatar(p)}<a href="#/u/${esc(p.username)}">${esc(p.name)}${officialBadge(p)}<br><span class="muted small">@${esc(p.username)}</span></a>${followBtn(p)}</li>`).join("") || `<li class="muted">Nobody yet.</li>`}</ul>
@@ -3217,6 +3215,11 @@ async function start() {
   } catch {
     $app.innerHTML = `<section class="card picker"><header class="picker-head"><h2>Can't reach the server</h2><p class="muted">Is it running? Try again in a moment.</p></header></section>`;
     return;
+  }
+  if (!me && config?.devLogin && (location.hash.startsWith("#/learn") || location.hash.startsWith("#/course") || location.hash.startsWith("#/discover") || location.hash.startsWith("#/play") || location.hash.startsWith("#/leaderboard") || location.hash.startsWith("#/studio"))) {
+    try {
+      ({ user: me } = await api("/auth/dev", { method: "POST", body: { name: "Learner" } }));
+    } catch {}
   }
   route();
   addEventListener("hashchange", route);
