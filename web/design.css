@@ -4535,8 +4535,23 @@ svg.check-icon {
 .workspace .people li {
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 10px !important;
+  padding: 8px 10px !important;
+  background: #ffffff !important;
+  border: 1.5px solid var(--color-ink-black) !important;
+  border-radius: 4px !important;
   font-size: 13px !important;
+}
+
+.workspace .people li.you {
+  background: rgba(244, 237, 54, 0.15) !important;
+  border-color: var(--color-ink-black) !important;
+}
+
+.workspace .people li > span:not(.pts):not(.muted) {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  line-height: 1.3 !important;
 }
 
 .workspace .people .played {
@@ -4551,6 +4566,29 @@ svg.check-icon {
   border: 1px solid var(--color-ink-black) !important;
   padding: 2px 7px !important;
   border-radius: 100px !important;
+}
+
+.workspace .people .pts {
+  margin-left: auto !important;
+  background: var(--color-hi-vis-yellow) !important;
+  color: var(--color-ink-black) !important;
+  border: 1.5px solid var(--color-ink-black) !important;
+  border-radius: 100px !important;
+  padding: 2px 8px !important;
+  font-family: var(--font-bergenmonoregular), monospace !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 3px !important;
+  flex-shrink: 0 !important;
+}
+
+.workspace .people .pts small {
+  font-size: 9.5px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  color: var(--color-ink-black) !important;
 }
 
 .sheet-wrap {

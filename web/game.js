@@ -36,9 +36,25 @@ function toast(msg) {
   toast.timer = setTimeout(() => (t.hidden = true), 2400);
 }
 
+const fmtClock = (ms) => {
+  const s = Math.max(0, Math.round(ms / 1000));
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  if (m >= 60) {
+    const h = Math.floor(m / 60);
+    return `${h}:${String(m % 60).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  }
+  return `${m}:${String(sec).padStart(2, "0")}`;
+};
 const fmtTime = (ms) => {
   const s = Math.max(0, Math.round(ms / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  if (m < 60) return sec > 0 ? `${m}m ${sec}s` : `${m}m`;
+  const h = Math.floor(m / 60);
+  const remM = m % 60;
+  return remM > 0 ? `${h}h ${remM}m` : `${h}h`;
 };
 const fmtDate = (ms) => new Date(ms || Date.now()).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 const fmtMinutes = (ms) => `${Math.max(1, Math.ceil(ms / 60000))} min`;
@@ -324,7 +340,7 @@ function renderDuelPlay(duel) {
 
   // The server keeps the real clock; this one is only a guide.
   const clock = document.getElementById("clock");
-  clockTimer = setInterval(() => (clock.textContent = fmtTime(Date.now() - started)), 1000);
+  clockTimer = setInterval(() => (clock.textContent = fmtClock(Date.now() - started)), 1000);
 
   const onKey = (e) => {
     if (!document.getElementById("qcard")) return removeEventListener("keydown", onKey);
@@ -383,7 +399,7 @@ function renderResults(duel, justSubmitted = false) {
         <section><h3>Scoreboard</h3>${verdict}
           <ul class="people">${duel.players
       .map(
-        (p) => `<li class="${p.isYou ? "you" : ""}"><span class="muted small">#${p.rank}</span>${avatar(p)}<span>${esc(p.name)}${p.isYou ? " (you)" : ""}<br><span class="muted small">${p.correct}/${duel.count} right · ${fmtTime(p.elapsedMs)}</span></span><span class="pts">${p.points}</span></li>`,
+        (p) => `<li class="${p.isYou ? "you" : ""}"><span class="muted small">#${p.rank}</span>${avatar(p)}<span>${esc(p.name)}${p.isYou ? " (you)" : ""}<br><span class="muted small">${p.correct}/${duel.count} right · ${fmtTime(p.elapsedMs)}</span></span><span class="pts"><b>${p.points}</b> <small>pts</small></span></li>`,
       )
       .join("")}</ul>
           ${others.length ? "" : `<button class="btn dashed block" data-copy="${esc(shareLink(duel.code))}">${I.copy} Copy invite link</button>`}
