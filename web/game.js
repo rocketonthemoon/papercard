@@ -2393,9 +2393,18 @@ function wireFollow(root = $app) {
 
 function profileMini(u) {
   return `<div class="profile-mini">
-    <a href="#/u/${esc(u.username)}" class="profile-mini-head">${avatar(u)}<span><b>${esc(u.name)}${officialBadge(u)}</b><br><span class="muted small">@${esc(u.username)}</span></span></a>
-    ${u.bio ? `<p class="muted small">${esc(u.bio)}</p>` : ""}
-    <div class="row spread"><span class="muted small"><b data-followers="${esc(u.username)}">${u.followers}</b> followers</span>${followBtn(u)}</div>
+    <a href="#/u/${esc(u.username)}" class="profile-mini-head">
+      ${avatar(u)}
+      <div class="profile-mini-info">
+        <b class="profile-mini-name">${esc(u.name)}${officialBadge(u)}</b>
+        <span class="muted small profile-mini-handle">@${esc(u.username)}</span>
+      </div>
+    </a>
+    ${u.bio ? `<p class="muted small profile-mini-bio">${esc(u.bio)}</p>` : ""}
+    <div class="row spread profile-mini-foot">
+      <span class="muted small profile-mini-followers"><b data-followers="${esc(u.username)}">${u.followers}</b> ${u.followers === 1 ? "follower" : "followers"}</span>
+      ${followBtn(u)}
+    </div>
   </div>`;
 }
 

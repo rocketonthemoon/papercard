@@ -1932,20 +1932,20 @@ body:not(.shell) .mobile-nav,
 }
 
 .enrolled-desc {
-  padding: 16px 20px 0;
-  font-family: var(--font-degularvariable);
-  font-size: 14.5px;
-  line-height: 1.35;
-  color: #333333;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-height: 4.05em;
-  max-height: 4.05em;
-  box-sizing: content-box;
+  padding: 16px 20px 0 !important;
+  font-family: var(--font-degularvariable), sans-serif !important;
+  font-size: 14.5px !important;
+  line-height: 1.35 !important;
+  color: #333333 !important;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  line-clamp: 2 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  min-height: 2.7em !important;
+  max-height: 2.7em !important;
+  box-sizing: content-box !important;
 }
 
 .enrolled-desc-spacer {
@@ -4814,16 +4814,19 @@ body.shell .footer {
 }
 
 .pcard-desc {
-  font-size: 13.5px;
-  color: #2b2b2b;
-  line-height: 1.45;
-  margin: 0;
-  flex: 1 1 auto;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: 4.35em;
+  font-size: 13.5px !important;
+  color: #2b2b2b !important;
+  line-height: 1.45 !important;
+  margin: 0 !important;
+  flex: 1 1 auto !important;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  line-clamp: 2 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  min-height: 2.9em !important;
+  max-height: 2.9em !important;
 }
 
 .pcard .meta {
@@ -8663,6 +8666,106 @@ ul.tree li,
 @media (max-width: 900px) {
   .course-page {
     grid-template-columns: 1fr !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .course-breadcrumb-bar {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .breadcrumb-trail {
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .breadcrumb-current {
+    max-width: 140px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+    vertical-align: bottom !important;
+  }
+
+  .course-page-main {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .course-hero {
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 16px 14px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .course-flag.big {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    font-size: 18px !important;
+  }
+
+  .course-hero-details {
+    min-width: 0 !important;
+    width: 100% !important;
+    flex: 1 1 auto !important;
+  }
+
+  .course-hero-details h1 {
+    font-size: 21px !important;
+    line-height: 1.2 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .hero-badges {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+
+  .course-description-text {
+    font-size: 13.5px !important;
+    line-height: 1.4 !important;
+    word-break: break-word !important;
+  }
+
+  .list-card {
+    padding: 16px 12px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .deck-row {
+    grid-template-columns: 28px minmax(0, 1fr) auto !important;
+    gap: 8px !important;
+    padding: 8px 4px !important;
+    min-width: 0 !important;
+  }
+
+  .deck-info {
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .deck-info b {
+    font-size: 13.5px !important;
+    display: block !important;
+    word-break: break-word !important;
+  }
+
+  .deck-meta {
+    font-size: 11px !important;
+    white-space: nowrap !important;
   }
 }
 
@@ -8750,18 +8853,137 @@ ul.tree li,
   color: var(--color-firecracker-red) !important;
 }
 
-/* 5. Course Made-by Aside Card */
+/* 5. Course Made-by Aside Card & Mini Profile */
 .course-page aside.side-card {
   background: var(--color-bone-white) !important;
   border: 2px solid var(--color-ink-black) !important;
   border-radius: var(--radius-cards, 6px) !important;
-  padding: 20px !important;
+  padding: 22px 24px !important;
+  box-shadow: none !important;
 }
 
 .course-page aside.side-card h3 {
   font-family: var(--font-degulardisplay-bold), sans-serif !important;
   font-size: 18px !important;
-  margin: 0 0 14px !important;
+  font-weight: 700 !important;
+  margin: 0 0 16px !important;
+  color: var(--color-ink-black) !important;
+}
+
+.profile-mini {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.profile-mini-head {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+.profile-mini-head,
+.profile-mini-head * {
+  text-decoration: none !important;
+}
+
+.profile-mini-head .avatar {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  border-radius: 50% !important;
+  border: 2px solid var(--color-ink-black) !important;
+  background: var(--color-hi-vis-yellow) !important;
+  color: var(--color-ink-black) !important;
+  font-family: var(--font-obviouslyvariable), 'Syne', sans-serif !important;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-decoration: none !important;
+  flex-shrink: 0 !important;
+}
+
+.profile-mini-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+}
+
+.profile-mini-name {
+  font-family: var(--font-obviouslyvariable), 'Syne', sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  color: var(--color-ink-black) !important;
+  line-height: 1.2 !important;
+}
+
+.profile-mini-head:hover .profile-mini-name {
+  text-decoration: underline !important;
+}
+
+.profile-mini-handle {
+  font-family: var(--font-bergenmonoregular), monospace !important;
+  font-size: 12px !important;
+  color: rgba(26, 26, 26, 0.6) !important;
+  letter-spacing: -0.01em !important;
+}
+
+.profile-mini-bio {
+  font-family: var(--font-degularvariable), sans-serif !important;
+  font-size: 13.5px !important;
+  line-height: 1.4 !important;
+  color: rgba(26, 26, 26, 0.8) !important;
+  margin: 0 !important;
+}
+
+.profile-mini-foot {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-top: 2px !important;
+  padding-top: 12px !important;
+  border-top: 1.5px solid rgba(26, 26, 26, 0.1) !important;
+}
+
+.profile-mini-followers {
+  font-family: var(--font-bergenmonoregular), monospace !important;
+  font-size: 12px !important;
+  color: rgba(26, 26, 26, 0.7) !important;
+}
+
+.profile-mini-followers b {
+  font-weight: 700 !important;
+  color: var(--color-ink-black) !important;
+}
+
+.profile-mini-foot button[data-follow] {
+  padding: 6px 20px !important;
+  font-family: var(--font-degulardisplay-bold), sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border-radius: 100px !important;
+  border: 1.5px solid var(--color-ink-black) !important;
+  background: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.profile-mini-foot button[data-follow]:hover {
+  background: var(--color-hi-vis-yellow) !important;
+}
+
+.profile-mini-foot button[data-follow][data-on="true"],
+.profile-mini-foot button[data-follow].outline {
+  background: rgba(26, 26, 26, 0.08) !important;
+  color: rgba(26, 26, 26, 0.7) !important;
 }
 
 /* ==========================================================================
