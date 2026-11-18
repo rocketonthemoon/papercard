@@ -458,6 +458,11 @@ function setTopStats(stats) {
     review.querySelector(".badge-dot")?.remove();
     if (topStats.due) review.insertAdjacentHTML("beforeend", `<span class="badge-dot mono-tag" aria-label="${topStats.due} due">${topStats.due > 99 ? "99+" : topStats.due}</span>`);
   }
+  const mobReview = document.querySelector('.mobile-nav a[data-nav="review"] .mobile-tab-icon');
+  if (mobReview) {
+    mobReview.querySelector(".badge-dot")?.remove();
+    if (topStats.due) mobReview.insertAdjacentHTML("beforeend", `<span class="badge-dot mono-tag">${topStats.due > 99 ? "99+" : topStats.due}</span>`);
+  }
 }
 const refreshTopStats = () =>
   api("/learn")
@@ -469,6 +474,8 @@ function renderNav() {
   document.body.classList.toggle("shell", signedIn);
   const sidebar = document.getElementById("sidebar");
   if (sidebar) sidebar.hidden = !signedIn;
+  const mobileNav = document.getElementById("mobile-nav");
+  if (mobileNav) mobileNav.hidden = !signedIn;
   const themeBtn = document.getElementById("theme");
   if (!signedIn) {
     if (themeBtn) document.querySelector(".nav-inner")?.append(themeBtn);
@@ -491,6 +498,25 @@ function renderNav() {
     const bottom = document.getElementById("side-bottom");
     bottom.innerHTML = `<button class="btn-gate-pill small" id="logout" title="Sign out" aria-label="Sign out">SIGN OUT</button>`;
     if (themeBtn) bottom.prepend(themeBtn);
+  }
+  if (mobileNav) {
+    const mobItems = [
+      ["learn", "#/learn", "Home", "home"],
+      ["review", "#/learn/review", "Review", "review"],
+      ["discover", "#/discover", "Courses", "courses"],
+      ["play", "#/play", "Play", "play"],
+      ...(me.isAdmin
+        ? [["admin", "#/admin", "Admin", "admin"]]
+        : [["studio", "#/studio", "Studio", "studio"]])
+    ];
+    mobileNav.innerHTML = mobItems
+      .map(([key, href, label, ic]) => `
+        <a href="${href}" class="mobile-tab-item" data-nav="${key}"${page() === key ? ' aria-current="page"' : ""}>
+          <span class="mobile-tab-icon">${ICON[ic]}</span>
+          <span class="mobile-tab-label">${label}</span>
+        </a>
+      `)
+      .join("");
   }
   const topLinks = document.querySelector(".links");
   if (topLinks) {
@@ -959,7 +985,7 @@ async function renderEnrolledCourses() {
             <h1 class="dash-title">MY COURSES</h1>
             <p class="dash-sub muted">${myCourses.length ? "Pick a course to continue learning" : "Start your language journey"}</p>
           </div>
-          <a class="btn outline small" href="#/discover">${ICON.plus} Discover</a>
+          <a class="btn btn-gate-pill small" href="#/discover">${ICON.plus} DISCOVER</a>
         </header>
         ${myCourses.length ? `<div class="enrolled-grid">${enrolledCards}${addCard}</div>` : emptyState}
       </div>
@@ -2575,7 +2601,7 @@ async function renderStudioHome() {
         <p class="muted studio-desc">Make your own course: decks, lessons and words. Learners get the same lessons, review and duels as official courses.</p>
       </div>
       <div class="toolbar-actions">
-        <label class="btn btn-outlined-display small" title="Upload a course file exported from Papercard">${I.upload} Import .db<input type="file" id="import" accept=".db,.sqlite,application/vnd.sqlite3" hidden></label>
+        <label class="btn btn-gate-pill small" title="Upload a course file exported from Papercard">${I.upload} Import .db<input type="file" id="import" accept=".db,.sqlite,application/vnd.sqlite3" hidden></label>
         <button class="btn btn-gate-pill small" id="new-course">${I.plus} NEW COURSE →</button>
       </div>
     </div>
