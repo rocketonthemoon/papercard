@@ -42,7 +42,7 @@
           {/if}
         </a>
       </div>
-    {:else}
+    {:else if appState.hash !== '#/' && appState.hash !== '#/landing' && appState.hash !== ''}
       <div class="right-group">
         <a href="#/" class="btn sm primary">Sign In</a>
       </div>
@@ -55,7 +55,7 @@
     position: sticky;
     top: 0;
     z-index: 50;
-    height: 56px;
+    height: 60px;
     background: var(--color-dusk-violet);
     border-bottom: var(--border-thick);
     display: flex;
@@ -74,11 +74,13 @@
 
   .brand {
     font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 19px;
-    letter-spacing: -0.03em;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: -0.04em;
     color: var(--color-bone-white);
     text-transform: uppercase;
+    text-shadow: 2px 2px 0 var(--color-ink-black);
+    transition: color 0.1s ease;
   }
 
   .brand:hover {
@@ -101,34 +103,41 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px;
+    padding: 5px 12px;
     background: var(--color-bone-white);
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
     border-radius: var(--radius-pill);
+    box-shadow: 0 2px 0 var(--color-ink-black);
     font-family: var(--font-mono);
     font-size: 12px;
     color: var(--color-ink-black);
   }
 
+  .chip.streak {
+    background: var(--color-hi-vis-yellow);
+  }
+
   .chip b {
-    font-weight: 700;
+    font-weight: 800;
   }
 
   .avatar-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
+    box-shadow: 0 2px 0 var(--color-ink-black);
     overflow: hidden;
     background: var(--color-bone-white);
-    transition: transform 0.1s ease;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
   }
 
   .avatar-link:hover {
-    transform: scale(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 var(--color-ink-black);
   }
 
   .avatar-img {
@@ -139,8 +148,8 @@
 
   .avatar-fallback {
     font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 14px;
+    font-weight: 900;
+    font-size: 15px;
     color: var(--color-ink-black);
   }
 </style>

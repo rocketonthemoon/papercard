@@ -479,24 +479,25 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px;
+    padding: 8px 12px;
     border-radius: var(--radius-pill);
-    border: 1.2px solid transparent;
+    border: var(--border-hair);
     text-align: left;
     font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
     background: var(--color-bone-white);
-    transition: background 0.1s ease;
+    transition: transform 0.08s ease, background-color 0.1s ease;
   }
 
   .lesson-select-btn:hover {
-    background: rgba(244, 237, 54, 0.3);
+    background: var(--color-buttery-yellow);
+    transform: translateX(2px);
   }
 
   .lesson-select-btn.active {
     background: var(--color-hi-vis-yellow);
-    border-color: var(--color-ink-black);
-    font-weight: 700;
+    box-shadow: 0 2px 0 var(--color-ink-black);
   }
 
   /* Right Panel */
@@ -511,30 +512,31 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    border-bottom: 1.5px solid rgba(26, 26, 26, 0.1);
+    border-bottom: 1.5px solid rgba(26, 26, 26, 0.12);
     padding-bottom: 12px;
   }
 
   .lesson-panel-header h2 {
     font-family: var(--font-display);
-    font-size: 24px;
-    font-weight: 800;
+    font-size: 26px;
+    font-weight: 900;
   }
 
   .add-word-form {
     background: rgba(26, 26, 26, 0.03);
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
     border-radius: var(--radius-card);
-    padding: 16px;
+    box-shadow: 0 3px 0 var(--color-ink-black);
+    padding: 18px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
 
   .word-inputs {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 12px;
   }
 
   @media (max-width: 600px) {
@@ -544,12 +546,14 @@
   }
 
   .input-box {
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
     border-radius: var(--radius-card);
-    padding: 8px 12px;
+    padding: 10px 14px;
     font-family: inherit;
-    font-size: 13.5px;
+    font-size: 14px;
+    font-weight: 600;
     background: var(--color-bone-white);
+    box-shadow: 0 2px 0 var(--color-ink-black);
   }
 
   .words-list {

@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { api } from '../lib/api.js';
+  import { appState } from '../lib/state.svelte.js';
   import Icon from '../lib/components/Icon.svelte';
 
   let period = $state('week'); // 'week' or 'all'
@@ -20,317 +21,126 @@
     }
   }
 
+  $effect(() => {
+    const isAll = appState.hash.includes('all');
+    const p = isAll ? 'all' : 'week';
+    if (p !== period) {
+      loadBoard(p);
+    }
+  });
+
   onMount(() => {
-    loadBoard('week');
+    const isAll = appState.hash.includes('all');
+    loadBoard(isAll ? 'all' : 'week');
   });
 
   let rows = $derived(data?.rows || []);
-  let topThree = $derived(rows.slice(0, 3));
-  let restRows = $derived(rows.slice(3));
+  let me = $derived(data?.me || null);
+
+  function avatarText(r) {
+    return (r.name || '?').charAt(0).toUpperCase();
+  }
 </script>
 
-<div class="leaderboard-view">
-  <section class="card board-card">
-    <header class="board-head">
-      <div class="trophy-icon">
-        <Icon name="trophy" size={32} />
-      </div>
-      <h2>{period === 'week' ? "This Week's Top Learners" : "All-Time Top Learners"}</h2>
-      <p class="muted">
-        Earn XP in lessons and reviews to take the top spot. {period === 'week' ? 'Resets every Monday.' : ''}
-      </p>
+<section class="card board-page">
+  <header class="picker-head">
+    <h2>{period === 'week' ? "This week's top learners" : "All-time top learners"}</h2>
+    <p class="muted">
+      Earn XP in lessons and reviews, in any course. {period === 'week' ? 'Resets every Monday.' : ''}
+    </p>
+  </header>
 
-      <div class="period-tabs">
-        <button
-          type="button"
-          class="tab-btn"
-          class:active={period === 'week'}
-          onclick={() => loadBoard('week')}
-        >
-          Weekly
-        </button>
-        <button
-          type="button"
-          class="tab-btn"
-          class:active={period === 'all'}
-          onclick={() => loadBoard('all')}
-        >
-          All time
-        </button>
-      </div>
-    </header>
+  <div class="segmented" role="tablist" style="margin:0 auto 24px;">
+    <a
+      role="tab"
+      href="#/leaderboard"
+      aria-selected={period === 'week'}
+      onclick={(e) => { e.preventDefault(); appState.navigate('#/leaderboard'); loadBoard('week'); }}
+    >
+      Weekly
+    </a>
+    <a
+      role="tab"
+      href="#/leaderboard/all"
+      aria-selected={period === 'all'}
+      onclick={(e) => { e.preventDefault(); appState.navigate('#/leaderboard/all'); loadBoard('all'); }}
+    >
+      All time
+    </a>
+  </div>
 
-    {#if loading}
-      <div class="loading-state">
-        <p class="muted">Loading rankings…</p>
-      </div>
-    {:else if errorMsg}
-      <div class="error-state">
-        <p class="muted">{errorMsg}</p>
-      </div>
-    {:else if rows.length === 0}
-      <div class="empty-state">
-        <p class="muted">No learners on the board yet. Complete a lesson to take #1!</p>
-        <a href="#/learn" class="btn primary">Start learning →</a>
-      </div>
-    {:else}
-      <!-- Podium for Top 3 -->
-      {#if topThree.length > 0}
-        <div class="podium">
-          {#if topThree[1]}
-            <div class="podium-col rank-2">
-              <span class="podium-badge">🥈 #2</span>
-              <span class="podium-avatar">{topThree[1].name?.charAt(0) || '?'}</span>
-              <b class="podium-name">{topThree[1].name}</b>
-              <span class="podium-xp mono-tag">{topThree[1].xp} XP</span>
-            </div>
-          {/if}
-
-          {#if topThree[0]}
-            <div class="podium-col rank-1">
-              <span class="podium-badge">👑 #1</span>
-              <span class="podium-avatar">{topThree[0].name?.charAt(0) || '?'}</span>
-              <b class="podium-name">{topThree[0].name}</b>
-              <span class="podium-xp mono-tag">{topThree[0].xp} XP</span>
-            </div>
-          {/if}
-
-          {#if topThree[2]}
-            <div class="podium-col rank-3">
-              <span class="podium-badge">🥉 #3</span>
-              <span class="podium-avatar">{topThree[2].name?.charAt(0) || '?'}</span>
-              <b class="podium-name">{topThree[2].name}</b>
-              <span class="podium-xp mono-tag">{topThree[2].xp} XP</span>
-            </div>
-          {/if}
-        </div>
+  {#if loading}
+    <p class="muted loading" style="text-align:center;padding:40px 0;">Loading leaderboard…</p>
+  {:else if errorMsg}
+    <p class="error" style="text-align:center;padding:40px 0;">{errorMsg}</p>
+  {:else if rows.length === 0}
+    <div class="empty-state" style="text-align:center;padding:40px 0;">
+      <span class="finish-icon" style="display:inline-block;margin-bottom:12px;"><Icon name="trophy" size={48} /></span>
+      <h3>No learners on the board yet</h3>
+      <p class="muted" style="margin:8px 0 16px;">Earn XP in lessons and reviews to take the top spot.</p>
+      <a href="#/learn" class="btn btn-gate-pill">Start learning →</a>
+    </div>
+  {:else}
+    <!-- Podium: 2nd, 1st, 3rd -->
+    <div class="podium">
+      {#if rows[1]}
+        <a class="podium-spot second" href="#/u/{rows[1].username}">
+          <span class="pic">
+            <span class="avatar-ph" style="display:inline-flex;width:48px;height:48px;border-radius:50%;background:#f4ed36;border:2px solid #000;align-items:center;justify-content:center;font-weight:900;font-size:20px;">{avatarText(rows[1])}</span>
+            <span class="rank-badge">2</span>
+          </span>
+          <b>{rows[1].name}{rows[1].isYou ? ' (you)' : ''}</b>
+          <span>{rows[1].xp} XP</span>
+        </a>
+      {:else}
+        <span></span>
       {/if}
 
-      <!-- Full Table -->
-      <table class="board-table">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Learner</th>
-            <th>Streak</th>
-            <th>XP</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each rows as r, i}
-            <tr class:is-you={r.isYou}>
-              <td>
-                <span class="rank-num mono-tag">#{i + 1}</span>
-              </td>
-              <td>
-                <a href="#/u/{r.handle || r.username || r.name}" class="learner-cell">
-                  <span class="learner-avatar">{r.name?.charAt(0) || '?'}</span>
-                  <span class="learner-name">{r.name} {r.isYou ? '(You)' : ''}</span>
-                </a>
-              </td>
-              <td>
-                {#if r.streak}
-                  <span class="streak-tag mono-tag">
-                    <Icon name="fire" size={13} />
-                    <span>{r.streak}d</span>
-                  </span>
-                {:else}
-                  <span class="muted mono-tag small">-</span>
-                {/if}
-              </td>
-              <td>
-                <b class="xp-cell mono-tag">{r.xp}</b>
-              </td>
-            </tr>
-          {/each}
-        </tbody>
-      </table>
-
-      {#if data.me && !rows.some(r => r.isYou)}
-        <p class="my-rank-note mono-tag muted">
-          You're #{data.me.rank} with {data.me.xp} XP.
-        </p>
+      {#if rows[0]}
+        <a class="podium-spot first" href="#/u/{rows[0].username}">
+          <span class="pic">
+            <span class="avatar-ph" style="display:inline-flex;width:56px;height:56px;border-radius:50%;background:#ffd33d;border:2px solid #000;align-items:center;justify-content:center;font-weight:900;font-size:24px;">{avatarText(rows[0])}</span>
+            <span class="rank-badge">1</span>
+          </span>
+          <b>{rows[0].name}{rows[0].isYou ? ' (you)' : ''}</b>
+          <span>{rows[0].xp} XP</span>
+        </a>
+      {:else}
+        <span></span>
       {/if}
+
+      {#if rows[2]}
+        <a class="podium-spot third" href="#/u/{rows[2].username}">
+          <span class="pic">
+            <span class="avatar-ph" style="display:inline-flex;width:44px;height:44px;border-radius:50%;background:#f8c1ba;border:2px solid #000;align-items:center;justify-content:center;font-weight:900;font-size:18px;">{avatarText(rows[2])}</span>
+            <span class="rank-badge">3</span>
+          </span>
+          <b>{rows[2].name}{rows[2].isYou ? ' (you)' : ''}</b>
+          <span>{rows[2].xp} XP</span>
+        </a>
+      {:else}
+        <span></span>
+      {/if}
+    </div>
+
+    <!-- Rest of the Board -->
+    {#if rows.length > 3}
+      <ol class="rank-list">
+        {#each rows.slice(3, 20) as r}
+          <li class={r.isYou ? 'you' : ''}>
+            <span class="n">{r.rank}</span>
+            <span class="avatar-ph" style="display:inline-flex;width:32px;height:32px;border-radius:50%;background:#f9f5f2;border:1.5px solid #000;align-items:center;justify-content:center;font-weight:700;font-size:14px;margin-right:10px;">{avatarText(r)}</span>
+            <a href="#/u/{r.username}" style="text-decoration:none;color:inherit;font-weight:600;">{r.name}{r.isYou ? ' (you)' : ''}</a>
+            <span class="xp" style="margin-left:auto;font-weight:700;">{r.xp} XP</span>
+          </li>
+        {/each}
+      </ol>
     {/if}
-  </section>
-</div>
+  {/if}
 
-<style>
-  .leaderboard-view {
-    max-width: 680px;
-    margin: 0 auto;
-  }
-
-  .board-card {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 32px 24px;
-  }
-
-  .board-head {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-  }
-
-  .board-head h2 {
-    font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 900;
-  }
-
-  .period-tabs {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-  }
-
-  .tab-btn {
-    padding: 6px 18px;
-    border-radius: var(--radius-pill);
-    border: 1.5px solid var(--color-ink-black);
-    background: var(--color-bone-white);
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .tab-btn.active {
-    background: var(--color-hi-vis-yellow);
-  }
-
-  /* Podium */
-  .podium {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 16px;
-    padding: 20px 0 10px;
-  }
-
-  .podium-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    padding: 16px 12px;
-    width: 140px;
-    text-align: center;
-  }
-
-  .podium-col.rank-1 {
-    background: var(--color-hi-vis-yellow);
-    height: 190px;
-    order: 2;
-  }
-
-  .podium-col.rank-2 {
-    background: var(--color-bone-white);
-    height: 165px;
-    order: 1;
-  }
-
-  .podium-col.rank-3 {
-    background: var(--color-bubblegum-pink);
-    height: 150px;
-    order: 3;
-  }
-
-  .podium-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 1.5px solid var(--color-ink-black);
-    background: var(--color-bone-white);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-  }
-
-  .podium-name {
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
-
-  .podium-xp {
-    font-size: 12px;
-    font-weight: 700;
-  }
-
-  /* Table */
-  .board-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    overflow: hidden;
-    margin-top: 10px;
-  }
-
-  .board-table th, .board-table td {
-    padding: 10px 14px;
-    border-bottom: 1px solid rgba(26, 26, 26, 0.12);
-  }
-
-  .board-table th {
-    background: rgba(26, 26, 26, 0.05);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    text-align: left;
-  }
-
-  .board-table tr.is-you {
-    background: rgba(244, 237, 54, 0.35);
-  }
-
-  .learner-cell {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-  }
-
-  .learner-avatar {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    border: 1px solid var(--color-ink-black);
-    background: var(--color-bone-white);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 800;
-  }
-
-  .streak-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-  }
-
-  .xp-cell {
-    font-size: 14px;
-  }
-
-  .my-rank-note {
-    text-align: center;
-    margin-top: 8px;
-    font-size: 12px;
-  }
-
-  .loading-state, .error-state, .empty-state {
-    text-align: center;
-    padding: 32px 0;
-  }
-</style>
+  {#if me && !rows.some(r => r.isYou)}
+    <p class="muted center" style="margin-top:24px;text-align:center;">
+      You're #{me.rank} with {me.xp} XP.
+    </p>
+  {/if}
+</section>

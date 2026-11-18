@@ -464,42 +464,44 @@
     background: var(--color-bone-white);
     border: var(--border-thick);
     border-radius: var(--radius-card);
-    padding: 24px;
+    padding: 28px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    box-shadow: 0 6px 0 rgba(26, 26, 26, 0.2);
+    box-shadow: 0 6px 0 var(--color-ink-black);
   }
 
   .sheet-head {
     display: flex;
     justify-content: space-between;
     padding-bottom: 12px;
-    border-bottom: 1px dashed rgba(26, 26, 26, 0.2);
+    border-bottom: 2px dashed rgba(26, 26, 26, 0.2);
     font-size: 12px;
   }
 
   .qdots {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
   }
 
   .qdot {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
     background: var(--color-bone-white);
+    box-shadow: 0 2px 0 var(--color-ink-black);
     font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 800;
     cursor: pointer;
-    transition: transform 0.1s;
+    transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.1s ease;
   }
 
   .qdot:hover {
-    transform: scale(1.1);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 0 var(--color-ink-black);
   }
 
   .qdot.done {
@@ -508,7 +510,8 @@
 
   .qdot.current {
     background: var(--color-hi-vis-yellow);
-    box-shadow: 0 0 0 2px var(--color-ink-black);
+    box-shadow: 0 3px 0 var(--color-ink-black);
+    transform: translateY(-2px);
   }
 
   .question-box {
@@ -519,15 +522,16 @@
 
   .prompt-card {
     background: rgba(26, 26, 26, 0.04);
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
     border-radius: var(--radius-card);
-    padding: 20px;
+    box-shadow: 0 3px 0 var(--color-ink-black);
+    padding: 24px;
     text-align: center;
   }
 
   .prompt-title {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--ink-60);
     margin-bottom: 8px;
   }
@@ -541,14 +545,15 @@
 
   .prompt-word {
     font-family: var(--font-display);
-    font-size: clamp(26px, 4vw, 36px);
-    font-weight: 800;
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 900;
+    letter-spacing: -0.01em;
   }
 
   .options-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 14px;
   }
 
   @media (max-width: 600px) {
@@ -561,37 +566,46 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 18px;
+    padding: 16px 20px;
     border: var(--border-thick);
     border-radius: var(--radius-card);
     background: var(--color-bone-white);
+    box-shadow: 0 3px 0 var(--color-ink-black);
     font-size: 15px;
     font-weight: 700;
     text-align: left;
     cursor: pointer;
-    transition: transform 0.08s ease, background-color 0.1s ease;
+    transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.1s ease;
   }
 
   .option-btn:hover {
-    background: rgba(244, 237, 54, 0.4);
-    transform: translateY(-1px);
+    background: var(--color-buttery-yellow);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 0 var(--color-ink-black);
+  }
+
+  .option-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--color-ink-black);
   }
 
   .option-btn.picked {
     background: var(--color-hi-vis-yellow);
-    box-shadow: inset 0 0 0 1px var(--color-ink-black);
+    box-shadow: 0 3px 0 var(--color-ink-black);
   }
 
   .opt-num {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-radius: 4px;
-    border: 1px solid var(--color-ink-black);
+    border: var(--border-thick);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 11px;
+    font-weight: 800;
     background: var(--color-bone-white);
+    box-shadow: 0 1px 0 var(--color-ink-black);
   }
 
   .sheet-footer {

@@ -75,13 +75,20 @@ async function captureScreen(route, filename, waitMs = 1200) {
 }
 
 // 1. Landing Screen (Signed out)
-await captureScreen('#/landing', 'verified_svelte_landing.png');
+console.log('\n--- Testing #/landing ---');
+await send('Page.navigate', { url: 'http://localhost:8080/#/' });
+for (let i = 0; i < 30; i++) {
+  const hasLanding = (await send('Runtime.evaluate', { expression: '!!document.querySelector(".poster-hero")' })).result?.result?.value;
+  if (hasLanding) break;
+  await sleep(200);
+}
+await captureScreen('#/', 'verified_svelte_landing.png', 500);
 
 // 2. Click Dev Sign In button on landing
 console.log('\n--- Clicking Dev Sign In button ---');
 await send('Runtime.evaluate', {
   expression: `(() => {
-    const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('Dev Sign In'));
+    const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.toLowerCase().includes('dev sign in'));
     if (btn) btn.click();
     return !!btn;
   })()`

@@ -253,12 +253,14 @@
   }
 
   .input-box {
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
     border-radius: var(--radius-card);
-    padding: 8px 12px;
+    padding: 10px 14px;
     font-family: inherit;
     font-size: 14px;
+    font-weight: 600;
     background: var(--color-bone-white);
+    box-shadow: 0 2px 0 var(--color-ink-black);
   }
 
   .modal-actions {
@@ -276,15 +278,26 @@
 
   .courses-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
   }
 
   .course-card {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 200px;
+    min-height: 220px;
+    background: var(--color-bone-white);
+    border: var(--border-thick);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 22px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .course-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 0 rgba(26, 26, 26, 0.3);
   }
 
   .course-top {

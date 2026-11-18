@@ -1,4 +1,16 @@
-# Labas / Papercard: one static binary, Mongoose (C) + the Rust engine. No Node.js.
+# --- Stage 1: Build modern Svelte 5 frontend with Vite ---
+FROM docker.io/library/node:22-alpine AS frontend-build
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/src ./src
+COPY frontend/public ./public
+COPY frontend/index.html ./index.html
+COPY frontend/vite.config.js ./vite.config.js
+COPY frontend/svelte.config.js ./svelte.config.js
+RUN npm run build
+
+# --- Stage 2: Compile C Backend & Rust Engine ---
 FROM docker.io/library/rust:1-alpine AS build
 RUN apk add --no-cache musl-dev build-base sqlite-dev sqlite-static curl
 WORKDIR /src
@@ -20,11 +32,11 @@ COPY server/main.c server/learn.c server/courses.c ./
 RUN gcc -O2 -Wall -Wextra -static -o papercard main.c mongoose.c -Iengine libduelcore.a -lsqlite3 -lm \
     && strip papercard
 
-# --- Minimal Production Image ---
+# --- Stage 3: Minimal Production Image (no Node.js in runtime) ---
 FROM docker.io/library/alpine:3.20
 RUN adduser -D -H -u 10001 papercard && mkdir /data && chown papercard /data
 COPY --from=build /src/papercard /usr/local/bin/papercard
-COPY web /srv/web
+COPY --from=frontend-build /app/dist /srv/web
 COPY server/seed.json /srv/seed.json
 USER papercard
 EXPOSE 8000

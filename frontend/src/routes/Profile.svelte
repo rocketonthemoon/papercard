@@ -253,11 +253,12 @@
   }
 
   .avatar-large {
-    width: 68px;
-    height: 68px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     border: var(--border-thick);
     background: var(--color-bone-white);
+    box-shadow: 0 3px 0 var(--color-ink-black);
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -273,7 +274,7 @@
 
   .avatar-txt {
     font-family: var(--font-display);
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 900;
   }
 
@@ -292,13 +293,13 @@
 
   .profile-name {
     font-family: var(--font-display);
-    font-size: 26px;
-    font-weight: 800;
+    font-size: 28px;
+    font-weight: 900;
   }
 
   .bio-txt {
     font-size: 14.5px;
-    line-height: 1.4;
+    line-height: 1.45;
     margin-top: 4px;
   }
 
@@ -306,6 +307,7 @@
     display: flex;
     gap: 14px;
     margin-top: 6px;
+    font-weight: 700;
   }
 
   .edit-profile-form {
@@ -323,12 +325,14 @@
   }
 
   .input-box {
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
     border-radius: var(--radius-card);
-    padding: 8px 12px;
+    padding: 10px 14px;
     font-family: inherit;
     font-size: 14px;
+    font-weight: 600;
     background: var(--color-bone-white);
+    box-shadow: 0 2px 0 var(--color-ink-black);
   }
 
   .form-actions {
@@ -357,8 +361,8 @@
 
   .section-top h2 {
     font-family: var(--font-display);
-    font-size: 22px;
-    font-weight: 800;
+    font-size: 24px;
+    font-weight: 900;
     color: var(--color-bone-white);
   }
 
@@ -371,7 +375,19 @@
   .course-card {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    justify-content: space-between;
+    min-height: 180px;
+    background: var(--color-bone-white);
+    border: var(--border-thick);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 20px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .course-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 rgba(26, 26, 26, 0.3);
   }
 
   .course-top {

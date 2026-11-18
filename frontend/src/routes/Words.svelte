@@ -214,35 +214,43 @@
 
   .filter-pills {
     display: flex;
-    gap: 6px;
+    gap: 8px;
   }
 
   .filter-btn {
-    padding: 6px 14px;
+    padding: 6px 16px;
     border-radius: var(--radius-pill);
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
     background: var(--color-bone-white);
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 800;
+    box-shadow: 0 2px 0 var(--color-ink-black);
     cursor: pointer;
+    transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.1s ease;
   }
 
   .filter-btn:hover {
-    background: rgba(244, 237, 54, 0.4);
+    background: var(--color-buttery-yellow);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 var(--color-ink-black);
   }
 
   .filter-btn.active {
     background: var(--color-hi-vis-yellow);
+    box-shadow: 0 2px 0 var(--color-ink-black);
   }
 
   .search-input {
     flex: 1;
-    min-width: 200px;
-    border: 1.5px solid var(--color-ink-black);
+    min-width: 220px;
+    border: var(--border-thick);
     border-radius: var(--radius-pill);
-    padding: 6px 14px;
+    padding: 8px 16px;
     font-family: inherit;
-    font-size: 13.5px;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--color-bone-white);
+    box-shadow: 0 2px 0 var(--color-ink-black);
   }
 
   .units-words {
@@ -289,10 +297,18 @@
     display: grid;
     grid-template-columns: 1fr 1fr auto;
     align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
-    border: 1px solid rgba(26, 26, 26, 0.1);
+    gap: 14px;
+    padding: 10px 14px;
+    border: var(--border-thick);
     border-radius: var(--radius-card);
+    background: var(--color-bone-white);
+    box-shadow: 0 2px 0 var(--color-ink-black);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  }
+
+  .word-row:hover {
+    transform: translateX(2px);
+    box-shadow: 0 3px 0 var(--color-ink-black);
   }
 
   @media (max-width: 580px) {
@@ -307,25 +323,33 @@
   .word-primary {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
 
   .lt-text {
     font-family: var(--font-display);
-    font-size: 16px;
+    font-size: 17px;
+    font-weight: 800;
   }
 
   .speaker-btn {
-    border: none;
-    background: none;
+    border: 1.5px solid var(--color-ink-black);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    background: var(--color-bone-white);
+    box-shadow: 0 1px 0 var(--color-ink-black);
     cursor: pointer;
-    color: var(--ink-60);
+    color: var(--color-ink-black);
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    transition: transform 0.08s ease, background 0.1s ease;
   }
 
   .speaker-btn:hover {
-    color: var(--color-ink-black);
+    background: var(--color-hi-vis-yellow);
+    transform: scale(1.08);
   }
 
   .word-translation {

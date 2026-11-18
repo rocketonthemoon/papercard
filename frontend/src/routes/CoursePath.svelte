@@ -99,7 +99,7 @@
               <li>
                 <a
                   href="#/learn/lesson/{l.id}"
-                  class="lesson-row"
+                  class="lesson-row-link lesson-node lesson-row"
                   class:current={isCurrent}
                   class:done={isDone}
                 >
@@ -226,34 +226,39 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 10px 14px;
-    border: 1.5px solid var(--color-ink-black);
+    padding: 12px 16px;
+    border: var(--border-thick);
     border-radius: var(--radius-card);
     background: var(--color-bone-white);
-    transition: transform 0.08s ease, background-color 0.1s ease;
+    box-shadow: 0 2px 0 var(--color-ink-black);
+    text-decoration: none;
+    color: var(--color-ink-black);
+    transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.1s ease;
   }
 
   .lesson-row:hover {
-    background: rgba(244, 237, 54, 0.35);
-    transform: translateX(3px);
+    background: var(--color-buttery-yellow);
+    transform: translateX(4px);
+    box-shadow: 0 3px 0 var(--color-ink-black);
   }
 
   .lesson-row.current {
-    background: rgba(244, 237, 54, 0.5);
-    box-shadow: 0 2px 0 var(--color-ink-black);
+    background: var(--color-hi-vis-yellow);
+    box-shadow: 0 3px 0 var(--color-ink-black);
   }
 
   .step-num {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
     background: var(--color-bone-white);
+    box-shadow: 0 1px 0 var(--color-ink-black);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 800;
-    font-size: 12px;
+    font-weight: 900;
+    font-size: 13px;
     font-family: var(--font-mono);
   }
 
@@ -262,7 +267,7 @@
   }
 
   .step-num.current {
-    background: var(--color-hi-vis-yellow);
+    background: var(--color-bone-white);
   }
 
   .lesson-text {
@@ -273,10 +278,12 @@
   }
 
   .lesson-name {
-    font-size: 14.5px;
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 800;
   }
 
   .cta-label {
-    font-weight: 700;
+    font-weight: 800;
   }
 </style>

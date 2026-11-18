@@ -66,6 +66,14 @@ export async function authDev(name = 'Learner', handle = 'learner') {
   return res.user;
 }
 
+export async function authGoogle(credential) {
+  const res = await api('/auth/google', {
+    method: 'POST',
+    body: { credential },
+  });
+  return res.user;
+}
+
 export async function authLogout() {
   await api('/auth/logout', { method: 'POST', body: {} });
 }

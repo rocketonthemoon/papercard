@@ -167,7 +167,7 @@
 
 <div class="review-page">
   {#if loading}
-    <div class="loading-state">
+    <div class="card loading-state">
       <p class="muted">Loading flashcards…</p>
     </div>
   {:else if errorMsg}
@@ -249,7 +249,7 @@
         </div>
       </header>
 
-      <!-- 3D Flashcard -->
+      <!-- 3D Flashcard with Tactile Ink Shadows -->
       <div
         class="flashcard"
         class:flipped={flipped}
@@ -257,7 +257,7 @@
         onkeydown={(e) => e.key === 'Enter' && (flipped = !flipped)}
         tabindex="0"
         role="button"
-        aria-label="Flashcard: {frontText}. Click to flip."
+        aria-label="Flashcard: {frontText}. Click or press space to flip."
       >
         <div class="flashcard-inner">
           <!-- Front Face -->
@@ -287,7 +287,7 @@
             </div>
 
             <div class="face-foot mono-tag muted">
-              <span>Tap card or press <b>Space</b> to flip</span>
+              <span>Tap card or press <b>Space</b> to flip ⤾</span>
             </div>
           </div>
 
@@ -332,7 +332,7 @@
             </button>
             <button class="btn primary flip-action" onclick={() => flipped = true}>
               <Icon name="flip" size={16} />
-              <span>Flip card</span>
+              <span>Flip card (Space)</span>
             </button>
             <button class="btn outline" onclick={skipCard}>
               Skip →
@@ -340,10 +340,10 @@
           </div>
         {:else}
           <div class="control-row rate-row">
-            <button class="btn outline learning-btn" onclick={markLearning}>
+            <button class="btn learning-btn" onclick={markLearning}>
               Still learning (1)
             </button>
-            <button class="btn primary gotit-btn" onclick={markMastered}>
+            <button class="btn gotit-btn" onclick={markMastered}>
               <Icon name="check" size={16} />
               <span>Got it! (2)</span>
             </button>
@@ -398,8 +398,9 @@
 
   .fstat {
     background: rgba(26, 26, 26, 0.04);
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
     border-radius: var(--radius-card);
+    box-shadow: 0 2px 0 var(--color-ink-black);
     padding: 12px;
     display: flex;
     flex-direction: column;
@@ -419,6 +420,11 @@
     font-size: 12px;
     margin-top: 8px;
     text-decoration: underline;
+    color: var(--color-bone-white);
+  }
+
+  .word-list-link:hover {
+    color: var(--color-hi-vis-yellow);
   }
 
   /* Flashcard Arena */
@@ -444,7 +450,8 @@
 
   .fc-counter {
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 800;
+    color: var(--color-bone-white);
   }
 
   .fc-tools {
@@ -454,8 +461,8 @@
 
   .fc-progress-track {
     height: 8px;
-    background: rgba(26, 26, 26, 0.1);
-    border: 1.5px solid var(--color-ink-black);
+    background: rgba(26, 26, 26, 0.2);
+    border: var(--border-thick);
     border-radius: var(--radius-pill);
     overflow: hidden;
   }
@@ -470,7 +477,7 @@
   /* 3D Flashcard */
   .flashcard {
     width: 100%;
-    min-height: 280px;
+    min-height: 290px;
     perspective: 1000px;
     cursor: pointer;
     user-select: none;
@@ -480,7 +487,7 @@
   .flashcard-inner {
     position: relative;
     width: 100%;
-    min-height: 280px;
+    min-height: 290px;
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     transform-style: preserve-3d;
   }
@@ -494,14 +501,13 @@
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
-    background: var(--color-bone-white);
     border: var(--border-thick);
     border-radius: var(--radius-card);
-    padding: 24px;
+    padding: 28px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 6px 0 rgba(26, 26, 26, 0.2);
+    box-shadow: 0 6px 0 var(--color-ink-black);
   }
 
   .front-face {
@@ -530,9 +536,10 @@
 
   .word-heading {
     font-family: var(--font-display);
-    font-size: clamp(28px, 5vw, 42px);
-    font-weight: 800;
-    line-height: 1.15;
+    font-size: clamp(32px, 6vw, 46px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
   }
 
   .lang-label {
@@ -548,18 +555,20 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
+    box-shadow: 0 2px 0 var(--color-ink-black);
     background: var(--color-bone-white);
-    transition: transform 0.1s ease;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
   }
 
   .audio-btn:hover {
-    transform: scale(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 var(--color-ink-black);
     background: var(--color-hi-vis-yellow);
   }
 
   .word-note {
-    font-size: 13.5px;
+    font-size: 14px;
     font-style: italic;
     color: var(--ink-60);
     margin-top: 6px;
@@ -588,7 +597,7 @@
   }
 
   .flip-action {
-    padding: 10px 32px;
+    padding: 10px 36px;
   }
 
   .rate-row {
@@ -598,24 +607,30 @@
   .learning-btn {
     flex: 1;
     background: var(--color-bubblegum-pink);
-    border-color: var(--color-ink-black);
+    border: var(--border-thick);
+    box-shadow: 0 3px 0 var(--color-ink-black);
   }
 
   .learning-btn:hover {
-    background: #fff;
+    background: #ffffff;
+    box-shadow: 0 4px 0 var(--color-ink-black);
   }
 
   .gotit-btn {
     flex: 1;
     background: var(--color-matcha-cream);
+    border: var(--border-thick);
+    box-shadow: 0 3px 0 var(--color-ink-black);
   }
 
   .gotit-btn:hover {
-    background: #fff;
+    background: #ffffff;
+    box-shadow: 0 4px 0 var(--color-ink-black);
   }
 
   .keyboard-hints {
     font-size: 11px;
     text-align: center;
+    color: var(--color-bone-white);
   }
 </style>

@@ -1,16 +1,122 @@
 <script>
+  import { onMount, onDestroy } from 'svelte';
   import { appState } from '../lib/state.svelte.js';
-  import { authDev } from '../lib/api.js';
+  import { authDev, authGoogle } from '../lib/api.js';
 
   let config = $derived(appState.config);
   let errorMsg = $state('');
   let isLoggingIn = $state(false);
 
-  // Demo 1: Quiz state
-  let selectedQuizOpt = $state(null);
+  // Challenged duel from URL hash if user opened an invite link
+  let challenged = $state(null);
 
-  // Demo 2: Flashcard flip state
+  // Slots
+  let gsiSlot = $state(null);
+
+  // Interactive / self-playing demo states
+  let selectedQuizOpt = $state(1); // 1 = book (right), 2 = house, 3 = water
   let isCardFlipped = $state(false);
+  let demoTimer = null;
+  let userInteracted = $state(false);
+
+  function duelCodeFromHash() {
+    if (typeof window === 'undefined') return null;
+    const m = /^#\/duel\/([A-Za-z0-9]{6})$/.exec(window.location.hash);
+    return m ? m[1].toUpperCase() : null;
+  }
+
+  function loadGoogleScript() {
+    if (typeof window === 'undefined') return Promise.resolve();
+    if (window.google?.accounts?.id) return Promise.resolve();
+    if (window.__gsiPromise) return window.__gsiPromise;
+
+    window.__gsiPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.async = true;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error("Couldn't load Google sign-in. Check your connection or ad blocker."));
+      document.head.appendChild(s);
+    });
+
+    return window.__gsiPromise;
+  }
+
+  async function mountGoogleButton(slot) {
+    if (!slot) return;
+    const clientId = config?.googleClientId;
+    if (!clientId) return;
+
+    try {
+      await loadGoogleScript();
+      if (!window.google?.accounts?.id) return;
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async ({ credential }) => {
+          try {
+            isLoggingIn = true;
+            errorMsg = '';
+            const user = await authGoogle(credential);
+            appState.user = user;
+            await appState.refreshTopStats();
+            if (challenged) {
+              appState.navigate(`#/duel/${challenged}`);
+            } else {
+              appState.navigate('#/learn');
+            }
+          } catch (x) {
+            errorMsg = x.message || 'Google sign-in failed';
+          } finally {
+            isLoggingIn = false;
+          }
+        },
+      });
+
+      slot.innerHTML = '';
+      window.google.accounts.id.renderButton(slot, {
+        theme: 'outline',
+        size: 'large',
+        shape: 'pill',
+        text: 'signin_with',
+        width: 280,
+      });
+    } catch (x) {
+      errorMsg = x.message || 'Could not load Google Sign-In';
+    }
+  }
+
+  // Reactive effect when config or gsiSlot arrives
+  $effect(() => {
+    if (gsiSlot && config?.googleClientId) {
+      mountGoogleButton(gsiSlot);
+    }
+  });
+
+  onMount(() => {
+    challenged = duelCodeFromHash();
+
+    // Auto-playing loop for landing demos (unless prefers-reduced-motion)
+    const prefersReducedMotion = typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!prefersReducedMotion) {
+      let tick = 0;
+      demoTimer = setInterval(() => {
+        if (userInteracted) return;
+        tick++;
+        // quiz: cycle blank -> wrong guess -> right answer
+        selectedQuizOpt = [null, 3, 1][tick % 3];
+        if (tick % 2 === 0) {
+          isCardFlipped = !isCardFlipped;
+        }
+      }, 2600);
+    }
+  });
+
+  onDestroy(() => {
+    if (demoTimer) clearInterval(demoTimer);
+  });
 
   async function handleDevLogin() {
     try {
@@ -19,7 +125,11 @@
       const user = await authDev('Learner', 'learner');
       appState.user = user;
       await appState.refreshTopStats();
-      appState.navigate('#/learn');
+      if (challenged) {
+        appState.navigate(`#/duel/${challenged}`);
+      } else {
+        appState.navigate('#/learn');
+      }
     } catch (e) {
       errorMsg = e.message || 'Dev login failed';
     } finally {
@@ -27,15 +137,31 @@
     }
   }
 
+  function handleQuizPick(optId) {
+    userInteracted = true;
+    selectedQuizOpt = optId;
+  }
+
+  function handleCardClick() {
+    userInteracted = true;
+    isCardFlipped = !isCardFlipped;
+  }
+
   function handleCtaClick() {
-    const signinEl = document.getElementById('signin-section');
+    const signinEl = document.getElementById('signin');
     if (signinEl) {
-      signinEl.scrollIntoView({ behavior: 'smooth' });
+      signinEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
 </script>
 
-<div class="landing-container">
+<div class="landing-page-poster">
+  {#if challenged}
+    <div class="confetti-challenge">
+      <b>WORD DUEL:</b> You've been challenged to duel <b>{challenged}</b>. Jump into the arena!
+    </div>
+  {/if}
+
   <section class="poster-hero">
     <h1 class="poster-display-title">
       <span class="poster-title-line">
@@ -48,34 +174,33 @@
 
     <p class="poster-lead">Lessons, flashcards and live word duels. Free, forever.</p>
 
-    <div class="poster-actions" id="signin-section">
-      {#if config.googleClientId}
-        <div id="gsi-slot">
-          <!-- Google gsi button container -->
-        </div>
-      {:else}
-        <div class="pill-notice">
-          Google Sign-In is configured on production. Use Dev Sign In locally:
-        </div>
-      {/if}
+    <div class="poster-actions poster-signin-actions" id="signin">
+      <div id="gsi" class="gsi-slot" bind:this={gsiSlot}>
+        {#if !config?.googleClientId}
+          <p class="mono-tag gsi-missing">Google Sign-In is required to enter Papercard.</p>
+        {/if}
+      </div>
 
-      {#if config.devLogin}
-        <button
-          type="button"
-          class="btn primary big-pill"
-          onclick={handleDevLogin}
-          disabled={isLoggingIn}
-        >
-          {isLoggingIn ? 'Signing in...' : '⚡ Dev Sign In'}
-        </button>
+      {#if config?.devLogin}
+        <div id="dev-signin" class="dev-signin-slot">
+          <button
+            type="button"
+            class="btn btn-gate-pill"
+            id="dev-signin-btn"
+            onclick={handleDevLogin}
+            disabled={isLoggingIn}
+          >
+            {isLoggingIn ? 'Signing in...' : 'Dev sign in'}
+          </button>
+        </div>
       {/if}
 
       {#if errorMsg}
-        <p class="error-msg">{errorMsg}</p>
+        <p id="signin-error" class="error-msg">{errorMsg}</p>
       {/if}
     </div>
 
-    <!-- Flying paper fan: sample words -->
+    <!-- Flying papers: sample words as tilted flashcards -->
     <ul class="paper-fan" aria-label="Sample Lithuanian words">
       <li class="paper p1"><b lang="lt">Labas!</b><span>Hello!</span></li>
       <li class="paper p2 tint-pink"><b lang="lt">Ačiū</b><span>Thank you</span></li>
@@ -84,7 +209,7 @@
     </ul>
   </section>
 
-  <!-- Interactive How It Works Demos -->
+  <!-- How It Works Demos -->
   <section class="landing-demos" aria-labelledby="demos-title">
     <h2 class="landing-section-title" id="demos-title">HOW IT WORKS</h2>
 
@@ -93,7 +218,7 @@
       <figure class="demo-block">
         <span class="demo-step">01</span>
         <div class="demo-stage">
-          <div class="demo-quiz">
+          <div class="demo-quiz" id="demo-quiz">
             <span class="demo-quiz-prompt">What does this mean?</span>
             <div class="demo-quiz-word" lang="lt">knyga</div>
             <div class="demo-quiz-options">
@@ -101,7 +226,7 @@
                 type="button"
                 class="qopt"
                 class:right={selectedQuizOpt === 1}
-                onclick={() => selectedQuizOpt = 1}
+                onclick={() => handleQuizPick(1)}
               >
                 <i>1</i>book
               </button>
@@ -109,7 +234,7 @@
                 type="button"
                 class="qopt"
                 class:wrong={selectedQuizOpt === 2}
-                onclick={() => selectedQuizOpt = 2}
+                onclick={() => handleQuizPick(2)}
               >
                 <i>2</i>house
               </button>
@@ -117,7 +242,7 @@
                 type="button"
                 class="qopt"
                 class:wrong={selectedQuizOpt === 3}
-                onclick={() => selectedQuizOpt = 3}
+                onclick={() => handleQuizPick(3)}
               >
                 <i>3</i>water
               </button>
@@ -134,22 +259,23 @@
           <button
             type="button"
             class="demo-fc"
+            id="demo-fc"
             class:flipped={isCardFlipped}
-            onclick={() => isCardFlipped = !isCardFlipped}
+            onclick={handleCardClick}
             aria-label="Flip the flashcard"
           >
-            <div class="demo-fc-inner">
-              <div class="demo-fc-face demo-fc-front">
+            <span class="demo-fc-inner">
+              <span class="demo-fc-face demo-fc-front">
                 <span class="mono-tag">NOUN · M</span>
                 <span class="demo-fc-word" lang="lt">universitetas</span>
-                <span class="demo-fc-hint">tap to flip ⤾</span>
-              </div>
-              <div class="demo-fc-face demo-fc-back">
+                <span class="demo-fc-hint">tap to flip ⟲</span>
+              </span>
+              <span class="demo-fc-face demo-fc-back">
                 <span class="mono-tag">ENGLISH</span>
                 <span class="demo-fc-word">university</span>
                 <span class="demo-srs"><i>1d</i><i>3d</i><i>7d</i><i>30d</i></span>
-              </div>
-            </div>
+              </span>
+            </span>
           </button>
         </div>
         <figcaption><b>Review</b> right before you forget</figcaption>
@@ -162,12 +288,12 @@
           <div class="demo-duel">
             <div class="duel-row">
               <span class="duel-ava you">Y</span>
-              <div class="duel-track"><i class="duel-fill you" style="width: 82%"></i></div>
+              <div class="duel-track"><i class="duel-fill you" style="--to: 82%"></i></div>
               <b class="duel-score">90</b>
             </div>
             <div class="duel-row">
               <span class="duel-ava foe">A</span>
-              <div class="duel-track"><i class="duel-fill foe" style="width: 64%"></i></div>
+              <div class="duel-track"><i class="duel-fill foe" style="--to: 64%"></i></div>
               <b class="duel-score">70</b>
             </div>
             <div class="duel-foot">
@@ -181,359 +307,518 @@
     </div>
   </section>
 
+  <!-- Ready CTA -->
   <section class="landing-cta">
     <h2>READY?</h2>
-    <button type="button" class="btn primary big-pill" onclick={handleCtaClick}>
+    <button type="button" class="btn-gate-pill big" id="landing-cta-btn" onclick={handleCtaClick}>
       Start learning →
     </button>
   </section>
 </div>
 
 <style>
-  .landing-container {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 32px 16px 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .poster-hero {
+  .landing-page-poster {
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-align: center;
-    padding: 40px 0 20px;
+    justify-content: center;
+    padding: 10px 0 20px;
   }
 
+  .confetti-challenge {
+    background: var(--color-hi-vis-yellow);
+    color: var(--color-ink-black);
+    border: var(--border-thick);
+    border-radius: var(--radius-card);
+    padding: 12px 20px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    box-shadow: 0 4px 0 var(--color-ink-black);
+  }
+
+  /* Poster Hero */
+  .poster-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 16px 16px 32px;
+    gap: 24px;
+    position: relative;
+    max-width: 960px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Headline clamped so LEARN LITHUANIAN / PAPERCARD never break awkwardly */
   .poster-display-title {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: clamp(38px, 8vw, 76px);
+    font-size: clamp(28px, 4.5vw, 64px);
     line-height: 0.95;
-    letter-spacing: -0.04em;
-    margin-bottom: 20px;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    margin: 0;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    hyphens: none;
+    box-shadow: none !important;
   }
 
   .poster-title-line {
     display: block;
+    white-space: nowrap;
   }
 
-  .txt-hi {
-    color: var(--color-hi-vis-yellow);
-    text-shadow: 2px 2px 0 var(--color-ink-black);
-  }
-
-  .txt-butter {
-    color: var(--color-bone-white);
-    text-shadow: 2px 2px 0 var(--color-ink-black);
+  @media (max-width: 600px) {
+    .poster-display-title {
+      font-size: clamp(22px, 6.5vw, 28px);
+    }
+    .poster-title-line {
+      white-space: normal;
+    }
   }
 
   .poster-lead {
-    font-size: clamp(17px, 2.5vw, 22px);
+    max-width: 660px;
+    font-size: clamp(16px, 1.8vw, 20px);
+    line-height: 1.45;
     color: var(--color-bone-white);
-    max-width: 580px;
-    margin-bottom: 32px;
-    font-weight: 500;
+    margin: 0 auto;
   }
 
   .poster-actions {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .poster-signin-actions {
+    display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 48px;
-    z-index: 10;
+    justify-content: center;
+    margin: 12px 0 20px;
+    gap: 10px;
   }
 
-  .pill-notice {
-    font-family: var(--font-mono);
-    font-size: 12px;
+  .gsi-slot {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 52px;
+  }
+
+  .gsi-missing {
     background: var(--color-bone-white);
     color: var(--color-ink-black);
-    border: var(--border-thick);
+    padding: 10px 20px;
     border-radius: var(--radius-pill);
-    padding: 6px 16px;
+    border: var(--border-thick);
+    font-weight: 700;
   }
 
-  .big-pill {
-    padding: 12px 36px;
+  .dev-signin-slot {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* Gate pill button strictly following DESIGN.md */
+  .btn-gate-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+    background: var(--color-bone-white);
+    color: var(--color-pure-black);
+    border: 2px solid var(--color-pure-black);
+    border-radius: var(--radius-pill);
+    box-shadow: none;
+    padding: 0 24px;
+    height: 48px;
+    font-family: var(--font-body);
     font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.1s ease, filter 0.15s ease;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .btn-gate-pill:hover:not(:disabled) {
+    filter: brightness(0.96);
+  }
+
+  .btn-gate-pill:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  .btn-gate-pill.big {
+    height: 52px;
+    padding: 0 32px;
+    max-width: none;
+    width: auto;
+  }
+
+  .btn-gate-pill:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .error-msg {
     color: var(--color-firecracker-red);
     background: var(--color-bone-white);
-    padding: 4px 12px;
+    padding: 6px 16px;
     border-radius: var(--radius-pill);
-    border: 1.5px solid var(--color-ink-black);
+    border: var(--border-thick);
     font-size: 13px;
     font-weight: 700;
   }
 
-  /* Flying paper fan */
+  /* Paper Fan */
   .paper-fan {
     list-style: none;
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    justify-content: center;
+    margin: 8px 0 0;
     padding: 0;
-    margin: 20px 0 60px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
   }
 
   .paper {
-    background: var(--color-bone-white);
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    padding: 14px 20px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    min-width: 110px;
-    transition: transform 0.15s ease;
-    box-shadow: 0 4px 0 rgba(26, 26, 26, 0.2);
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 128px;
+    padding: 14px 18px 12px;
+    background: var(--color-bone-white);
+    color: var(--color-ink-black);
+    border: 2.5px solid var(--color-ink-black);
+    border-radius: var(--radius-card);
+    transform: rotate(var(--tilt, 0deg));
+    transition: transform 0.2s ease;
+    user-select: none;
+  }
+
+  .paper:hover {
+    transform: rotate(0deg) translateY(-6px);
   }
 
   .paper b {
-    font-size: 18px;
     font-family: var(--font-display);
-    color: var(--color-ink-black);
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
   }
 
   .paper span {
-    font-size: 12px;
-    color: var(--ink-60);
     font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 0.7;
   }
 
-  .paper.tint-pink {
-    background: var(--color-bubblegum-pink);
+  .paper.p1 { --tilt: -6deg; }
+  .paper.p2 { --tilt: 4deg; margin-top: 18px; }
+  .paper.p3 { --tilt: -2deg; }
+  .paper.p4 { --tilt: 7deg; margin-top: 12px; }
+
+  .paper.tint-pink { background: var(--color-bubblegum-pink); }
+  .paper.tint-matcha { background: var(--color-matcha-cream); }
+
+  @media (max-width: 480px) {
+    .paper-fan { gap: 10px; }
+    .paper {
+      min-width: 0;
+      flex: 0 1 calc(50% - 10px);
+      box-sizing: border-box;
+      padding: 10px 12px;
+    }
+    .paper b { font-size: 18px; }
+    .paper.p2, .paper.p4 { margin-top: 8px; }
   }
 
-  .paper.tint-matcha {
-    background: var(--color-matcha-cream);
-  }
-
-  .paper.p1 { transform: rotate(-4deg); }
-  .paper.p2 { transform: rotate(3deg); }
-  .paper.p3 { transform: rotate(-2deg); }
-  .paper.p4 { transform: rotate(5deg); }
-
-  .paper:hover {
-    transform: translateY(-6px) scale(1.05) rotate(0deg);
-  }
-
-  /* Demos section */
+  /* How It Works Section */
   .landing-demos {
     width: 100%;
-    margin: 40px 0;
+    max-width: 1100px;
+    margin: 56px auto 0;
+    padding: 0 20px;
+    box-sizing: border-box;
   }
 
   .landing-section-title {
     font-family: var(--font-display);
-    font-size: 28px;
     font-weight: 900;
-    color: var(--color-bone-white);
+    font-size: clamp(26px, 4vw, 44px);
+    color: var(--color-hi-vis-yellow);
     text-align: center;
-    letter-spacing: -0.02em;
-    margin-bottom: 32px;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    margin: 0 0 32px;
   }
 
   .landing-demos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 28px;
+  }
+
+  @media (max-width: 900px) {
+    .landing-demos-grid {
+      grid-template-columns: 1fr;
+      gap: 36px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
   }
 
   .demo-block {
-    background: var(--color-bone-white);
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    padding: 24px;
+    position: relative;
+    margin: 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    position: relative;
-    box-shadow: 0 6px 0 rgba(26, 26, 26, 0.25);
+    gap: 14px;
   }
 
   .demo-step {
     position: absolute;
-    top: 14px;
-    left: 16px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 800;
-    color: var(--ink-60);
+    top: -18px;
+    left: -8px;
+    z-index: 2;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 40px;
+    line-height: 1;
+    color: var(--color-hi-vis-yellow);
+    -webkit-text-stroke: 2px var(--color-ink-black);
+    paint-order: stroke fill;
   }
 
   .demo-stage {
-    width: 100%;
-    min-height: 180px;
+    background: var(--color-lilac-shadow);
+    border-radius: var(--radius-card);
+    padding: 32px 22px 24px;
+    height: 260px;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 20px 0 16px;
   }
 
-  figcaption {
-    font-size: 15px;
-    color: var(--color-ink-black);
-    font-family: var(--font-body);
+  @media (max-width: 900px) {
+    .demo-stage {
+      height: 240px;
+    }
   }
 
-  figcaption b {
-    font-weight: 800;
+  .demo-block figcaption {
+    font-size: 17px;
+    color: var(--color-bone-white);
+    text-align: center;
   }
 
-  /* Quiz Demo */
+  .demo-block figcaption b {
+    color: var(--color-hi-vis-yellow);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-right: 4px;
+  }
+
+  /* 01 Quiz */
   .demo-quiz {
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    width: 100%;
   }
 
   .demo-quiz-prompt {
-    font-size: 12px;
-    color: var(--ink-60);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(249, 245, 242, 0.75);
   }
 
   .demo-quiz-word {
     font-family: var(--font-display);
-    font-size: 24px;
     font-weight: 800;
+    font-size: 34px;
+    line-height: 1;
+    color: var(--color-bone-white);
+    margin-bottom: 6px;
   }
 
   .demo-quiz-options {
-    display: flex;
-    gap: 8px;
     width: 100%;
-    justify-content: center;
+    display: grid;
+    gap: 8px;
   }
 
   .qopt {
-    padding: 8px 14px;
-    border: var(--border-thick);
-    border-radius: var(--radius-pill);
-    background: var(--color-bone-white);
-    font-weight: 700;
-    font-size: 13px;
+    all: unset;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--color-bone-white);
+    color: var(--color-ink-black);
+    border: 2px solid var(--color-ink-black);
+    border-radius: var(--radius-card);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 15px;
     cursor: pointer;
-    transition: transform 0.1s;
+    transition: background 0.2s ease, transform 0.08s ease;
   }
 
   .qopt i {
     font-style: normal;
     font-family: var(--font-mono);
     font-size: 11px;
-    color: var(--ink-60);
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid currentColor;
+    border-radius: 4px;
   }
 
-  .qopt:hover {
-    background: var(--color-hi-vis-yellow);
-    transform: translateY(-1px);
+  .qopt:focus-visible {
+    outline: 3px solid var(--color-hi-vis-yellow);
+    outline-offset: 2px;
   }
 
   .qopt.right {
     background: var(--color-matcha-cream);
   }
 
-  .qopt.wrong {
-    background: var(--color-bubblegum-pink);
+  .qopt.right::after {
+    content: "✓";
+    margin-left: auto;
+    font-size: 16px;
   }
 
-  /* Flashcard Demo */
+  .qopt.wrong {
+    background: var(--color-bubblegum-pink);
+    animation: demo-shake 0.3s ease;
+  }
+
+  .qopt.wrong::after {
+    content: "✕";
+    margin-left: auto;
+    font-size: 14px;
+  }
+
+  @keyframes demo-shake {
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  /* 02 Flip card */
   .demo-fc {
-    width: 220px;
-    height: 140px;
-    perspective: 800px;
-    background: none;
+    all: unset;
+    display: block;
+    width: 100%;
+    max-width: 230px;
+    height: 170px;
+    perspective: 900px;
     cursor: pointer;
-    border: none;
-    padding: 0;
+  }
+
+  .demo-fc:focus-visible {
+    outline: 3px solid var(--color-hi-vis-yellow);
+    outline-offset: 4px;
+    border-radius: var(--radius-card);
   }
 
   .demo-fc-inner {
     position: relative;
+    display: block;
     width: 100%;
     height: 100%;
-    transition: transform 0.4s ease;
     transform-style: preserve-3d;
+    transform: rotate(-3deg);
+    transition: transform 0.6s cubic-bezier(0.3, 1.3, 0.5, 1);
   }
 
   .demo-fc.flipped .demo-fc-inner {
-    transform: rotateY(180deg);
+    transform: rotate(2deg) rotateY(180deg);
   }
 
   .demo-fc-face {
     position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
+    inset: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    box-shadow: 0 4px 0 rgba(26, 26, 26, 0.15);
+    gap: 10px;
+    border: 2.5px solid var(--color-ink-black);
+    border-radius: var(--radius-card);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    color: var(--color-ink-black);
   }
 
   .demo-fc-front {
-    background: var(--color-hi-vis-yellow);
+    background: var(--color-bone-white);
   }
 
   .demo-fc-back {
-    background: var(--color-matcha-cream);
+    background: var(--color-hi-vis-yellow);
     transform: rotateY(180deg);
   }
 
   .demo-fc-word {
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: 20px;
+    font-size: 22px;
+    line-height: 1;
   }
 
   .demo-fc-hint {
-    font-size: 11px;
-    color: var(--ink-60);
     font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    opacity: 0.6;
   }
 
   .demo-srs {
     display: flex;
-    gap: 6px;
+    gap: 4px;
   }
 
   .demo-srs i {
     font-style: normal;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 10px;
+    padding: 2px 6px;
+    border: 1.5px solid var(--color-ink-black);
+    border-radius: 100px;
     background: var(--color-bone-white);
-    border: 1px solid var(--color-ink-black);
-    border-radius: 4px;
-    padding: 1px 6px;
   }
 
-  /* Duel Demo */
+  /* 03 Duel */
   .demo-duel {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
   }
 
   .duel-row {
@@ -543,71 +828,102 @@
   }
 
   .duel-ava {
-    width: 28px;
-    height: 28px;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--color-ink-black);
     border-radius: 50%;
-    border: 1.5px solid var(--color-ink-black);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     font-weight: 800;
-    font-size: 12px;
+    color: var(--color-ink-black);
   }
 
-  .duel-ava.you { background: var(--color-hi-vis-yellow); }
-  .duel-ava.foe { background: var(--color-bubblegum-pink); }
+  .duel-ava.you {
+    background: var(--color-hi-vis-yellow);
+  }
+
+  .duel-ava.foe {
+    background: var(--color-bubblegum-pink);
+  }
 
   .duel-track {
     flex: 1;
-    height: 12px;
-    background: rgba(26, 26, 26, 0.1);
-    border: 1.5px solid var(--color-ink-black);
-    border-radius: var(--radius-pill);
+    height: 18px;
+    background: var(--color-bone-white);
+    border: 2px solid var(--color-ink-black);
+    border-radius: 100px;
     overflow: hidden;
   }
 
   .duel-fill {
     display: block;
     height: 100%;
+    width: var(--to);
+    border-right: 2px solid var(--color-ink-black);
+    animation: duel-race 3.2s cubic-bezier(0.5, 0, 0.3, 1) infinite alternate;
+  }
+
+  .duel-fill.you {
     background: var(--color-hi-vis-yellow);
-    border-radius: var(--radius-pill);
   }
 
   .duel-fill.foe {
     background: var(--color-bubblegum-pink);
+    animation-delay: 0.4s;
+  }
+
+  @keyframes duel-race {
+    from { width: 8%; }
+    to { width: var(--to); }
   }
 
   .duel-score {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    width: 24px;
+    flex: none;
+    width: 28px;
     text-align: right;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--color-bone-white);
   }
 
   .duel-foot {
     display: flex;
     justify-content: space-between;
-    font-size: 11px;
+    align-items: center;
+    color: var(--color-bone-white);
   }
 
   .duel-timer {
     font-family: var(--font-mono);
-    font-weight: 700;
+    font-size: 13px;
+    padding: 3px 10px;
+    border: 1.5px solid var(--color-hi-vis-yellow);
+    border-radius: 100px;
+    color: var(--color-hi-vis-yellow);
   }
 
-  /* CTA */
+  /* Bottom CTA */
   .landing-cta {
-    margin: 50px 0 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
+    margin: 80px auto 48px;
+    text-align: center;
   }
 
   .landing-cta h2 {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: 32px;
-    color: var(--color-bone-white);
+    font-size: clamp(48px, 9vw, 112px);
+    line-height: 0.9;
+    color: var(--color-hi-vis-yellow);
+    margin: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .duel-fill { animation: none; }
+    .demo-fc-inner, .paper { transition: none; }
   }
 </style>

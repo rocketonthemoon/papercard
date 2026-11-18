@@ -9,7 +9,7 @@
   let errorMsg = $state('');
 
   let courses = $state([]);
-  let selectedCourseId = $state(null);
+  let currentCourse = $state(null);
   let units = $state([]);
   let pickedUnits = $state(new Set());
   let creating = $state(false);
@@ -17,45 +17,54 @@
   let joinCode = $state('');
   let myDuels = $state([]);
 
-  onMount(async () => {
+  function byLevel(us) {
+    const groups = [];
+    for (const u of us) {
+      const lvl = u.level || '';
+      const last = groups.at(-1);
+      if (last && last[0] === lvl) last[1].push(u);
+      else groups.push([lvl, [u]]);
+    }
+    return groups;
+  }
+
+  const unitWords = (u) => (u.lessons || []).reduce((n, l) => n + (l.total || 0), 0);
+  const unitLearned = (u) => (u.lessons || []).reduce((n, l) => n + (l.done || 0), 0);
+
+  async function loadDecks(cid) {
     try {
       loading = true;
-      const [learnData, duelsData] = await Promise.all([
-        api('/learn').catch(() => ({ myCourses: [] })),
-        api('/duels').catch(() => ({ duels: [] })),
-      ]);
+      const res = await api(`/learn${cid ? `?course=${cid}` : ''}`);
+      currentCourse = res.course;
+      units = res.units || [];
+      courses = res.myCourses || [];
 
-      courses = learnData.myCourses || [];
-      if (learnData.course) {
-        selectedCourseId = learnData.course.id;
-      } else if (courses.length > 0) {
-        selectedCourseId = courses[0].id;
+      pickedUnits.clear();
+      for (const u of units) {
+        if (unitLearned(u) > 0) pickedUnits.add(u.id);
       }
-
-      if (selectedCourseId) {
-        await loadUnits(selectedCourseId);
+      if (pickedUnits.size === 0 && units[0]) {
+        pickedUnits.add(units[0].id);
       }
-
-      myDuels = duelsData.duels || [];
+      pickedUnits = new Set(pickedUnits);
     } catch (e) {
-      errorMsg = e.message || 'Failed to load lobby';
+      errorMsg = e.message || 'Failed to load decks';
     } finally {
       loading = false;
     }
-  });
-
-  async function loadUnits(courseId) {
-    try {
-      const res = await api(`/learn/course/${courseId}`);
-      units = res.units || [];
-      // Pick first 2 units by default if available
-      pickedUnits.clear();
-      units.slice(0, 2).forEach(u => pickedUnits.add(u.id));
-      pickedUnits = new Set(pickedUnits);
-    } catch {
-      units = [];
-    }
   }
+
+  onMount(async () => {
+    try {
+      const [duelsData] = await Promise.all([
+        api('/duels').catch(() => ({ duels: [] })),
+        loadDecks(),
+      ]);
+      myDuels = duelsData.duels || [];
+    } catch (e) {
+      errorMsg = e.message || 'Failed to load lobby';
+    }
+  });
 
   function toggleUnit(uId) {
     if (pickedUnits.has(uId)) {
@@ -66,13 +75,25 @@
     pickedUnits = new Set(pickedUnits);
   }
 
+  function toggleLevelGroup(us) {
+    const allSelected = us.every(u => pickedUnits.has(u.id));
+    if (allSelected) {
+      for (const u of us) pickedUnits.delete(u.id);
+    } else {
+      for (const u of us) pickedUnits.add(u.id);
+    }
+    pickedUnits = new Set(pickedUnits);
+  }
+
   let totalWordsInPicked = $derived(
-    units
-      .filter(u => pickedUnits.has(u.id))
-      .reduce((sum, u) => sum + (u.lessons || []).reduce((ls, l) => ls + (l.words || 0), 0), 0)
+    units.filter(u => pickedUnits.has(u.id)).reduce((n, u) => n + unitWords(u), 0)
   );
 
   async function handleCreateRoom() {
+    if (!currentCourse) {
+      appState.showToast('Please start a course first');
+      return;
+    }
     if (pickedUnits.size === 0) {
       appState.showToast('Pick at least one deck');
       return;
@@ -83,7 +104,7 @@
       const res = await api('/duels', {
         method: 'POST',
         body: {
-          courseId: selectedCourseId,
+          courseId: currentCourse.id,
           unitIds: Array.from(pickedUnits),
         },
       });
@@ -93,6 +114,7 @@
       }
     } catch (e) {
       errorMsg = e.message || 'Failed to create duel';
+      appState.showToast(errorMsg);
     } finally {
       creating = false;
     }
@@ -109,370 +131,165 @@
   }
 </script>
 
-<div class="lobby-grid">
-  <!-- Main Picker Card -->
-  <section class="card picker-card">
+<div class="lobby">
+  <section class="card picker">
     <header class="picker-head">
-      <h2>Word Duels</h2>
-      <p class="muted">Challenge a friend to a fast-paced vocabulary match, or enter a room code.</p>
+      <h2>Play a friend</h2>
+      <p class="muted">Create a word duel and send the link, or join one with a code</p>
     </header>
 
-    <div class="mode-tabs">
+    <div class="tiles two" role="tablist" aria-label="Duel modes">
       <button
         type="button"
-        class="tab-btn"
-        class:active={activeTab === 'create'}
+        class="tile"
+        role="tab"
+        id="tab-create"
+        aria-selected={activeTab === 'create'}
         onclick={() => activeTab = 'create'}
       >
-        <Icon name="cards" size={18} />
-        <span>Create a room</span>
+        <span class="tile-icon"><Icon name="cards" size={24} /></span>
+        <span class="tile-name">Create a room</span>
       </button>
 
       <button
         type="button"
-        class="tab-btn"
-        class:active={activeTab === 'join'}
+        class="tile"
+        role="tab"
+        id="tab-join"
+        aria-selected={activeTab === 'join'}
         onclick={() => activeTab = 'join'}
       >
-        <Icon name="play" size={18} />
-        <span>Join a room</span>
+        <span class="tile-icon"><Icon name="play" size={24} /></span>
+        <span class="tile-name">Join a room</span>
       </button>
     </div>
 
     {#if activeTab === 'create'}
-      <div class="tab-pane">
+      <div class="pane" id="pane-create" role="tabpanel">
         {#if courses.length > 1}
-          <div class="field">
-            <label for="duel-course-sel" class="mono-tag small">Course</label>
+          <label class="field" id="course-pick">
+            Course
             <select
-              id="duel-course-sel"
-              class="select-input"
-              bind:value={selectedCourseId}
-              onchange={() => loadUnits(selectedCourseId)}
+              id="duel-course"
+              value={currentCourse?.id}
+              onchange={(e) => loadDecks(Number(e.target.value))}
             >
               {#each courses as c}
                 <option value={c.id}>{c.title}</option>
               {/each}
             </select>
-          </div>
+          </label>
         {/if}
 
-        <div class="deck-header">
+        <div class="row spread" style="margin:14px 0 10px;align-items:baseline;">
           <h3>Which decks?</h3>
-          <span class="mono-tag muted small">
+          <span class="muted small mono-tag" id="deck-count">
             {pickedUnits.size ? `${pickedUnits.size} deck${pickedUnits.size > 1 ? 's' : ''} · ${totalWordsInPicked} words` : 'Pick at least one'}
           </span>
         </div>
 
-        <div class="deck-list">
-          {#if units.length === 0}
-            <p class="muted small">Loading decks...</p>
+        <div class="deck-picker" id="decks">
+          {#if loading}
+            <p class="muted">Loading decks…</p>
+          {:else if !currentCourse}
+            <p class="muted">Start a course first: <a href="#/discover">Discover courses</a>.</p>
           {:else}
-            {#each units as u}
-              {@const wordsCount = (u.lessons || []).reduce((s, l) => s + (l.words || 0), 0)}
-              <label class="deck-item" class:selected={pickedUnits.has(u.id)}>
-                <input
-                  type="checkbox"
-                  checked={pickedUnits.has(u.id)}
-                  onchange={() => toggleUnit(u.id)}
-                />
-                <div class="deck-info">
-                  <b class="deck-title">{u.title}</b>
-                  <span class="muted small mono-tag">{wordsCount} words</span>
+            {#each byLevel(units) as [lvl, us], idx}
+              {@const countSel = us.filter(u => pickedUnits.has(u.id)).length}
+              <details class="deck-group" data-level-group={lvl} open={idx === 0}>
+                <summary class="deck-group-summary">
+                  <div class="row spread deck-summary-row">
+                    <span class="deck-summary-title">
+                      <b><span class="mono-tag" style="background:#ffd33d;padding:2px 8px;border-radius:100px;border:1.5px solid #000;margin-right:6px;">{lvl || 'General'}</span> <span class="deck-sel-count mono-tag">{countSel} of {us.length} selected</span></b>
+                    </span>
+                    <button
+                      type="button"
+                      class="linkbtn small select-all-btn"
+                      onclick={(e) => { e.preventDefault(); e.stopPropagation(); toggleLevelGroup(us); }}
+                    >
+                      {countSel === us.length ? 'Deselect all' : 'Select all'}
+                    </button>
+                  </div>
+                </summary>
+                <div class="deck-chips">
+                  {#each us as u}
+                    <label class="deck-chip">
+                      <input
+                        type="checkbox"
+                        value={u.id}
+                        checked={pickedUnits.has(u.id)}
+                        onchange={() => toggleUnit(u.id)}
+                      />
+                      <span>
+                        <b>{u.title}</b>
+                        <small>{unitWords(u)} words{unitLearned(u) ? ` · ${unitLearned(u)} learned` : ''}</small>
+                      </span>
+                    </label>
+                  {/each}
                 </div>
-              </label>
+              </details>
             {/each}
           {/if}
         </div>
 
         {#if errorMsg}
-          <p class="error-text">{errorMsg}</p>
+          <p id="create-error" class="error">{errorMsg}</p>
         {/if}
 
-        <div class="create-actions">
-          <span class="mono-tag muted small">10 RANDOM WORDS · YOU PLAY FIRST</span>
+        <div class="pane-actions" style="margin-top:20px;padding-top:16px;border-top:1.5px solid rgba(22,21,29,0.1);">
+          <span class="muted small mono-tag">10 RANDOM WORDS · YOU PLAY FIRST</span>
           <button
-            type="button"
-            class="btn primary"
-            onclick={handleCreateRoom}
+            class="btn btn-gate-pill"
+            id="create"
             disabled={creating || pickedUnits.size === 0}
+            onclick={handleCreateRoom}
           >
             {creating ? 'Creating...' : 'Create room →'}
           </button>
         </div>
       </div>
     {:else}
-      <div class="tab-pane">
-        <form onsubmit={handleJoinSubmit} class="join-form">
-          <label for="join-code" class="mono-tag small">Room code</label>
-          <div class="join-row">
+      <form class="pane" id="pane-join" role="tabpanel" onsubmit={handleJoinSubmit}>
+        <label class="field">Room code
+          <span class="row" style="gap:12px;margin-top:4px;">
             <input
-              id="join-code"
               type="text"
-              class="code-input"
+              id="join-code"
               placeholder="e.g. K7QX4M"
               maxlength="6"
+              autocomplete="off"
+              style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:.12em"
               bind:value={joinCode}
             />
-            <button type="submit" class="btn primary">Join →</button>
-          </div>
-        </form>
-      </div>
+            <button class="btn btn-gate-pill">Join →</button>
+          </span>
+        </label>
+      </form>
     {/if}
   </section>
 
-  <!-- Side List of Rooms -->
-  <aside class="card rooms-card">
-    <div class="rooms-head">
-      <h3>Your rooms</h3>
-      <span class="mono-tag muted small">({myDuels.length})</span>
-    </div>
-
-    {#if myDuels.length === 0}
-      <p class="muted small empty-note">You haven't played any duels yet.</p>
-    {:else}
-      <ul class="duel-rows">
-        {#each myDuels as d}
-          <li class="duel-row-item">
-            <div class="row-info">
-              <span class="pill yellow">{d.code}</span>
-              <span class="row-desc small">{d.title || 'Duel'}</span>
-            </div>
-            <a href="#/duel/{d.code}" class="btn outline sm">
-              {d.submitted ? 'View' : 'Play →'}
-            </a>
-          </li>
-        {/each}
+  <div id="my-duels-wrap" class="lobby-rooms-wrap">
+    <aside class="card list-card">
+      <div class="list-head">
+        <h3>Your rooms <span class="muted" id="duel-count">({myDuels.length})</span></h3>
+      </div>
+      <ul class="rows" id="my-duels">
+        {#if myDuels.length === 0}
+          <li class="empty-row"><span class="muted small">No duels played yet.</span></li>
+        {:else}
+          {#each myDuels as d}
+            <li class="room-row">
+              <a href="#/duel/{d.code}" class="row spread" style="width:100%;text-decoration:none;color:inherit;align-items:center;">
+                <div class="room-info">
+                  <span class="mono-tag" style="background:#f4ed36;border:1.5px solid #000;border-radius:100px;padding:2px 8px;font-weight:700;">{d.code}</span>
+                  <span class="small" style="margin-left:8px;">{d.title || 'Duel'}</span>
+                </div>
+                <span class="btn small outline">{d.submitted ? 'Results' : 'Play →'}</span>
+              </a>
+            </li>
+          {/each}
+        {/if}
       </ul>
-    {/if}
-  </aside>
+    </aside>
+  </div>
 </div>
-
-<style>
-  .lobby-grid {
-    display: grid;
-    grid-template-columns: 1fr 320px;
-    gap: 24px;
-    align-items: flex-start;
-  }
-
-  @media (max-width: 860px) {
-    .lobby-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .picker-card {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .picker-head h2 {
-    font-family: var(--font-display);
-    font-size: 26px;
-    font-weight: 800;
-  }
-
-  .mode-tabs {
-    display: flex;
-    gap: 12px;
-  }
-
-  .tab-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 12px 18px;
-    border: var(--border-thick);
-    border-radius: var(--radius-pill);
-    background: var(--color-bone-white);
-    color: var(--color-ink-black);
-    font-weight: 700;
-    font-size: 14px;
-    transition: background-color 0.12s ease;
-  }
-
-  .tab-btn:hover {
-    background: var(--color-hi-vis-yellow);
-  }
-
-  .tab-btn.active {
-    background: var(--color-hi-vis-yellow);
-  }
-
-  .tab-pane {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .select-input {
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    padding: 8px 12px;
-    background: var(--color-bone-white);
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .deck-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-top: 6px;
-  }
-
-  .deck-header h3 {
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-weight: 800;
-  }
-
-  .deck-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 280px;
-    overflow-y: auto;
-    padding-right: 4px;
-  }
-
-  .deck-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    border: 1.5px solid var(--color-ink-black);
-    border-radius: var(--radius-card);
-    background: var(--color-bone-white);
-    cursor: pointer;
-    transition: background 0.1s ease;
-  }
-
-  .deck-item:hover {
-    background: rgba(244, 237, 54, 0.4);
-  }
-
-  .deck-item.selected {
-    background: rgba(244, 237, 54, 0.7);
-  }
-
-  .deck-item input {
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-    accent-color: var(--color-ink-black);
-  }
-
-  .deck-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .deck-title {
-    font-size: 14px;
-  }
-
-  .create-actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 16px;
-    border-top: 1.5px solid rgba(26, 26, 26, 0.15);
-  }
-
-  .join-form {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-width: 360px;
-  }
-
-  .join-row {
-    display: flex;
-    gap: 12px;
-  }
-
-  .code-input {
-    flex: 1;
-    border: var(--border-thick);
-    border-radius: var(--radius-pill);
-    padding: 10px 16px;
-    font-family: var(--font-mono);
-    font-size: 16px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-  }
-
-  .error-text {
-    color: var(--color-firecracker-red);
-    font-weight: 700;
-    font-size: 13px;
-  }
-
-  /* Side Rooms */
-  .rooms-card {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .rooms-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .rooms-head h3 {
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-weight: 800;
-  }
-
-  .empty-note {
-    text-align: center;
-    padding: 20px 0;
-  }
-
-  .duel-rows {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 0;
-  }
-
-  .duel-row-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 10px;
-    border: 1.2px solid rgba(26, 26, 26, 0.15);
-    border-radius: var(--radius-card);
-  }
-
-  .row-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .row-desc {
-    max-width: 140px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-</style>

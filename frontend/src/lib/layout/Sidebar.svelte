@@ -84,40 +84,47 @@
   .nav-links {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
   }
 
   .nav-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 14px;
+    padding: 10px 16px;
     border-radius: var(--radius-pill);
     color: var(--color-bone-white);
     font-weight: 700;
     font-size: 14px;
-    transition: background-color 0.1s ease, color 0.1s ease;
-    border: 1.5px solid transparent;
+    transition: transform 0.1s ease, background-color 0.1s ease, color 0.1s ease;
+    border: 2px solid transparent;
   }
 
   .nav-item:hover {
-    background: rgba(249, 245, 242, 0.15);
+    background: rgba(249, 245, 242, 0.18);
     color: var(--color-hi-vis-yellow);
+    transform: translateX(3px);
   }
 
   .nav-item.active {
     background: var(--color-bone-white);
     color: var(--color-ink-black);
-    border-color: var(--color-ink-black);
+    border: var(--border-thick);
+    box-shadow: 0 3px 0 var(--color-ink-black);
+  }
+
+  .nav-item.active:hover {
+    color: var(--color-ink-black);
+    transform: none;
   }
 
   .badge {
     margin-left: auto;
     background: var(--color-hi-vis-yellow);
     color: var(--color-ink-black);
-    border: 1px solid var(--color-ink-black);
+    border: 1.5px solid var(--color-ink-black);
     border-radius: var(--radius-pill);
-    padding: 1px 7px;
+    padding: 1px 8px;
     font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 800;
@@ -133,17 +140,17 @@
     align-items: center;
     gap: 10px;
     width: 100%;
-    padding: 8px 14px;
+    padding: 10px 16px;
     border-radius: var(--radius-pill);
-    color: rgba(249, 245, 242, 0.7);
+    color: rgba(249, 245, 242, 0.75);
     font-size: 13.5px;
-    font-weight: 600;
-    transition: color 0.1s ease;
+    font-weight: 700;
+    transition: color 0.1s ease, background-color 0.1s ease;
   }
 
   .sign-out-btn:hover {
     color: var(--color-bone-white);
-    background: rgba(249, 245, 242, 0.1);
+    background: rgba(249, 245, 242, 0.12);
   }
 
   @media (max-width: 768px) {

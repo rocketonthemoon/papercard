@@ -254,12 +254,18 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 240px;
-    transition: transform 0.12s ease;
+    min-height: 250px;
+    background: var(--color-bone-white);
+    border: var(--border-thick);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 22px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
   }
 
   .enrolled-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 0 rgba(26, 26, 26, 0.3);
   }
 
   .card-top {
@@ -272,14 +278,22 @@
   .lang-tag {
     font-size: 11px;
     color: var(--ink-60);
+    font-weight: 700;
   }
 
   .course-title {
     font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 800;
+    font-size: 22px;
+    font-weight: 900;
     margin-bottom: 6px;
-    line-height: 1.25;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .course-title a {
+    color: var(--color-ink-black);
+    text-decoration: none;
+    transition: color 0.1s ease;
   }
 
   .course-title a:hover {
@@ -289,7 +303,7 @@
   .course-desc {
     font-size: 13.5px;
     color: var(--ink-60);
-    line-height: 1.4;
+    line-height: 1.45;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -305,13 +319,14 @@
     display: flex;
     justify-content: space-between;
     font-size: 11px;
+    font-weight: 700;
     margin-bottom: 6px;
   }
 
   .progress-track {
-    height: 8px;
-    background: rgba(26, 26, 26, 0.1);
-    border: 1.5px solid var(--color-ink-black);
+    height: 10px;
+    background: rgba(26, 26, 26, 0.12);
+    border: var(--border-thick);
     border-radius: var(--radius-pill);
     overflow: hidden;
   }
@@ -320,6 +335,7 @@
     height: 100%;
     background: var(--color-hi-vis-yellow);
     border-radius: var(--radius-pill);
+    transition: width 0.3s ease;
   }
 
   .card-actions {
@@ -329,35 +345,42 @@
   }
 
   .add-course-card {
-    border: 2px dashed rgba(26, 26, 26, 0.4);
+    border: 2px dashed var(--color-ink-black);
     border-radius: var(--radius-card);
-    background: rgba(249, 245, 242, 0.3);
-    min-height: 240px;
+    background: rgba(249, 245, 242, 0.4);
+    min-height: 250px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 0 rgba(26, 26, 26, 0.15);
+    transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
   }
 
   .add-course-card:hover {
     background: var(--color-bone-white);
-    border-color: var(--color-ink-black);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 0 rgba(26, 26, 26, 0.3);
   }
 
   .add-inner {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     color: var(--color-ink-black);
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 800;
   }
 
   .plus-icon {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     border: var(--border-thick);
     background: var(--color-bone-white);
+    box-shadow: 0 2px 0 var(--color-ink-black);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -378,8 +401,8 @@
 
   .widget-head h3 {
     font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 800;
+    font-size: 22px;
+    font-weight: 900;
   }
 
   .head-pills {
@@ -390,14 +413,15 @@
   .stat-counts {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 12px;
   }
 
   .stat-box {
-    background: rgba(26, 26, 26, 0.04);
-    border: 1.5px solid var(--color-ink-black);
+    background: rgba(26, 26, 26, 0.03);
+    border: var(--border-thick);
     border-radius: var(--radius-card);
-    padding: 10px 14px;
+    box-shadow: 0 2px 0 var(--color-ink-black);
+    padding: 12px 14px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -405,12 +429,13 @@
 
   .stat-num {
     font-family: var(--font-mono);
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 800;
   }
 
   .full-width {
     width: 100%;
+    justify-content: center;
   }
 
   .note {
@@ -421,16 +446,16 @@
   .activity-section, .quests-section {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(26, 26, 26, 0.1);
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1.5px solid rgba(26, 26, 26, 0.12);
   }
 
   .sparkline-bars {
     display: flex;
     align-items: flex-end;
     gap: 4px;
-    height: 44px;
+    height: 50px;
     padding-top: 6px;
   }
 
@@ -443,10 +468,15 @@
 
   .bar-fill {
     width: 100%;
-    background: var(--color-hi-vis-yellow);
+    background: var(--color-matcha-cream);
     border: 1.5px solid var(--color-ink-black);
     border-radius: 2px 2px 0 0;
     min-height: 4px;
+    transition: height 0.2s ease;
+  }
+
+  .bar-col:last-child .bar-fill {
+    background: var(--color-hi-vis-yellow);
   }
 
   .quest-list {
@@ -467,12 +497,13 @@
     display: flex;
     justify-content: space-between;
     font-size: 11px;
+    font-weight: 700;
   }
 
   .quest-track {
-    height: 6px;
-    background: rgba(26, 26, 26, 0.1);
-    border: 1.2px solid var(--color-ink-black);
+    height: 8px;
+    background: rgba(26, 26, 26, 0.12);
+    border: 1.5px solid var(--color-ink-black);
     border-radius: var(--radius-pill);
     overflow: hidden;
   }

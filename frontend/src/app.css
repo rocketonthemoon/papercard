@@ -18,7 +18,8 @@
   --color-pure-black: #000000;
 
   /* Derived Text & Hairline Tokens */
-  --ink-60: rgba(26, 26, 26, 0.6);
+  --ink-60: rgba(26, 26, 26, 0.65);
+  --ink-40: rgba(26, 26, 26, 0.4);
   --line-card: rgba(26, 26, 26, 0.15);
 
   /* ---------------- Borders ---------------- */
@@ -33,6 +34,12 @@
   --font-display: 'Syne', sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* ---------------- Tactile Shadow Tokens ---------------- */
+  --shadow-card: 0 4px 0 rgba(26, 26, 26, 0.25);
+  --shadow-btn: 0 3px 0 var(--color-ink-black);
+  --shadow-btn-hover: 0 4px 0 var(--color-ink-black);
+  --shadow-btn-active: 0 1px 0 var(--color-ink-black);
 }
 
 /* Base resets */
@@ -72,28 +79,59 @@ button {
   background: none;
 }
 
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+input:focus, textarea:focus, select:focus, button:focus-visible {
+  outline: 2px solid var(--color-hi-vis-yellow);
+  outline-offset: 2px;
+}
+
 /* Common Risograph Utilities */
 .card {
   background: var(--color-bone-white);
   border: var(--border-thick);
   border-radius: var(--radius-card);
-  box-shadow: none;
+  box-shadow: var(--shadow-card);
   padding: 24px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* Riso Tints */
+.card.tint-pink {
+  background: var(--color-bubblegum-pink);
+}
+
+.card.tint-matcha {
+  background: var(--color-matcha-cream);
+}
+
+.card.tint-butter {
+  background: var(--color-buttery-yellow);
+}
+
+.card.tint-lilac {
+  background: var(--color-lilac-shadow);
+  color: var(--color-bone-white);
 }
 
 .pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   border-radius: var(--radius-pill);
-  border: 1.5px solid var(--color-ink-black);
+  border: var(--border-hair);
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 2px 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   background: var(--color-bone-white);
+  color: var(--color-ink-black);
 }
 
 .pill.yellow {
@@ -106,6 +144,19 @@ button {
 
 .pill.pink {
   background: var(--color-bubblegum-pink);
+}
+
+.pill.butter {
+  background: var(--color-buttery-yellow);
+}
+
+.pill.bone {
+  background: var(--color-bone-white);
+}
+
+.pill.sm {
+  font-size: 10px;
+  padding: 1px 7px;
 }
 
 .mono-tag {
@@ -126,14 +177,25 @@ button {
 }
 
 .muted {
-  color: rgba(26, 26, 26, 0.65);
+  color: var(--ink-60);
 }
 
 .small {
   font-size: 12.5px;
 }
 
-/* Reusable buttons */
+/* Text highlights */
+.txt-hi {
+  color: var(--color-hi-vis-yellow);
+  text-shadow: 2px 2px 0 var(--color-ink-black);
+}
+
+.txt-butter {
+  color: var(--color-bone-white);
+  text-shadow: 2px 2px 0 var(--color-ink-black);
+}
+
+/* Tactile Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -147,22 +209,26 @@ button {
   font-family: var(--font-body);
   font-weight: 700;
   font-size: 14px;
-  transition: transform 0.08s ease, background-color 0.12s ease;
+  box-shadow: var(--shadow-btn);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.12s ease;
   user-select: none;
 }
 
 .btn:hover:not(:disabled) {
   background: var(--color-hi-vis-yellow);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-btn-hover);
 }
 
 .btn:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(2px);
+  box-shadow: var(--shadow-btn-active);
 }
 
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn.primary {
@@ -170,21 +236,34 @@ button {
 }
 
 .btn.primary:hover:not(:disabled) {
-  background: #fff;
+  background: #ffffff;
 }
 
 .btn.outline {
   background: transparent;
   border-color: var(--color-ink-black);
+  box-shadow: none;
 }
 
 .btn.outline:hover:not(:disabled) {
   background: var(--color-bone-white);
+  box-shadow: var(--shadow-btn);
 }
 
 .btn.sm {
-  padding: 6px 14px;
+  padding: 5px 14px;
   font-size: 12.5px;
+  box-shadow: 0 2px 0 var(--color-ink-black);
+}
+
+.btn.sm:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 var(--color-ink-black);
+}
+
+.btn.sm:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 var(--color-ink-black);
 }
 
 .icon-btn {
@@ -199,17 +278,20 @@ button {
   border: var(--border-thick);
   background: var(--color-bone-white);
   color: var(--color-ink-black);
+  box-shadow: 0 2px 0 var(--color-ink-black);
   cursor: pointer;
-  transition: background-color 0.12s ease, transform 0.08s ease;
+  transition: background-color 0.12s ease, transform 0.08s ease, box-shadow 0.08s ease;
 }
 
 .icon-btn:hover:not(:disabled) {
   background: var(--color-hi-vis-yellow);
-  transform: scale(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 var(--color-ink-black);
 }
 
 .icon-btn:active:not(:disabled) {
-  transform: scale(0.96);
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 var(--color-ink-black);
 }
 
 .icon-btn.sm {
@@ -219,4 +301,25 @@ button {
   min-height: 28px;
   border-radius: 4px;
   border-width: 1.5px;
+  box-shadow: none;
+}
+
+/* Custom crisp scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-dusk-violet);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-bone-white);
+  border: 1.5px solid var(--color-ink-black);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-hi-vis-yellow);
 }

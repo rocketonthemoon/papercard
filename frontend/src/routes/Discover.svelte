@@ -162,10 +162,12 @@
     min-width: 260px;
     border: var(--border-thick);
     border-radius: var(--radius-pill);
-    padding: 10px 20px;
+    padding: 12px 22px;
     font-family: inherit;
     font-size: 15px;
+    font-weight: 600;
     background: var(--color-bone-white);
+    box-shadow: 0 3px 0 var(--color-ink-black);
   }
 
   .filter-toggle {
@@ -174,6 +176,14 @@
     gap: 8px;
     color: var(--color-bone-white);
     font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .filter-toggle input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-hi-vis-yellow);
     cursor: pointer;
   }
 
@@ -187,12 +197,18 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 240px;
-    transition: transform 0.12s ease;
+    min-height: 250px;
+    background: var(--color-bone-white);
+    border: var(--border-thick);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 22px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
   }
 
   .course-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 0 rgba(26, 26, 26, 0.3);
   }
 
   .card-top {
