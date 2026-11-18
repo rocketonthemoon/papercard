@@ -98,11 +98,11 @@ const levelChip = (level) => (level ? `<span class="level-chip">[ ${esc(level)} 
 // ---------------------------------------------------------------- icons (inline SVG, gradients defined in index.html)
 
 const I = {
-  join: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="10" width="40" height="40" rx="3" fill="url(#gGreen)"/><rect x="32" y="30" width="40" height="40" rx="3" fill="url(#gNavy)"/><text x="22" y="37" font-size="18" font-weight="800" text-anchor="middle" fill="#2c3860" font-family="Mulish,sans-serif">A</text><text x="52" y="58" font-size="18" font-weight="800" text-anchor="middle" fill="#fff" font-family="Mulish,sans-serif">B</text></svg>`,
-  share: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="16" width="44" height="44" rx="4" fill="url(#gNavy)"/><rect x="28" y="28" width="44" height="40" rx="4" fill="url(#gGreen)"/><path d="M38 48h18m-6-6 6 6-6 6" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  decks: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="10" y="22" width="34" height="46" rx="4" fill="url(#gNavy)"/><rect x="22" y="16" width="34" height="46" rx="4" fill="url(#gGreen)"/><rect x="34" y="10" width="34" height="46" rx="4" fill="url(#gNavy)"/><text x="51" y="40" font-size="17" font-weight="800" text-anchor="middle" fill="#fff" font-family="Mulish,sans-serif">A1</text></svg>`,
-  answer: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="10" width="64" height="60" rx="4" fill="url(#gGreen)"/><rect x="16" y="20" width="48" height="10" rx="3" fill="#fff"/><rect x="16" y="36" width="48" height="10" rx="3" fill="url(#gNavy)"/><rect x="16" y="52" width="48" height="10" rx="3" fill="#fff"/><path d="M22 41l3 3 5-6" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  cards: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="12" y="18" width="38" height="50" rx="5" fill="url(#gNavy)" transform="rotate(-9 31 43)"/><rect x="28" y="12" width="38" height="50" rx="5" fill="url(#gGreen)"/><text x="47" y="45" font-size="24" font-weight="800" text-anchor="middle" fill="#fff" font-family="Mulish,sans-serif">Ą</text></svg>`,
+  join: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="10" width="40" height="40" rx="4" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><rect x="32" y="30" width="40" height="40" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><text x="22" y="37" font-size="18" font-weight="800" text-anchor="middle" fill="#16151d" font-family="JetBrains Mono, monospace">A</text><text x="52" y="58" font-size="18" font-weight="800" text-anchor="middle" fill="#16151d" font-family="JetBrains Mono, monospace">B</text></svg>`,
+  share: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="16" width="44" height="44" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><rect x="28" y="28" width="44" height="40" rx="4" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><path d="M38 48h18m-6-6 6 6-6 6" stroke="#16151d" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  decks: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="10" y="22" width="34" height="46" rx="4" fill="#8584bd" stroke="#16151d" stroke-width="2.5"/><rect x="22" y="16" width="34" height="46" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><rect x="34" y="10" width="34" height="46" rx="4" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><text x="51" y="40" font-size="17" font-weight="800" text-anchor="middle" fill="#16151d" font-family="JetBrains Mono, monospace">A1</text></svg>`,
+  answer: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="10" width="64" height="60" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><rect x="16" y="20" width="48" height="10" rx="3" fill="#f4ed36"/><rect x="16" y="36" width="48" height="10" rx="3" fill="#8584bd"/><rect x="16" y="52" width="48" height="10" rx="3" fill="#f4ed36"/><path d="M22 41l3 3 5-6" stroke="#16151d" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  cards: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="12" y="18" width="38" height="50" rx="5" fill="#8584bd" stroke="#16151d" stroke-width="2.5" transform="rotate(-9 31 43)"/><rect x="28" y="12" width="38" height="50" rx="5" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><text x="47" y="45" font-size="24" font-weight="800" text-anchor="middle" fill="#16151d" font-family="JetBrains Mono, monospace">Ą</text></svg>`,
   check: `<svg viewBox="0 0 20 20" aria-hidden="true"><rect width="20" height="20" rx="4" fill="var(--green)"/><path d="M5.5 10.5l3 3 6-7" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   ok: `<svg viewBox="0 0 20 20" class="mark-ok" aria-label="right"><path d="M4.5 10.5l3.5 3.5 7.5-8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   miss: `<svg viewBox="0 0 20 20" class="mark-miss" aria-label="wrong"><path d="M5 5l10 10M15 5 5 15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>`,
@@ -111,8 +111,8 @@ const I = {
   copy: `<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M13 4H5a1 1 0 0 0-1 1v8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`,
   send: `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10 17 3l-4 14-3-6z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>`,
   trophy: `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3h8v4a4 4 0 0 1-8 0zM6 5H3a3 3 0 0 0 3 3m8-3h3a3 3 0 0 1-3 3M10 11v4m-3 2h6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  learn: `<svg viewBox="0 0 80 80" aria-hidden="true"><path d="M10 18c10-4 20-4 30 2v46c-10-6-20-6-30-2z" fill="url(#gGreen)"/><path d="M70 18c-10-4-20-4-30 2v46c10-6 20-6 30-2z" fill="url(#gNavy)"/><path d="M18 30q4-3 8 0t8 0M18 40h14M48 30h14M48 40h14M48 50h10" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>`,
-  room: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="8" width="28" height="28" rx="3" fill="url(#gGreen)"/><rect x="44" y="8" width="28" height="28" rx="3" fill="url(#gNavy)"/><rect x="8" y="44" width="28" height="28" rx="3" fill="url(#gNavy)"/><rect x="44" y="44" width="28" height="28" rx="3" fill="url(#gGreen)"/><path d="M58 52v12M52 58h12" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/></svg>`,
+  learn: `<svg viewBox="0 0 80 80" aria-hidden="true"><path d="M10 18c10-4 20-4 30 2v46c-10-6-20-6-30-2z" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><path d="M70 18c-10-4-20-4-30 2v46c10-6 20-6 30-2z" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><path d="M18 30q4-3 8 0t8 0M18 40h14M48 30h14M48 40h14M48 50h10" stroke="#16151d" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>`,
+  room: `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="8" width="28" height="28" rx="4" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><rect x="44" y="8" width="28" height="28" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><rect x="8" y="44" width="28" height="28" rx="4" fill="#f9f5f2" stroke="#16151d" stroke-width="2.5"/><rect x="44" y="44" width="28" height="28" rx="4" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><path d="M58 52v12M52 58h12" stroke="#16151d" stroke-width="3.4" stroke-linecap="round"/></svg>`,
   heart: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.5-9.3C1.1 8.3 3.2 4.5 7 4.5c2.1 0 3.6 1.1 5 2.9 1.4-1.8 2.9-2.9 5-2.9 3.8 0 5.9 3.8 4.5 7.2C19.5 16.4 12 21 12 21z" fill="#ff4b62"/></svg>`,
   fire: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 5 5.5 5 10.5A5 5 0 0 1 7 13c0-2 1-3.5 2-4.5.3 1.7 1.2 2.7 2.2 3C10.6 8.5 11 5 12 2z" fill="#ff9a1f"/><path d="M12 13c.6 1.6 2 2.2 2 4a2 2 0 0 1-4 0c0-1 .5-1.6 1-2 .1.8.5 1.2 1 1.3-.2-1.3-.3-2.3 0-3.3z" fill="#ffd56b"/></svg>`,
   bolt: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4 14h7l-1.5 8L20 10h-7z" fill="#ffc21a"/></svg>`,
@@ -120,7 +120,7 @@ const I = {
   lock: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" stroke="currentColor" stroke-width="2.2" fill="none"/></svg>`,
   tick: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   close: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>`,
-  cup: `<svg viewBox="0 0 80 80" aria-hidden="true"><path d="M24 12h32v18a16 16 0 0 1-32 0z" fill="url(#gGreen)"/><path d="M24 18H14a10 10 0 0 0 10 12M56 18h10a10 10 0 0 1-10 12" stroke="url(#gNavy)" stroke-width="5" fill="none"/><rect x="36" y="44" width="8" height="12" fill="url(#gNavy)"/><rect x="26" y="56" width="28" height="10" rx="3" fill="url(#gNavy)"/><path d="m40 19 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#fff"/></svg>`,
+  cup: `<svg viewBox="0 0 80 80" aria-hidden="true"><path d="M24 12h32v18a16 16 0 0 1-32 0z" fill="#f4ed36" stroke="#16151d" stroke-width="2.5"/><path d="M24 18H14a10 10 0 0 0 10 12M56 18h10a10 10 0 0 1-10 12" stroke="#16151d" stroke-width="3" fill="none"/><rect x="36" y="44" width="8" height="12" fill="#16151d"/><rect x="26" y="56" width="28" height="10" rx="3" fill="#16151d"/><path d="m40 19 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#f9f5f2"/></svg>`,
   edit: `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M13.5 3.5l3 3L7 16H4v-3z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg>`,
   trash: `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 6h12M8 6V4h4v2M6 6l1 10h6l1-10" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   up: `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 12l5-5 5 5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -515,7 +515,8 @@ function renderNav() {
     me = null;
     topStats = null;
     location.hash = "#/";
-    route();
+    window.__app = { get me() { return me; }, set me(v) { me = v; }, route };
+  route();
   });
   setTopStats();
 }
@@ -574,6 +575,7 @@ function renderLanding() {
 /** After signing in, go where the visitor was headed (a duel link) or to Learn. */
 function afterSignIn() {
   if (!duelCodeFromHash() && page() === "home") location.hash = "#/learn";
+  window.__app = { get me() { return me; }, set me(v) { me = v; }, route };
   route();
   refreshTopStats();
 }
@@ -2545,11 +2547,15 @@ async function renderStudioHome() {
     return;
   }
   $app.innerHTML = `
-    <div class="toolbar">
-      <div class="page-head"><h1>Studio</h1><p class="muted">Make your own course: decks, lessons and words. Learners get the same lessons, review and duels as the official course, and your followers see it on their Learn page.</p></div>
+    <div class="toolbar studio-toolbar">
+      <div class="page-head">
+        <span class="mono-tag eyebrow-tag">[ COURSE CREATOR // STUDIO ]</span>
+        <h1 class="studio-title">STUDIO</h1>
+        <p class="muted studio-desc">Make your own course: decks, lessons and words. Learners get the same lessons, review and duels as official courses.</p>
+      </div>
       <div class="toolbar-actions">
-        <label class="btn outline" title="Upload a course file exported from Vokab">${I.upload} Import .db<input type="file" id="import" accept=".db,.sqlite,application/vnd.sqlite3" hidden></label>
-        <button class="btn" id="new-course">${I.plus} New course</button>
+        <label class="btn btn-outlined-display small" title="Upload a course file exported from Papercard">${I.upload} Import .db<input type="file" id="import" accept=".db,.sqlite,application/vnd.sqlite3" hidden></label>
+        <button class="btn btn-gate-pill small" id="new-course">${I.plus} NEW COURSE →</button>
       </div>
     </div>
     <form class="card form new-course" id="nc" hidden>
@@ -2558,29 +2564,34 @@ async function renderStudioHome() {
       <p class="error" id="nc-err" hidden></p>
       <div class="row" style="justify-content:flex-end"><button type="button" class="btn outline" id="nc-cancel">Cancel</button><button class="btn">Create course</button></div>
     </form>
-    <div class="course-grid">${
+    <div class="studio-main-grid">${
       courses.length
-        ? courses
+        ? `<div class="studio-course-grid">${courses
             .map(
-              (c) => `<article class="card course-card">
-                <a class="course-main" href="#/studio/${c.id}"><span class="course-flag">${esc(flag(c))}</span><div><h3>${esc(c.title)}</h3><p class="muted small">${esc(c.toLang)} · ${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p></div></a>
-                <div class="course-foot">${c.hidden ? `<span class="pill due">hidden by an admin</span>` : `<a class="small" href="#/course/${c.id}">View as a learner</a>`}<a class="btn small" href="#/studio/${c.id}">${I.edit} Edit</a></div>
-              </article>`,
-            )
-            .join("")
-        : `<section class="card picker"><header class="picker-head"><span class="board-icon">${I.decks}</span><h2>No courses yet</h2><p class="muted">Create one from scratch, or import a course file someone shared with you.</p></header></section>`
-    }</div>
-    ${
-      official.length
-        ? `<div class="row spread section-row"><h2>Official courses</h2><span class="muted small">You can edit these as an admin</span></div>
-          <div class="course-grid">${official
-            .map(
-              (c) => `<article class="card course-card">
-                <a class="course-main" href="#/studio/${c.id}"><span class="course-flag">${esc(flag(c))}</span><div><h3>${esc(c.title)}</h3><p class="muted small">${esc(c.toLang)} · ${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p></div></a>
-                <div class="course-foot"><span class="muted small">by ${userLink(c.creator)}</span><a class="btn small" href="#/studio/${c.id}">${I.edit} Edit</a></div>
+              (c) => `<article class="card studio-course-card">
+                <a class="course-main" href="#/studio/${c.id}"><span class="course-flag">${esc(flag(c))}</span><div class="course-main-info"><h3>${esc(c.title)}</h3><p class="muted small mono-tag-desc">${esc(c.toLang)} · ${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p></div></a>
+                <div class="course-foot">${c.hidden ? `<span class="pill due">hidden</span>` : `<a class="small mono-tag" href="#/course/${c.id}">View as a learner</a>`}<a class="btn btn-gate-pill small" href="#/studio/${c.id}">${I.edit} Edit →</a></div>
               </article>`,
             )
             .join("")}</div>`
+        : `<section class="card picker studio-empty-card"><div class="picker-head"><span class="board-icon">${I.decks}</span><h2>No custom courses yet</h2><p class="muted">Create one from scratch, or import a course file someone shared with you.</p></div></section>`
+    }</div>
+    ${
+      official.length
+        ? `<div class="studio-section">
+            <div class="row spread section-row">
+              <h2>Official courses</h2>
+              <span class="muted small mono-tag">[ ADMIN EDIT PRIVILEGES ]</span>
+            </div>
+            <div class="studio-course-grid">${official
+              .map(
+                (c) => `<article class="card studio-course-card">
+                  <a class="course-main" href="#/studio/${c.id}"><span class="course-flag">${esc(flag(c))}</span><div class="course-main-info"><h3>${esc(c.title)}</h3><p class="muted small mono-tag-desc">${esc(c.toLang)} · ${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p></div></a>
+                  <div class="course-foot"><span class="creator-meta mono-tag">by ${userLink(c.creator)}</span><a class="btn btn-gate-pill small" href="#/studio/${c.id}">${I.edit} Edit →</a></div>
+                </article>`,
+              )
+              .join("")}</div>
+          </div>`
         : ""
     }`;
   const form = document.getElementById("nc");
@@ -3276,6 +3287,7 @@ async function start() {
       ({ user: me } = await api("/auth/dev", { method: "POST", body: { name: "Learner" } }));
     } catch {}
   }
+  window.__app = { get me() { return me; }, set me(v) { me = v; }, route };
   route();
   addEventListener("hashchange", route);
   if (me) refreshTopStats();

@@ -49,10 +49,14 @@ await js(`fetch('/api/auth/dev', { method: 'POST', headers: { 'Content-Type': 'a
 await js(`location.reload()`);
 await sleep(1500);
 
-// Review page
-await js(`location.hash = '#/learn/review'`);
+// Studio page as admin
+await js(`
+  window.__app.me.isAdmin = true;
+  location.hash = '#/studio';
+  window.__app.route();
+`);
 await sleep(1500);
-await shot("tests/inspect_review_fixed.png");
+await shot("tests/inspect_studio_admin.png");
 
 // Discover page
 await js(`location.hash = '#/discover'`);
