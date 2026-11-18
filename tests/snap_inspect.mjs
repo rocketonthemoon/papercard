@@ -16,7 +16,7 @@ const proc = spawn(chrome, [
 ], { stdio: "ignore" });
 
 process.on("exit", () => {
-  try { proc.kill(); } catch {}
+  try { proc.kill(); } catch { }
 });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -150,16 +150,13 @@ await sleep(800);
 await shot("tests/inspect_sidebar_scrolled.png");
 
 // Discover search page with search "abdul"
-await js(`
-  location.hash = '#/discover?q=abdul';
-  window.__app.route();
-`);
-await sleep(1500);
+await send("Page.navigate", { url: "http://localhost:8080/#/discover?q=abdul" });
+await sleep(2000);
 await shot("tests/inspect_search_abdul.png");
 
-// Discover page
-await js(`location.hash = '#/discover'`);
-await sleep(1500);
+// Discover page default
+await send("Page.navigate", { url: "http://localhost:8080/#/discover" });
+await sleep(2000);
 await shot("tests/inspect_courses_fixed.png");
 
 process.exit(0);

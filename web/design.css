@@ -562,14 +562,14 @@ body.shell {
 }
 
 @media (min-width: 900px) {
-  body.shell {
+  body.shell:not(.focus) {
     display: flex;
     flex-direction: column;
     padding-left: 240px;
     min-height: 100vh;
   }
 
-  body.shell>.sidebar {
+  body.shell:not(.focus)>.sidebar {
     position: fixed !important;
     left: 0;
     top: 0;
@@ -580,12 +580,12 @@ body.shell {
     z-index: 100;
   }
 
-  body.shell>.nav {
+  body.shell:not(.focus)>.nav {
     display: block !important;
     width: 100%;
   }
 
-  body.shell>.app {
+  body.shell:not(.focus)>.app {
     width: 100%;
     max-width: 1300px;
     margin: 0 auto;
@@ -593,7 +593,7 @@ body.shell {
     flex: 1;
   }
 
-  body.shell>.footer {
+  body.shell:not(.focus)>.footer {
     width: 100%;
   }
 }
@@ -2650,19 +2650,30 @@ body.shell.focus {
   align-items: center !important;
   width: 100% !important;
   min-height: 100vh !important;
+  padding: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 body.focus .nav,
 body.focus .sidebar,
-body.focus .footer {
+body.focus .footer,
+body.shell.focus .nav,
+body.shell.focus .sidebar,
+body.shell.focus .footer {
   display: none !important;
 }
 
-body.focus .app {
+body.focus .app,
+body.shell.focus .app,
+body.focus #app,
+body.shell.focus #app {
   max-width: 760px !important;
   margin: 0 auto !important;
-  padding: 24px 20px 140px !important;
+  padding: 24px 20px 80px !important;
   width: 100% !important;
+  box-sizing: border-box !important;
+  flex: 1;
 }
 
 .lesson,
