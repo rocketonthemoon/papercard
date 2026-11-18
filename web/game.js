@@ -1110,38 +1110,7 @@ async function renderEnrolledCourses() {
   course = data.course;
   setTopStats(stats);
 
-  const enrolledCards = myCourses
-    .map((c) => {
-      const pct = c.words ? Math.round((100 * (c.learned || 0)) / c.words) : 0;
-      return `
-      <div class="card enrolled-card" data-course="${c.id}">
-        <div class="tile-art ${tint(c.id)}">
-          <div class="tile-art-top">
-            <span class="tag-chip mono-tag">${c.creator?.official ? "OFFICIAL" : "ENROLLED"}</span>
-            <span class="lang-orb mono-tag">${esc(flag(c))}</span>
-          </div>
-          <h3 title="${esc(c.title)}">${esc(c.title)}</h3>
-          <div class="meta mono-tag">
-            <span>${esc(c.fromLang)} → ${esc(c.toLang)}</span>
-            <span>${plural(c.units, "deck")}</span>
-            <span>${plural(c.words, "word")}</span>
-          </div>
-        </div>
-        ${c.description ? `<p class="enrolled-desc">${esc(c.description)}</p>` : ""}
-        <div class="enrolled-progress">
-          <div class="row spread small mono-tag">
-            <span><b>${pct}%</b> COMPLETED</span>
-            <span class="muted">${c.learned || 0}/${c.words} WORDS</span>
-          </div>
-          <div class="bar"><i style="width:${pct}%"></i></div>
-        </div>
-        <div class="enrolled-foot">
-          <a class="btn btn-gate-pill small" href="#/learn/course/${c.id}">${c.learned ? "Continue →" : "Start →"}</a>
-          <a class="btn btn-outlined-display small" href="#/course/${c.id}" title="Course details">About</a>
-        </div>
-      </div>`;
-    })
-    .join("");
+  const enrolledCards = myCourses.map(enrolledCourseCard).join("");
 
   const addCard = `
     <a class="enrolled-add" href="#/discover">
@@ -2257,6 +2226,61 @@ const matchLabel = (m) =>
     ? null
     : { language: "Matches the language", creator: "Matches the creator", description: "Matches the description", deck: `Deck: ${m.text ?? ""}`, word: `Has “${m.text ?? ""}”` }[m.in];
 
+/** Reusable tinted tile art header for course cards across Learn, Discover, Profile & Studio */
+function courseTileArt(c, { tag = null, linkTitle = false, showDecks = true, showWords = true, showLearners = false } = {}) {
+  const metaParts = [`<span>${esc(c.fromLang)} → ${esc(c.toLang)}</span>`];
+  if (showDecks && c.units != null) metaParts.push(`<span>${plural(c.units, "deck")}</span>`);
+  if (showWords && c.words != null) metaParts.push(`<span>${plural(c.words, "word")}</span>`);
+  if (showLearners && c.learners != null) metaParts.push(`<span>${plural(c.learners, "learner")}</span>`);
+
+  const titleHtml = linkTitle
+    ? `<a href="#/course/${c.id}">${esc(c.title)}</a>`
+    : esc(c.title);
+
+  return `
+    <div class="tile-art ${tint(c.id)}">
+      <div class="tile-art-top pcard-top-row">
+        ${tag ? `<span class="tag-chip mono-tag">${esc(tag.toUpperCase())}</span>` : ""}
+        <span class="lang-orb mono-tag">${esc(flag(c))}</span>
+      </div>
+      <h3 class="pcard-title tile-art-title" title="${esc(c.title)}">${titleHtml}</h3>
+      <div class="meta mono-tag">${metaParts.join(showLearners ? " · " : "")}</div>
+    </div>`;
+}
+
+/** Reusable progress bar component with mono labels */
+function courseProgressBar({ pct = 0, labelLeft = "", labelRight = "", empty = false } = {}) {
+  if (empty) return `<div class="progress-line empty" aria-hidden="true"></div>`;
+  return `
+    <div class="enrolled-progress">
+      <div class="row spread small mono-tag">
+        <span>${labelLeft}</span>
+        ${labelRight ? `<span class="muted">${labelRight}</span>` : ""}
+      </div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+    </div>`;
+}
+
+/** Enrolled course card (Home / Learn screen) */
+function enrolledCourseCard(c) {
+  const pct = c.words ? Math.round((100 * (c.learned || 0)) / c.words) : 0;
+  const tag = c.creator?.official ? "OFFICIAL" : "ENROLLED";
+  return `
+    <div class="card enrolled-card" data-course="${c.id}">
+      ${courseTileArt(c, { tag, showDecks: true, showWords: true })}
+      ${c.description ? `<p class="enrolled-desc" title="${esc(c.description)}">${esc(c.description)}</p>` : `<div class="enrolled-desc-spacer"></div>`}
+      ${courseProgressBar({
+        pct,
+        labelLeft: `<b>${pct}%</b> COMPLETED`,
+        labelRight: `${c.learned || 0}/${c.words} WORDS`
+      })}
+      <div class="enrolled-foot">
+        <a class="btn btn-gate-pill small" href="#/learn/course/${c.id}">${c.learned ? "Continue →" : "Start →"}</a>
+        <a class="btn btn-outlined-display small" href="#/course/${c.id}" title="Course details">About</a>
+      </div>
+    </div>`;
+}
+
 function courseCard(c) {
   const locked = c.locked && !c.hasAccess;
   const empty = !c.words && !c.mine;
@@ -2276,7 +2300,7 @@ function courseCard(c) {
         <span class="lang-orb mono-tag">${esc(flag(c))}</span>
       </div>
       <h3 class="pcard-title" title="${esc(c.title)}"><a href="#/course/${c.id}">${esc(c.title)}</a></h3>
-      <p class="pcard-desc">${esc(c.description || "Comprehensive vocabulary and conversational practice.")}</p>
+      <p class="pcard-desc" title="${esc(c.description || "")}">${esc(c.description || "Comprehensive vocabulary and conversational practice.")}</p>
       <div class="meta mono-tag"><span>${esc(c.fromLang)} → ${esc(c.toLang)}</span> · <span>${plural(c.words, "word")}</span> · <span>${plural(c.learners, "learner")}</span></div>
       ${c.enrolled ? `<div class="progress-line"><div class="row spread mono-tag small"><span>Progress</span><span>${pct}%</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>` : `<div class="progress-line empty" aria-hidden="true"></div>`}
     </div>

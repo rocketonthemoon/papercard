@@ -1937,6 +1937,20 @@ body:not(.shell) .mobile-nav,
   font-size: 14.5px;
   line-height: 1.35;
   color: #333333;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 4.05em;
+  max-height: 4.05em;
+  box-sizing: content-box;
+}
+
+.enrolled-desc-spacer {
+  min-height: 4.05em;
+  padding-top: 16px;
 }
 
 .enrolled-progress {
