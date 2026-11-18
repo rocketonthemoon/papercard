@@ -74,15 +74,15 @@ try {
   await send("Page.navigate", { url: "http://localhost:8080/#/learn/lesson/1" });
   await waitFor(`!!document.querySelector(".option")`, "lesson options");
 
-  // Click 1st option to select it
-  await js(`document.querySelectorAll(".option")[0].click()`);
+  // Click the university option to answer correctly (or 1st option)
+  await js(`(Array.from(document.querySelectorAll(".option")).find(o => /university/i.test(o.textContent)) || document.querySelectorAll(".option")[0]).click()`);
   await sleep(200);
   await shot("tests/screenshot_player_selected.png");
 
-  // Click check to see feedback (either right or wrong)
+  // Click check to see feedback
   await js(`document.getElementById("action").click()`);
-  await waitFor(`/right|wrong/.test(document.getElementById("foot").className)`, "feedback footer");
-  await sleep(200);
+  await waitFor(`/right|wrong/.test(document.getElementById("foot").className) || !!document.querySelector(".modal-box, .modal")`, "feedback or modal");
+  await sleep(300);
   await shot("tests/screenshot_player_feedback.png");
 
   // Now navigate to flashcards review
@@ -94,9 +94,10 @@ try {
   // Now navigate to play / duels
   await send("Page.navigate", { url: "http://localhost:8080/#/play" });
   await waitFor(`!!document.getElementById("create")`, "play hub");
+  await sleep(600);
   await js(`document.getElementById("create").click()`);
-  await waitFor(`!!document.querySelector(".duel-arena, #qcard .option")`, "duel arena");
-  await sleep(300);
+  await waitFor(`!!document.querySelector(".duel-arena, #qcard, .option")`, "duel arena");
+  await sleep(500);
   await shot("tests/screenshot_player_duel.png");
 
 } catch (err) {

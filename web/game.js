@@ -91,9 +91,9 @@ const toLang = (c = course) => c?.toLang || "the language";
 const lettersHtml = (c = course, title = "Shift-click for capital") =>
   letters(c).length ? `<div class="lt-keys" role="group" aria-label="${esc(toLang(c))} letters">${letters(c).map((l) => `<button type="button" class="lt-key" data-ch="${esc(l)}" title="${title}">${esc(l)}</button>`).join("")}</div>` : "";
 
-/** "noun · fem." */
-const wordTag = (w) => `<span class="wtag">${esc(POS_LABELS[w.pos] ?? w.pos ?? "")}${GENDERS[w.gender] ? ` · ${GENDERS[w.gender]}` : ""}</span>`;
-const levelChip = (level) => (level ? `<span class="level-chip">${esc(level)}</span>` : "");
+/** "[ NOUN // FEM. ]" */
+const wordTag = (w) => `<span class="wtag">[ ${esc(POS_LABELS[w.pos] ?? w.pos ?? "")}${GENDERS[w.gender] ? ` // ${GENDERS[w.gender]}` : ""} ]</span>`;
+const levelChip = (level) => (level ? `<span class="level-chip">[ ${esc(level)} ]</span>` : "");
 
 // ---------------------------------------------------------------- icons (inline SVG, gradients defined in index.html)
 
@@ -557,8 +557,8 @@ function landingHtml() {
           <span class="sample-chip"><span class="chip-lt">Iki pasimatymo!</span> <span class="chip-en">See you!</span></span>
         </div>
         
-        <div class="poster-signin-drawer" id="signin-drawer" hidden>
-          <div class="signin-box card">
+        <div class="poster-signin-drawer" id="signin-drawer">
+          <div class="signin-box card" id="signin">
             <span class="mono-tag dark-ink">[ ACCESS GATE // SIGN IN ]</span>
             <div id="gsi" class="gsi-slot"></div>
             <p id="signin-error" class="error" hidden></p>
@@ -1069,24 +1069,50 @@ async function renderCoursePath(courseId) {
     const done = u.lessons.length > 0 && u.lessons.every((l) => state.get(l.id).done);
     const hasCurrent = u.lessons.some((l) => l.id === current);
     const allLocked = u.lessons.length > 0 && u.lessons.every((l) => state.get(l.id).locked);
-    const action = hasCurrent
-      ? `<a class="btn btn-gate-pill small" href="#/learn/lesson/${current}">${learned ? "Continue learning" : "Start learning"}</a>`
+    const currentLesson = u.lessons.find((l) => l.id === current);
+    const currentLessonIdx = u.lessons.findIndex((l) => l.id === current);
+
+    const action = hasCurrent && currentLesson
+      ? `<a class="btn unit-primary-btn" href="#/learn/lesson/${current}"><span>${learned ? "Resume Lesson" : "Start Lesson"} →</span><small class="unit-btn-sub">Lesson ${currentLessonIdx + 1}: ${esc(currentLesson.title)} · ${plural(currentLesson.total, "word")}</small></a>`
       : done
-        ? `<a class="btn btn-outlined-display small" href="#/learn/lesson/${u.lessons[0].id}">Practise</a>`
+        ? `<a class="btn outline unit-secondary-btn" href="#/learn/lesson/${u.lessons[0].id}"><span>Practise Unit</span> <span class="btn-arrow">↺</span></a>`
         : allLocked
-          ? `<span class="btn btn-outlined-display small locked-btn" aria-disabled="true">${ICON.lock} Locked</span>`
+          ? `<span class="unit-locked-badge mono-tag">${ICON.lock} Locked</span>`
           : "";
     const rows = u.lessons
       .map((l, li) => {
         const s = state.get(l.id);
-        const inner = `<span class="lesson-num mono-tag">${String(li + 1).padStart(2, '0')}</span>
-          <span class="lesson-title">${esc(l.title)}</span>
-          <span class="lesson-state mono-tag">${ringHtml(l.done, l.total)} <span>${l.done && !s.done ? `${l.done}/` : ""}${plural(l.total, "word")}</span></span>
-          <span class="lesson-end">${s.locked ? ICON.lock : ICON.chev.replace("m5 7.5 5 5 5-5", "m7.5 5 5 5-5 5")}</span>`;
+        const isDone = s.done;
+        const isCur = s.isCurrent;
+        const isLock = s.locked;
+        let badge;
+        if (isDone) {
+          badge = `<span class="lesson-num step-badge done" title="Completed"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-7.5"/></svg></span>`;
+        } else if (isCur) {
+          badge = `<span class="lesson-num step-badge current" title="Current lesson"><span class="badge-dot-inner"></span>${li + 1}</span>`;
+        } else if (isLock) {
+          badge = `<span class="lesson-num step-badge locked" title="Locked">${ICON.lock}</span>`;
+        } else {
+          badge = `<span class="lesson-num step-badge" title="Lesson ${li + 1}">${li + 1}</span>`;
+        }
+
+        const metaText = isDone
+          ? `${plural(l.total, "word")} · Completed`
+          : l.done > 0
+            ? `${l.done}/${l.total} learned`
+            : `${plural(l.total, "word")}`;
+
+        const inner = `${badge}
+          <div class="lesson-step-content">
+            <span class="lesson-title">Lesson ${li + 1}: ${esc(l.title)}</span>
+            <span class="lesson-step-meta mono-tag">${metaText}</span>
+          </div>
+          <span class="lesson-state mono-tag">${ringHtml(l.done, l.total)} <span class="lesson-cta-text">${isDone ? "Review" : isCur ? "Start →" : isLock ? "Locked" : "Open"}</span></span>
+          <span class="lesson-end">${isLock ? ICON.lock : ICON.chev.replace("m5 7.5 5 5 5-5", "m7.5 5 5 5-5 5")}</span>`;
         return `<li>${
-          s.locked
+          isLock
             ? `<div class="lesson-row-link lesson-node locked" title="Finish the lessons before this one first">${inner}</div>`
-            : `<a class="lesson-row-link lesson-node ${s.isCurrent ? "current" : s.done ? "done" : ""}" href="#/learn/lesson/${l.id}" title="${s.done ? "Practise" : s.isCurrent ? "Up next" : "Open"}">${inner}</a>`
+            : `<a class="lesson-row-link lesson-node ${isCur ? "current" : isDone ? "done" : ""}" href="#/learn/lesson/${l.id}" title="${isDone ? "Practise" : isCur ? "Up next" : "Open"}">${inner}</a>`
         }</li>`;
       })
       .join("");
@@ -1097,7 +1123,7 @@ async function renderCoursePath(courseId) {
         : "";
     return `<section class="card module-card unit-card ${u.id === openUnit ? "open" : ""}" data-unit="${u.id}">
       <div class="module-head" data-toggle="${u.id}">
-        <span class="module-no mono-tag">${String(ui + 1).padStart(2, '0')}<small>/${String(units.length).padStart(2, '0')}</small></span>
+        <span class="module-no mono-tag">Unit ${String(ui + 1).padStart(2, '0')}<small>/${String(units.length).padStart(2, '0')}</small></span>
         <div class="module-info">
           <div class="module-title-row">
             <h2>${esc(u.title)}</h2>
@@ -1108,8 +1134,8 @@ async function renderCoursePath(courseId) {
         <button class="chev icon-btn" aria-label="Show lessons" aria-expanded="${u.id === openUnit}">${ICON.chev}</button>
       </div>
       <div class="module-progress">
-        <div class="row spread mono-tag"><span><b>${pct}%</b> DONE</span><span class="muted small">${words - learned ? `${plural(words - learned, "word")} left` : "All learned"}</span></div>
-        <div class="bar"><i style="width:${pct}%"></i></div>
+        <div class="row spread mono-tag unit-progress-label"><span><b>${pct}%</b> COMPLETED</span><span class="muted small">${words - learned ? `${plural(words - learned, "word")} left` : "All learned"}</span></div>
+        <div class="bar unit-bar"><i style="width:${pct}%"></i></div>
         ${action ? `<div class="module-action">${action}</div>` : ""}
       </div>
       <ul class="lesson-rows">${rows || `<li class="muted small mono-tag">No lessons yet.</li>`}</ul>
@@ -1125,8 +1151,12 @@ async function renderCoursePath(courseId) {
   $app.innerHTML = `
     <div class="dash">
       <div class="dash-main course-path">
-        <div class="toolbar">
-          <a class="back mono-tag" href="#/learn">${I.back} MY COURSES</a>
+        <div class="toolbar course-breadcrumb-bar">
+          <div class="breadcrumb-trail">
+            <a class="back mono-tag" href="#/learn">${I.back} My courses</a>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current mono-tag">${esc(course.title)}</span>
+          </div>
           <div class="toolbar-actions">
             ${course.mine ? `<a class="btn outline small" href="#/studio/${course.id}">${I.edit} Edit in Studio</a>` : ""}
             <a class="btn outline small" href="#/course/${course.id}">About course</a>
@@ -1137,19 +1167,29 @@ async function renderCoursePath(courseId) {
           <div class="course-hero-inner">
             <span class="lang-orb mono-tag">${esc(flag(course))}</span>
             <div class="course-hero-text">
-              <div class="row spread">
-                <span class="tag-chip mono-tag">${course.creator?.official ? "OFFICIAL" : "COURSE"}</span>
-                <span class="meta-lang mono-tag">${esc(course.fromLang)} → ${esc(course.toLang)}</span>
+              <div class="row spread hero-meta-row">
+                <div class="hero-badges">
+                  <span class="tag-chip mono-tag">${course.creator?.official ? "OFFICIAL" : "COURSE"}</span>
+                  <span class="meta-lang mono-tag">${esc(course.fromLang)} → ${esc(course.toLang)}</span>
+                </div>
+                <span class="meta-words mono-tag">${learnedWords}/${totalWords} words learned · ${plural(units.length, "deck")}</span>
               </div>
               <h1 class="course-hero-title">${esc(course.title)}</h1>
               ${course.description ? `<p class="course-hero-desc">${esc(course.description)}</p>` : ""}
               <div class="course-path-progress">
                 <div class="row spread small mono-tag">
-                  <span><b>${coursePct}%</b> DONE</span>
-                  <span class="meta-words">${learnedWords}/${totalWords} words learned · ${plural(units.length, "deck")}</span>
+                  <span><b>${coursePct}%</b> COMPLETED</span>
+                  <span class="meta-words">${totalWords - learnedWords > 0 ? `${plural(totalWords - learnedWords, "word")} left` : "All learned!"}</span>
                 </div>
                 <div class="bar"><i style="width:${coursePct}%"></i></div>
               </div>
+              ${current ? `
+              <div class="course-hero-cta">
+                <a class="btn btn-hero-primary" href="#/learn/lesson/${current}">
+                  <span>${learnedWords > 0 ? "Resume Learning" : "Start Learning"}</span>
+                  <span class="hero-cta-arrow">→</span>
+                </a>
+              </div>` : ""}
             </div>
           </div>
         </section>
@@ -1696,7 +1736,10 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
       <footer class="lesson-foot" id="foot">
         <div class="foot-inner">
           <div class="feedback" id="feedback"></div>
-          <button class="btn big" id="action" disabled>Check</button>
+          <div class="foot-actions">
+            <span class="foot-hint mono-tag" id="foot-hint">Press 1-4 · Enter to check</span>
+            <button class="btn big action-btn" id="action" disabled>Check <span class="kbd-pill">[Enter]</span></button>
+          </div>
         </div>
       </footer>
     </div>`;
@@ -1734,7 +1777,13 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
     addEventListener("hashchange", () => d.remove(), { once: true });
   };
 
-  const ready = (ok) => (action.disabled = !ok);
+  const footHint = document.getElementById("foot-hint");
+  const ready = (ok) => {
+    action.disabled = !ok;
+    if (mode2 === "check") {
+      action.innerHTML = ok ? `Check <span class="kbd-pill">[Enter]</span> →` : `Check <span class="kbd-pill">[Enter]</span>`;
+    }
+  };
 
   const show = () => {
     challenge = queue[0];
@@ -1742,7 +1791,12 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
     mode2 = "check";
     foot.className = "lesson-foot";
     feedback.innerHTML = "";
-    action.textContent = "Check";
+    if (footHint) {
+      if (challenge.kind.startsWith("pick")) footHint.textContent = "Press 1-4 · Enter to check";
+      else if (challenge.kind === "type_lt") footHint.textContent = "Type answer · Enter to check";
+      else if (challenge.kind === "build") footHint.textContent = "Backspace undo · Enter to check";
+    }
+    action.innerHTML = `Check <span class="kbd-pill">[Enter]</span>`;
     ready(false);
     const c = challenge;
     if (c.kind === "pick_en" || c.kind === "pick_lt") {
@@ -1862,7 +1916,8 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
     stats = res.stats;
     setHearts();
     mode2 = "continue";
-    action.textContent = "Continue";
+    action.innerHTML = `Continue <span class="kbd-pill">[Enter]</span> →`;
+    if (footHint) footHint.textContent = "Press Enter to continue";
     const input = document.getElementById("typed");
     if (input) input.readOnly = true;
     const isPick = challenge.kind.startsWith("pick");
@@ -2315,16 +2370,20 @@ async function renderCourse(id) {
   }
   const c = d.course;
   $app.innerHTML = `
-    <div class="toolbar">
-      <a class="back" href="#/discover">${I.back} Discover</a>
+    <div class="toolbar course-breadcrumb-bar">
+      <div class="breadcrumb-trail">
+        <a class="back mono-tag" href="#/discover">${I.back} Courses</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current mono-tag">${esc(c.title)}</span>
+      </div>
       <div class="toolbar-actions">
-        ${d.canEdit ? `<a class="btn outline" href="#/studio/${c.id}">${I.edit} Edit course</a>` : ""}
+        ${d.canEdit ? `<a class="btn outline small" href="#/studio/${c.id}">${I.edit} Edit course</a>` : ""}
         ${
           c.locked && !c.hasAccess
             ? ""
             : c.enrolled
-              ? `<button class="btn outline" id="leave">Leave course</button><button class="btn" data-continue="${c.id}">Continue learning</button>`
-              : `<button class="btn" data-enroll="${c.id}">Start learning</button>`
+              ? `<button class="btn outline small" id="leave">Leave course</button><button class="btn primary small" data-continue="${c.id}">Continue learning →</button>`
+              : `<button class="btn primary small" data-enroll="${c.id}">Start learning →</button>`
         }
       </div>
     </div>
@@ -2332,9 +2391,24 @@ async function renderCourse(id) {
       <div class="course-page-main">
         <section class="card course-hero">
           <span class="course-flag big">${esc(flag(c))}</span>
-          <div><h1>${esc(c.title)}${c.hidden ? ` <span class="pill due">hidden</span>` : ""}${c.locked ? ` <span class="pill">${ICON.lock} locked</span>` : ""}</h1>
-            <p class="muted">${esc(c.fromLang)} → ${esc(c.toLang)} · ${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p>
-            ${c.description ? `<p>${esc(c.description)}</p>` : ""}</div>
+          <div class="course-hero-details">
+            <div class="hero-badges">
+              <span class="tag-chip mono-tag">${c.creator?.official ? "OFFICIAL" : "COURSE"}</span>
+              <span class="meta-lang mono-tag">${esc(c.fromLang)} → ${esc(c.toLang)}</span>
+            </div>
+            <h1>${esc(c.title)}${c.hidden ? ` <span class="pill due">hidden</span>` : ""}${c.locked ? ` <span class="pill">${ICON.lock} locked</span>` : ""}</h1>
+            <p class="muted course-stats-row">${plural(c.units, "deck")} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")}</p>
+            ${c.description ? `<p class="course-description-text">${esc(c.description)}</p>` : ""}
+            <div class="course-hero-actions">
+              ${
+                c.locked && !c.hasAccess
+                  ? ""
+                  : c.enrolled
+                    ? `<button class="btn btn-hero-primary" data-continue="${c.id}">Continue learning →</button>`
+                    : `<button class="btn btn-hero-primary" data-enroll="${c.id}">Start learning →</button>`
+              }
+            </div>
+          </div>
         </section>
         ${
           c.locked && !c.hasAccess
@@ -2342,12 +2416,18 @@ async function renderCourse(id) {
             : ""
         }
         <section class="card list-card">
-          <div class="list-head"><h3>Decks</h3></div>
+          <div class="list-head"><h3>Decks (${d.units.length})</h3></div>
           <ul class="rows">${
             d.units
               .map(
-                (u, i) => `<li class="deck-row">${levelChip(u.level) || `<span class="level-chip">${i + 1}</span>`}<div><b>${esc(u.title)}</b>${u.description ? `<p class="muted small">${esc(u.description)}</p>` : ""}</div>
-                  <span class="muted small">${u.learned ? `${u.learned}/` : ""}${plural(u.words, "word")}</span></li>`,
+                (u, i) => `<li class="deck-row">
+                  <span class="level-chip-badge">${u.level ? esc(u.level) : String(i + 1).padStart(2, '0')}</span>
+                  <div class="deck-info">
+                    <b>Deck ${i + 1}: ${esc(u.title)}</b>
+                    ${u.description ? `<p class="muted small">${esc(u.description)}</p>` : ""}
+                  </div>
+                  <span class="deck-meta mono-tag muted small">${u.learned ? `${u.learned}/` : ""}${plural(u.words, "word")}</span>
+                </li>`,
               )
               .join("") || `<li class="empty-row">No decks yet.</li>`
           }</ul>

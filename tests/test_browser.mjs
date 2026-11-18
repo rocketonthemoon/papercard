@@ -96,8 +96,8 @@ try {
       await shot("4-lesson-type");
     }
     await js(`document.getElementById("action").click()`);
-    await waitFor(`/right|wrong/.test(document.getElementById("foot").className) || !!document.querySelector(".modal-back")`, "feedback");
-    if (await js(`!!document.querySelector(".modal-back")`)) break; // out of hearts
+    await waitFor(`!document.getElementById("foot") || /right|wrong/.test(document.getElementById("foot")?.className) || !!document.querySelector(".modal-back") || !!document.querySelector(".finish")`, "feedback");
+    if (await js(`!document.getElementById("foot") || !!document.querySelector(".modal-back") || !!document.querySelector(".finish")`)) break; // out of hearts or finished
     if (i === 1) await shot("5-lesson-feedback");
     await js(`document.getElementById("action").click()`);
     await sleep(120);
@@ -113,8 +113,8 @@ try {
   for (let i = 0; i < 12 && !(await js(`!!document.getElementById("bank")`)); i++) {
     await js(answerRight);
     await js(`document.getElementById("action").click()`);
-    await waitFor(`/right|wrong/.test(document.getElementById("foot").className) || !!document.querySelector(".modal-back")`, "feedback");
-    if (await js(`!!document.querySelector(".modal-back")`)) break;
+    await waitFor(`!document.getElementById("foot") || /right|wrong/.test(document.getElementById("foot")?.className) || !!document.querySelector(".modal-back") || !!document.querySelector(".finish")`, "feedback");
+    if (await js(`!document.getElementById("foot") || !!document.querySelector(".modal-back") || !!document.querySelector(".finish")`)) break;
     await js(`document.getElementById("action").click()`);
     await sleep(120);
   }
@@ -127,7 +127,7 @@ try {
   }
 
   await js(`location.hash = "#/learn/review"`);
-  await waitFor(`!!document.querySelector(".finish, .prompt-card")`, "review");
+  await waitFor(`!!document.querySelector(".finish, .prompt-card, .fc-card, .flashcard")`, "review");
   await shot("7-review");
   await js(`location.hash = "#/learn/words"`);
   await waitFor(`!!document.querySelector(".word-list")`, "word list");
@@ -163,7 +163,7 @@ try {
   await js(`(() => { const q = document.getElementById("d-q"); q.value = "tester"; q.dispatchEvent(new Event("input")); })()`);
   await waitFor(`!document.getElementById("d-people").hidden`, "people results");
   await shot("13b-search");
-  await js(`location.hash = "#/u/labas"`);
+  await js(`location.hash = "#/u/vokab"`);
   await waitFor(`!!document.querySelector(".profile-head")`, "profile");
   await js(`document.querySelector("[data-follow]")?.click()`);
   await waitFor(`document.querySelector("[data-follow]")?.textContent === "Following"`, "follow");
