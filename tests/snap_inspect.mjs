@@ -70,8 +70,8 @@ await shot("tests/inspect_play_fixed.png");
 
 // Admin page with mocked admin data if needed
 await js(`
+  window.__origFetch = window.__origFetch || window.fetch;
   window.__app.me.isAdmin = true;
-  const origFetch = window.fetch;
   window.fetch = async (url, opts) => {
     if (url === '/api/admin/courses') {
       return new Response(JSON.stringify({
@@ -84,7 +84,7 @@ await js(`
         xpToday: 980
       }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
-    return origFetch(url, opts);
+    return window.__origFetch(url, opts);
   };
   location.hash = '#/admin';
   window.__app.route();
@@ -94,6 +94,7 @@ await shot("tests/inspect_admin_fixed.png");
 
 // Flashcard Review
 await js(`
+  window.__origFetch = window.__origFetch || window.fetch;
   window.fetch = async (url, opts) => {
     if (url === '/api/learn/words') {
       return new Response(JSON.stringify({
@@ -111,18 +112,7 @@ await js(`
         now: Date.now()
       }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
-    if (url === '/api/admin/courses') {
-      return new Response(JSON.stringify({
-        courses: [
-          { id: 1, title: "Spanish for travellers", toCode: "es", toLang: "Spanish", words: 1, learners: 1, updatedAt: 1731934800000, creator: { id: 2, name: "Tester 399", official: false }, hidden: false },
-          { id: 2, title: "Lithuanian History", toCode: "lt", toLang: "Lithuanian", words: 198, learners: 3, updatedAt: 1731934800000, creator: { id: 1, name: "Vokab", official: true }, hidden: false },
-          { id: 3, title: "Lithuanian Vocabulary", toCode: "lt", toLang: "Lithuanian", words: 333, learners: 10, updatedAt: 1731934800000, creator: { id: 1, name: "Vokab", official: true }, hidden: false }
-        ],
-        players: 10,
-        xpToday: 980
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-    }
-    return origFetch(url, opts);
+    return window.__origFetch(url, opts);
   };
   location.hash = '#/learn/review';
   window.__app.route();
