@@ -850,28 +850,42 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
     .slice(0, 3)
     .map((q) => `<li><div class="row spread mono-tag"><span>Earn ${q} XP</span><span class="muted small">${stats.xp}/${q}</span></div><div class="bar"><i style="width:${Math.round((100 * stats.xp) / q)}%"></i></div></li>`)
     .join("") : "";
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 900;
+  const savedState = typeof localStorage !== "undefined" ? localStorage.getItem("vokab_dash_progress_open") : null;
+  const isOpen = !isMobile || savedState === "true";
 
   return `
     <aside class="dash-side">
-      <section class="card widget dash-progress-card profile-card">
-        <div class="widget-head">
-          <h3>Daily Progress</h3>
-          ${today ? `<span class="pill ok mono-tag">+${today} XP today</span>` : `<span class="pill mono-tag">0 XP today</span>`}
+      <details class="card widget dash-progress-card profile-card" id="dash-progress-widget" ${isOpen ? "open" : ""}>
+        <summary class="widget-head dash-progress-summary">
+          <div class="dash-progress-title-wrap">
+            <span class="dash-progress-chev" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </span>
+            <h3>Daily Progress</h3>
+          </div>
+          <div class="dash-progress-summary-meta">
+            ${stats?.due ? `<span class="pill due mono-tag">${stats.due} DUE</span>` : ""}
+            ${today ? `<span class="pill ok mono-tag">+${today} XP</span>` : `<span class="pill mono-tag">0 XP</span>`}
+            <span class="dash-progress-quick-stats mono-tag">${stats?.streak ?? 0}d · ${stats?.learned ?? 0} learned</span>
+          </div>
+        </summary>
+        <div class="dash-progress-body">
+          <div class="stat-row">
+            <div class="stat-box"><span class="mono-tag">Streak</span><b class="mono-tag">${stats?.streak ?? 0}d</b></div>
+            <div class="stat-box"><span class="mono-tag">Learned</span><b class="mono-tag">${stats?.learned ?? 0}</b></div>
+            <div class="stat-box"><span class="mono-tag">Due</span><b class="mono-tag">${stats?.due ?? 0}</b></div>
+            <div class="stat-box"><span class="mono-tag">Hearts</span><b class="mono-tag">${stats?.hearts ?? 0}</b></div>
+          </div>
+          ${stats?.due ? `<a class="btn btn-gate-pill block" href="#/learn/review">${FC_ICONS.shuffle} Review ${plural(stats.due, "word")} now</a>` : `<p class="stat-note">${stats?.learned ? `All caught up! Next review ${fmtUntil(stats.nextDueAt)}.` : "Words you learn come back for review just before you'd forget them."}</p>`}
+          ${stats && stats.hearts < stats.maxHearts ? `<p class="stat-note small mono-tag">Next heart in ${fmtMinutes(stats.nextHeartMs)}.</p>` : ""}
+          ${stats?.days?.length ? `<div class="dash-activity-wrap"><div class="dash-activity-head"><span class="muted small mono-tag">14-DAY MOMENTUM</span><span class="muted small mono-tag">XP / DAY</span></div>${activityHtml(stats.days)}</div>` : ""}
+          <div class="dash-side-links">
+            <a class="small mono-tag" href="#/learn/words">${I.list} All your words</a>
+            ${stats?.learned ? `<a class="small mono-tag" href="#/learn/review">${I.cards} Shuffled flashcards</a>` : ""}
+          </div>
         </div>
-        <div class="stat-row">
-          <div class="stat-box"><span class="mono-tag">Streak</span><b class="mono-tag">${stats?.streak ?? 0}d</b></div>
-          <div class="stat-box"><span class="mono-tag">Learned</span><b class="mono-tag">${stats?.learned ?? 0}</b></div>
-          <div class="stat-box"><span class="mono-tag">Due</span><b class="mono-tag">${stats?.due ?? 0}</b></div>
-          <div class="stat-box"><span class="mono-tag">Hearts</span><b class="mono-tag">${stats?.hearts ?? 0}</b></div>
-        </div>
-        ${stats?.due ? `<a class="btn btn-gate-pill block" href="#/learn/review">${FC_ICONS.shuffle} Review ${plural(stats.due, "word")} now</a>` : `<p class="stat-note">${stats?.learned ? `All caught up! Next review ${fmtUntil(stats.nextDueAt)}.` : "Words you learn come back for review just before you'd forget them."}</p>`}
-        ${stats && stats.hearts < stats.maxHearts ? `<p class="stat-note small mono-tag">Next heart in ${fmtMinutes(stats.nextHeartMs)}.</p>` : ""}
-        ${stats?.days?.length ? `<div class="dash-activity-wrap"><div class="dash-activity-head"><span class="muted small mono-tag">14-DAY MOMENTUM</span><span class="muted small mono-tag">XP / DAY</span></div>${activityHtml(stats.days)}</div>` : ""}
-        <div class="dash-side-links">
-          <a class="small mono-tag" href="#/learn/words">${I.list} All your words</a>
-          ${stats?.learned ? `<a class="small mono-tag" href="#/learn/review">${I.cards} Shuffled flashcards</a>` : ""}
-        </div>
-      </section>
+      </details>
       <section class="card widget" id="board-widget">
         <div class="widget-head"><h3>Leaderboard</h3><select id="board-period" class="mono-tag" aria-label="Period"><option value="week">Weekly</option><option value="all">All time</option></select></div>
         <div id="board-body">${boardHtml(board?.rows ?? [])}</div>
@@ -887,6 +901,14 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
 
 function wireDashSide(root = $app) {
   wireChartTips(root);
+  const progWidget = root.querySelector("#dash-progress-widget");
+  if (progWidget) {
+    progWidget.addEventListener("toggle", () => {
+      if (window.innerWidth < 900) {
+        localStorage.setItem("vokab_dash_progress_open", progWidget.open ? "true" : "false");
+      }
+    });
+  }
   const period = root.querySelector("#board-period");
   if (period) {
     period.onchange = async (e) => {

@@ -2221,6 +2221,97 @@ svg.ring {
   gap: 14px;
 }
 
+/* Dashboard Progress Card Collapsible */
+.dash-progress-card {
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.dash-progress-summary {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  cursor: pointer;
+  user-select: none;
+  list-style: none !important;
+  padding: 0 !important;
+}
+
+.dash-progress-summary::-webkit-details-marker,
+.dash-progress-card summary::-webkit-details-marker {
+  display: none !important;
+}
+
+.dash-progress-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-progress-title-wrap h3 {
+  margin: 0 !important;
+  font-family: var(--font-obviouslyvariable) !important;
+  font-weight: 800 !important;
+  font-size: 20px !important;
+  line-height: 1 !important;
+  letter-spacing: 0.02em !important;
+  color: var(--color-ink-black) !important;
+}
+
+.dash-progress-chev {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--color-ink-black);
+}
+
+.dash-progress-chev svg {
+  width: 14px !important;
+  height: 14px !important;
+  transition: transform 0.2s ease;
+}
+
+.dash-progress-card:not([open]) .dash-progress-chev svg {
+  transform: rotate(-90deg);
+}
+
+.dash-progress-card[open] .dash-progress-chev svg {
+  transform: rotate(0deg);
+}
+
+.dash-progress-summary-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.dash-progress-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (min-width: 900px) {
+  .dash-progress-summary {
+    cursor: default !important;
+    pointer-events: none !important;
+  }
+
+  .dash-progress-chev {
+    display: none !important;
+  }
+
+  .dash-progress-quick-stats {
+    display: none !important;
+  }
+}
+
 .widget-head {
   display: flex;
   align-items: center;
@@ -5408,7 +5499,50 @@ label.field {
   }
 
   .dash {
-    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    width: 100% !important;
+  }
+
+  .dash-side {
+    display: contents !important;
+  }
+
+  .dash-progress-card {
+    order: -1 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .dash-progress-card:not([open]) {
+    padding: 14px 16px !important;
+  }
+
+  .dash-progress-card[open] {
+    padding: 18px 16px !important;
+  }
+
+  .dash-progress-quick-stats {
+    font-size: 11px;
+    color: #555555;
+    letter-spacing: 0.04em;
+    font-family: var(--font-bergenmonoregular);
+  }
+
+  .dash-progress-card[open] .dash-progress-quick-stats {
+    display: none;
+  }
+
+  .dash-main {
+    order: 0 !important;
+    width: 100% !important;
+  }
+
+  .dash-side > *:not(.dash-progress-card) {
+    order: 1 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .studio-toolbar,
