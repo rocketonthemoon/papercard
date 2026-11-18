@@ -1936,8 +1936,8 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
     d.innerHTML = `<div class="modal modal-box card" role="dialog" aria-modal="true" aria-labelledby="oh-title">
       <span class="modal-icon">${I.heart}</span>
       <h2 id="oh-title">You ran out of hearts</h2>
-      <p class="muted">Review your words or practise a lesson you've finished to earn hearts back, or wait: the next one comes back in ${fmtMinutes(stats.nextHeartMs)}.</p>
-      <div class="row" style="justify-content:center">${stats.due ? `<a class="btn outline" href="#/learn/review">Review words</a>` : ""}<a class="btn" href="${courseBack}">Back to course</a></div>
+      <p class="muted">Practise a lesson you've finished to earn hearts back, or wait: the next one comes back in ${fmtMinutes(stats.nextHeartMs)}.</p>
+      <div class="row" style="justify-content:center"><a class="btn" href="${courseBack}">Back to course</a></div>
     </div>`;
     document.body.append(d);
     addEventListener("hashchange", () => d.remove(), { once: true });

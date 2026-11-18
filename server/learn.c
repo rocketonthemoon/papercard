@@ -752,7 +752,7 @@ static void answer_word(struct mg_connection *c, struct mg_http_message *hm, lon
   int hearts = hearts_now(uid, NULL);
   if (!review && !practice && hearts <= 0)
     return mg_http_reply(c, 403, "Content-Type: application/json\r\nCache-Control: no-store\r\n", "{%m:%m,%m:0}", MG_ESC("error"),
-                         MG_ESC("You're out of hearts. Review your words, practise a finished lesson or wait for a heart to come back."), MG_ESC("hearts"));
+                         MG_ESC("You're out of hearts. Practise a finished lesson or wait for a heart to come back."), MG_ESC("hearts"));
 
   int correct = 0, quality = 0;
   const char *verdict = "wrong";
