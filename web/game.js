@@ -602,19 +602,19 @@ async function renderPlayHub() {
       <section class="card picker">
         <header class="picker-head"><h2>Play a friend</h2><p class="muted">Create a word duel and send the link, or join one with a code</p></header>
         <div class="tiles two" role="tablist">
-          <button class="tile" role="tab" data-mode="create" aria-selected="true"><span class="tip">You play first, then send the link</span><span class="tile-icon">${I.room}</span><span class="tile-name">Create a room</span></button>
-          <button class="tile" role="tab" data-mode="join" aria-selected="false"><span class="tip">Got a code from a friend?</span><span class="tile-icon">${I.join}</span><span class="tile-name">Join a room</span></button>
+          <button class="tile" role="tab" data-mode="create" aria-selected="true"><span class="tile-icon">${I.room}</span><span class="tile-name">Create a room</span></button>
+          <button class="tile" role="tab" data-mode="join" aria-selected="false"><span class="tile-icon">${I.join}</span><span class="tile-name">Join a room</span></button>
         </div>
         <div class="pane" id="pane-create">
           <label class="field" id="course-pick" hidden>Course <select id="duel-course"></select></label>
           <div class="row spread"><h3>Which decks?</h3><span class="muted small" id="deck-count"></span></div>
           <div class="deck-picker" id="decks"><p class="muted">Loading decks…</p></div>
           <p id="create-error" class="error" hidden></p>
-          <div class="pane-actions"><span class="muted">10 random words from these decks. You play first, then send the link.</span><button class="btn" id="create">Create room ${I.arrow}</button></div>
+          <div class="pane-actions"><span class="muted small mono-tag">[ 10 RANDOM WORDS · YOU PLAY FIRST ]</span><button class="btn btn-gate-pill" id="create">CREATE ROOM →</button></div>
         </div>
         <form class="pane" id="pane-join" hidden>
           <label class="field">Room code
-            <span class="row"><input type="text" id="join-code" placeholder="e.g. K7QX4M" maxlength="6" autocomplete="off" style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:.12em"><button class="btn">Join ${I.arrow}</button></span>
+            <span class="row" style="gap:12px;margin-top:4px;"><input type="text" id="join-code" placeholder="e.g. K7QX4M" maxlength="6" autocomplete="off" style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:.12em"><button class="btn btn-gate-pill">JOIN →</button></span>
           </label>
         </form>
       </section>
@@ -2221,7 +2221,7 @@ async function renderDiscover() {
             <span>Have an invite code?</span>
           </summary>
           <div class="code-callout-inner">
-            <p class="code-callout-desc">Enter a private access code from an instructor or friend to unlock restricted decks.</p>
+            <p class="code-callout-desc">Have a private access code? Enter it below to unlock the course.</p>
             ${codeFormHtml("discover-code")}
           </div>
         </details>
@@ -3174,13 +3174,52 @@ async function renderAdmin() {
     return;
   }
   $app.innerHTML = `
-    <div class="toolbar"><div class="page-head"><h1>Admin</h1><p class="muted">${plural(d.courses.length, "course")} · ${plural(d.players, "player")} · ${d.xpToday} XP earned today. Hide a course to take it off Discover; its creator still sees it. You can edit only the official courses.</p></div></div>
-    <section class="card list-card">
-      <ul class="rows">${d.courses
+    <div class="toolbar admin-toolbar">
+      <div class="page-head">
+        <span class="mono-tag eyebrow-tag">[ PLATFORM MANAGEMENT // ADMIN CONSOLE ]</span>
+        <h1 class="admin-title">ADMIN CONSOLE</h1>
+        <p class="muted admin-desc">Platform-wide overview and course moderation. Hidden courses remain accessible only to creators.</p>
+      </div>
+      <div class="admin-stats-pills">
+        <div class="admin-stat-pill"><span class="stat-pill-num">${d.courses.length}</span> <span class="stat-pill-lbl">COURSES</span></div>
+        <div class="admin-stat-pill"><span class="stat-pill-num">${d.players}</span> <span class="stat-pill-lbl">LEARNERS</span></div>
+        <div class="admin-stat-pill"><span class="stat-pill-num">${d.xpToday}</span> <span class="stat-pill-lbl">XP TODAY</span></div>
+      </div>
+    </div>
+    <section class="card admin-list-card">
+      <div class="admin-list-head">
+        <span class="mono-tag">[ REGISTERED COURSES (${d.courses.length}) ]</span>
+        <span class="muted small mono-tag">Moderation &amp; Discovery Controls</span>
+      </div>
+      <ul class="admin-rows">${d.courses
         .map(
-          (c) => `<li class="admin-course ${c.hidden ? "is-hidden" : ""}"><span class="course-flag">${esc(flag(c))}</span>
-            <div><a href="#/course/${c.id}"><b>${esc(c.title)}</b></a> ${c.hidden ? `<span class="pill due">hidden</span>` : ""}<br><span class="muted small">by ${userLink(c.creator)} · ${esc(c.toLang)} · ${plural(c.words, "word")} · ${plural(c.learners, "learner")} · updated ${fmtDate(c.updatedAt)}</span></div>
-            <span class="tools">${c.creator.official ? `<a class="btn outline small" href="#/studio/${c.id}">${I.edit} Edit</a>` : `<a class="btn outline small" href="#/course/${c.id}">View</a>`}<button class="btn small ${c.hidden ? "" : "danger"}" data-hide="${c.id}">${c.hidden ? "Unhide" : "Hide"}</button></span></li>`,
+          (c) => `<li class="admin-course-row ${c.hidden ? "is-hidden" : ""}">
+            <div class="admin-course-left">
+              <span class="course-flag">${esc(flag(c))}</span>
+              <div class="admin-course-info">
+                <div class="admin-course-title-line">
+                  <a class="admin-course-title" href="#/course/${c.id}">${esc(c.title)}</a>
+                  ${c.hidden ? `<span class="admin-badge badge-hidden">[ HIDDEN ]</span>` : `<span class="admin-badge badge-live">[ LIVE ]</span>`}
+                  ${c.creator.official ? `<span class="admin-badge badge-official">[ OFFICIAL ]</span>` : ""}
+                </div>
+                <div class="admin-course-meta">
+                  <span>by <b>${userLink(c.creator)}</b></span>
+                  <span class="meta-dot">·</span>
+                  <span>${esc(c.toLang)}</span>
+                  <span class="meta-dot">·</span>
+                  <span>${plural(c.words, "word")}</span>
+                  <span class="meta-dot">·</span>
+                  <span>${plural(c.learners, "learner")}</span>
+                  <span class="meta-dot">·</span>
+                  <span>updated ${fmtDate(c.updatedAt)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="admin-course-actions">
+              ${c.creator.official ? `<a class="btn btn-gate-pill small" href="#/studio/${c.id}">${I.edit} Edit →</a>` : `<a class="btn btn-gate-pill small" href="#/course/${c.id}">View →</a>`}
+              <button class="btn btn-outlined-display small ${c.hidden ? "btn-unhide" : "btn-hide"}" data-hide="${c.id}">${c.hidden ? "Unhide" : "Hide"}</button>
+            </div>
+          </li>`,
         )
         .join("")}</ul>
     </section>`;

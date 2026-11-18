@@ -58,6 +58,35 @@ await js(`
 await sleep(1500);
 await shot("tests/inspect_studio_admin.png");
 
+// Play page
+await js(`location.hash = '#/play'`);
+await sleep(1500);
+await shot("tests/inspect_play_fixed.png");
+
+// Admin page with mocked admin data if needed
+await js(`
+  window.__app.me.isAdmin = true;
+  const origFetch = window.fetch;
+  window.fetch = async (url, opts) => {
+    if (url === '/api/admin/courses') {
+      return new Response(JSON.stringify({
+        courses: [
+          { id: 1, title: "Spanish for travellers", toCode: "es", toLang: "Spanish", words: 1, learners: 1, updatedAt: 1731934800000, creator: { id: 2, name: "Tester 399", official: false }, hidden: false },
+          { id: 2, title: "Lithuanian History", toCode: "lt", toLang: "Lithuanian", words: 198, learners: 3, updatedAt: 1731934800000, creator: { id: 1, name: "Vokab", official: true }, hidden: false },
+          { id: 3, title: "Lithuanian Vocabulary", toCode: "lt", toLang: "Lithuanian", words: 333, learners: 10, updatedAt: 1731934800000, creator: { id: 1, name: "Vokab", official: true }, hidden: false }
+        ],
+        players: 10,
+        xpToday: 980
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    return origFetch(url, opts);
+  };
+  location.hash = '#/admin';
+  window.__app.route();
+`);
+await sleep(1500);
+await shot("tests/inspect_admin_fixed.png");
+
 // Discover page
 await js(`location.hash = '#/discover'`);
 await sleep(1500);

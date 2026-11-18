@@ -3790,6 +3790,7 @@ input[type="text"].type-box:focus {
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: 20px;
   width: 100%;
+  align-items: stretch !important;
 }
 
 .pcard {
@@ -3797,9 +3798,10 @@ input[type="text"].type-box:focus {
   border: 2.5px solid var(--color-ink-black) !important;
   border-radius: 6px !important;
   box-shadow: none !important;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  height: 100% !important;
   overflow: hidden;
   transition: transform 0.15s ease;
 }
@@ -3813,7 +3815,7 @@ input[type="text"].type-box:focus {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  flex: 1;
+  flex: 1 1 auto;
   background: #f9f5f2;
 }
 
@@ -3850,7 +3852,12 @@ input[type="text"].type-box:focus {
   color: #2b2b2b;
   line-height: 1.45;
   margin: 0;
-  flex: 1;
+  flex: 1 1 auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 4.35em;
 }
 
 .pcard .meta {
@@ -3861,6 +3868,15 @@ input[type="text"].type-box:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin-top: auto;
+}
+
+.pcard .progress-line {
+  min-height: 28px;
+}
+
+.pcard .progress-line.empty {
+  min-height: 28px;
 }
 
 .pcard-foot {
@@ -3871,6 +3887,7 @@ input[type="text"].type-box:focus {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-top: auto;
 }
 
 .pcard-foot .creator-meta {
@@ -3891,20 +3908,25 @@ aside.filters {
 }
 
 aside.filters svg,
+.code-callout svg,
+.code-lock-icon,
+.code-lock-icon svg,
 .code-callout-collapsible summary svg,
 details summary svg {
   width: 14px !important;
   height: 14px !important;
   min-width: 14px !important;
   max-width: 14px !important;
+  max-height: 14px !important;
   display: inline-block !important;
   vertical-align: middle !important;
+  flex-shrink: 0 !important;
 }
 
 .code-callout-collapsible {
   border-top: 1.5px dashed rgba(22, 21, 29, 0.25);
-  padding-top: 14px;
-  margin-top: 4px;
+  padding-top: 18px;
+  margin-top: 14px;
 }
 
 .code-callout-summary {
@@ -4284,3 +4306,425 @@ details summary svg {
   color: var(--color-ink-black);
   margin: 0;
 }
+
+/* Card Surface Content Contrast Safeguards */
+.card a:not(.btn):not(.tag-chip) {
+  color: var(--color-ink-black) !important;
+}
+.card a:not(.btn):not(.tag-chip):hover {
+  text-decoration: underline;
+}
+.card .btn.outline,
+.card .btn-outlined-display {
+  color: var(--color-ink-black) !important;
+  border-color: var(--color-ink-black) !important;
+  background: transparent !important;
+}
+.card .btn.outline:hover,
+.card .btn-outlined-display:hover {
+  background: rgba(22, 21, 29, 0.08) !important;
+  color: var(--color-ink-black) !important;
+  border-color: var(--color-ink-black) !important;
+}
+
+/* ==========================================================================
+   Admin Console Overhaul
+   ========================================================================== */
+
+.admin-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.admin-title {
+  font-family: var(--font-degulardisplay-bold) !important;
+  font-size: 38px !important;
+  color: var(--color-hi-vis-yellow) !important;
+  letter-spacing: -0.02em;
+  margin: 6px 0 8px !important;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.admin-desc {
+  font-family: var(--font-degularvariable);
+  font-size: 15px;
+  color: #fff;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.admin-stats-pills {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-stat-pill {
+  background: var(--color-bone-white);
+  color: var(--color-ink-black);
+  border: 2px solid var(--color-ink-black);
+  border-radius: var(--radius-buttons);
+  padding: 8px 18px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  box-shadow: none !important;
+}
+
+.stat-pill-num {
+  font-family: var(--font-degulardisplay-bold);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-ink-black);
+}
+
+.stat-pill-lbl {
+  font-family: var(--font-bergenmonoregular);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #666;
+}
+
+.admin-list-card {
+  background: var(--color-bone-white) !important;
+  border: 2.5px solid var(--color-ink-black) !important;
+  border-radius: 6px !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.admin-list-head {
+  padding: 16px 24px;
+  border-bottom: 2px solid var(--color-ink-black);
+  background: rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-course-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px;
+  border-bottom: 1.5px dashed rgba(22, 21, 29, 0.2);
+  transition: background 0.12s ease;
+}
+
+.admin-course-row:last-child {
+  border-bottom: none;
+}
+
+.admin-course-row:hover {
+  background: rgba(244, 237, 54, 0.05);
+}
+
+.admin-course-row.is-hidden {
+  opacity: 0.65;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.admin-course-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-course-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-course-title-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-course-title {
+  font-family: var(--font-degulardisplay-bold);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--color-ink-black) !important;
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.admin-course-title:hover {
+  text-decoration: underline !important;
+}
+
+.admin-badge {
+  font-family: var(--font-bergenmonoregular);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-buttons);
+  letter-spacing: 0.05em;
+  border: 1.5px solid var(--color-ink-black);
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge-live {
+  background: var(--color-matcha-green);
+  color: var(--color-ink-black);
+}
+
+.badge-hidden {
+  background: var(--color-soft-pink);
+  color: var(--color-ink-black);
+}
+
+.badge-official {
+  background: var(--color-hi-vis-yellow);
+  color: var(--color-ink-black);
+}
+
+.admin-course-meta {
+  font-family: var(--font-bergenmonoregular);
+  font-size: 12px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-course-meta b {
+  color: var(--color-ink-black);
+}
+
+.admin-course-meta .meta-dot {
+  opacity: 0.4;
+}
+
+.admin-course-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.admin-course-actions .btn-gate-pill.small {
+  height: 38px;
+  padding: 0 18px !important;
+  font-size: 13px;
+}
+
+.admin-course-actions .btn-outlined-display.small {
+  height: 38px;
+  padding: 0 16px !important;
+  font-size: 13px;
+  border: 2px solid var(--color-ink-black) !important;
+  color: var(--color-ink-black) !important;
+}
+
+.admin-course-actions .btn-hide:hover {
+  background: var(--color-soft-pink) !important;
+  border-color: var(--color-ink-black) !important;
+  color: var(--color-ink-black) !important;
+}
+
+.admin-course-actions .btn-unhide {
+  background: var(--color-matcha-green) !important;
+  border-color: var(--color-ink-black) !important;
+  color: var(--color-ink-black) !important;
+}
+
+/* ==========================================================================
+   Universal Form Controls & Text Contrast Safeguards (Papercard High-Contrast)
+   ========================================================================== */
+
+/* 1. All Form Controls (Inputs, Selects, Textareas) */
+select,
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea {
+  background-color: #ffffff !important;
+  color: var(--color-ink-black) !important;
+  border: 2px solid var(--color-ink-black) !important;
+  border-radius: var(--radius-cards) !important;
+  padding: 10px 14px !important;
+  font-family: var(--font-degularvariable) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+select:focus,
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+  border-color: var(--color-ink-black) !important;
+  outline: 2px solid var(--color-hi-vis-yellow) !important;
+  outline-offset: 1px !important;
+}
+
+select option {
+  background-color: #ffffff !important;
+  color: var(--color-ink-black) !important;
+  font-family: var(--font-degularvariable) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  padding: 8px 12px !important;
+}
+
+label.field {
+  color: var(--color-ink-black) !important;
+  font-family: var(--font-degulardisplay-bold) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+/* 2. Remove broken legacy hover tooltips that collide with headers */
+.tip {
+  display: none !important;
+}
+
+/* 3. Flat Risograph Language Badges (.course-flag) across Admin, Studio, Courses */
+.course-flag {
+  flex: none !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: var(--radius-cards) !important;
+  display: grid !important;
+  place-items: center !important;
+  font-family: var(--font-bergenmonoregular) !important;
+  font-weight: 800 !important;
+  font-size: 15px !important;
+  letter-spacing: 0.06em !important;
+  color: var(--color-ink-black) !important;
+  background: var(--color-buttery-yellow) !important;
+  border: 2px solid var(--color-ink-black) !important;
+  box-shadow: none !important;
+}
+
+.course-flag.big {
+  width: 64px !important;
+  height: 64px !important;
+  font-size: 22px !important;
+}
+
+/* 4. Strict Card Text Contrast: No white or yellow text on white card surfaces */
+.card,
+.card h1,
+.card h2,
+.card h3,
+.card h4,
+.card p,
+.card label,
+.card span:not(.mono-tag):not(.badge-dot):not(.wtag):not(.admin-badge):not(.pill):not(.key),
+.picker,
+.list-card,
+.deck-group h3,
+.deck-group b {
+  color: var(--color-ink-black) !important;
+}
+
+.card .muted,
+.picker .muted,
+.list-card .muted {
+  color: #555555 !important;
+}
+
+/* Links inside cards: Dark Ink with underline (never invisible yellow!) */
+.card a:not(.btn):not(.wtag):not(.admin-badge):not(.mono-tag),
+.picker a:not(.btn):not(.wtag),
+.list-card a:not(.btn) {
+  color: var(--color-ink-black) !important;
+  text-decoration: underline !important;
+}
+
+.card a:not(.btn):hover,
+.picker a:not(.btn):hover,
+.list-card a:not(.btn):hover {
+  color: #000000 !important;
+}
+
+/* Outline buttons inside cards must have dark ink borders and text */
+.card .btn.outline,
+.picker .btn.outline,
+.list-card .btn.outline,
+.pane-actions .btn.outline {
+  color: var(--color-ink-black) !important;
+  border-color: var(--color-ink-black) !important;
+  background: transparent !important;
+}
+
+.card .btn.outline:hover,
+.picker .btn.outline:hover,
+.list-card .btn.outline:hover {
+  background: rgba(22, 21, 29, 0.08) !important;
+}
+
+/* Deck chips in duel picker */
+.deck-chip {
+  background: #ffffff !important;
+  color: var(--color-ink-black) !important;
+  border: 2px solid var(--color-ink-black) !important;
+  border-radius: var(--radius-cards) !important;
+  box-shadow: none !important;
+}
+
+.deck-chip small {
+  color: #555555 !important;
+}
+
+.deck-chip:has(input:checked) {
+  background: var(--color-matcha-green) !important;
+  border-color: var(--color-ink-black) !important;
+}
+
+/* Tab tiles inside Play lobby */
+.tiles .tile {
+  background: #ffffff !important;
+  border: 2px solid var(--color-ink-black) !important;
+  border-radius: var(--radius-cards) !important;
+  color: var(--color-ink-black) !important;
+}
+
+.tiles .tile-name {
+  color: var(--color-ink-black) !important;
+}
+
+.tiles .tile[aria-selected="true"] {
+  background: var(--color-hi-vis-yellow) !important;
+  border-color: var(--color-ink-black) !important;
+}
+
