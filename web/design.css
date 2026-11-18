@@ -4704,6 +4704,77 @@ h1.studio-title {
 }
 
 /* ==========================================================================
+   User Profile Page & Sign Out Actions
+   ========================================================================== */
+
+.profile-head {
+  background: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
+  border: 2px solid var(--color-ink-black) !important;
+  border-radius: var(--radius-cards) !important;
+  box-shadow: none !important;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 28px !important;
+}
+
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.profile-actions .btn {
+  height: 40px !important;
+  padding: 0 18px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  border: 2px solid var(--color-ink-black) !important;
+  color: var(--color-ink-black) !important;
+  background: var(--color-bone-white) !important;
+  box-shadow: none !important;
+  border-radius: var(--radius-buttons) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  transition: all 0.15s ease;
+  cursor: pointer !important;
+}
+
+.profile-actions #edit-profile:hover {
+  background: var(--color-hi-vis-yellow) !important;
+  color: var(--color-ink-black) !important;
+  border-color: var(--color-ink-black) !important;
+}
+
+.profile-actions #profile-logout {
+  background: #fff0f1 !important;
+  color: #d32f2f !important;
+  border-color: #d32f2f !important;
+}
+
+.profile-actions #profile-logout svg {
+  stroke: #d32f2f !important;
+  fill: none !important;
+  width: 16px;
+  height: 16px;
+}
+
+.profile-actions #profile-logout:hover {
+  background: #ff4b62 !important;
+  color: var(--color-bone-white) !important;
+  border-color: var(--color-ink-black) !important;
+}
+
+.profile-actions #profile-logout:hover svg {
+  stroke: var(--color-bone-white) !important;
+}
+
+/* ==========================================================================
    Admin Console Overhaul
    ========================================================================== */
 
@@ -5925,5 +5996,29 @@ label.field {
     line-height: 1.5 !important;
     font-size: 11px !important;
     word-break: break-word !important;
+  }
+
+  /* Mobile Profile Page and Actions */
+  .profile-head {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 20px 16px !important;
+    gap: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .profile-actions {
+    width: 100% !important;
+    margin-left: 0 !important;
+    display: flex !important;
+    gap: 10px !important;
+  }
+
+  .profile-actions .btn {
+    flex: 1 1 0 !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 0 10px !important;
   }
 }

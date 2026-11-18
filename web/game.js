@@ -469,6 +469,16 @@ const refreshTopStats = () =>
     .then((d) => setTopStats(d.stats))
     .catch(() => { });
 
+async function doLogout() {
+  await api("/auth/logout", { method: "POST", body: {} });
+  window.google?.accounts?.id?.disableAutoSelect?.();
+  me = null;
+  topStats = null;
+  location.hash = "#/";
+  window.__app = { get me() { return me; }, set me(v) { me = v; }, route };
+  route();
+}
+
 function renderNav() {
   const signedIn = !!me;
   document.body.classList.toggle("shell", signedIn);
@@ -534,15 +544,7 @@ function renderNav() {
         : (TITLES[page()]?.toUpperCase() ?? "PAPERCARD");
   }
   $account.innerHTML = `<a class="who-pill profile-pill" href="#/u/${esc(me.username)}" title="Your profile (@${esc(me.username)})">${avatar(me)}<span>${esc(me.name)}</span></a>`;
-  document.getElementById("logout")?.addEventListener("click", async () => {
-    await api("/auth/logout", { method: "POST", body: {} });
-    window.google?.accounts?.id?.disableAutoSelect?.();
-    me = null;
-    topStats = null;
-    location.hash = "#/";
-    window.__app = { get me() { return me; }, set me(v) { me = v; }, route };
-    route();
-  });
+  document.getElementById("logout")?.addEventListener("click", doLogout);
   setTopStats();
 }
 
@@ -2553,7 +2555,7 @@ async function renderProfile(name) {
           ${u.bio ? `<p>${esc(u.bio)}</p>` : ""}
           <div class="row"><button class="linkbtn" data-list="followers"><b data-followers="${esc(u.username)}">${u.followers}</b> followers</button><button class="linkbtn" data-list="following"><b>${u.following}</b> following</button></div>
         </div>
-        <div class="profile-actions">${u.isYou ? `<button class="btn outline" id="edit-profile">${I.edit} Edit profile</button>` : followBtn(u)}</div>
+        <div class="profile-actions">${u.isYou ? `<button class="btn outline" id="edit-profile">${I.edit} Edit profile</button><button class="btn outline" id="profile-logout">${ICON.logout} Sign out</button>` : followBtn(u)}</div>
       </section>
       <form class="card form profile-edit" id="pf" hidden>
         <div class="form-two">
@@ -2571,6 +2573,7 @@ async function renderProfile(name) {
   for (const b of $app.querySelectorAll("[data-list]")) b.onclick = () => openUserList(u, b.dataset.list);
   const form = document.getElementById("pf");
   document.getElementById("edit-profile")?.addEventListener("click", () => ((form.hidden = false), document.getElementById("pf-user").focus()));
+  document.getElementById("profile-logout")?.addEventListener("click", doLogout);
   document.getElementById("pf-cancel").onclick = () => (form.hidden = true);
   form.onsubmit = async (e) => {
     e.preventDefault();
