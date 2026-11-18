@@ -728,6 +728,7 @@ body:not(.shell) .nav .links {
 }
 
 @media (max-width: 900px) {
+
   body.landing .nav,
   body:not(.shell) .nav {
     display: none !important;
@@ -2136,8 +2137,6 @@ body:not(.shell) .nav .links {
   max-width: 240px;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
   white-space: nowrap;
 }
 
@@ -3948,9 +3947,42 @@ input[type="text"].type-box:focus {
 }
 
 .fc-top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+}
+
+#fc-quit,
+.fc-top .icon-btn {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  border-radius: 100px !important;
+  border: 2px solid var(--color-ink-black) !important;
+  background: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+#fc-quit:hover,
+.fc-top .icon-btn:hover {
+  background: var(--color-hi-vis-yellow) !important;
+}
+
+#fc-quit svg,
+.fc-top .icon-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke: var(--color-ink-black) !important;
+  stroke-width: 2.4 !important;
 }
 
 .fc-counter {
@@ -9356,14 +9388,17 @@ ul.tree li,
 }
 
 @media (max-width: 600px) {
+
   .card.board-page,
   .board-page {
     padding: 20px 16px 28px !important;
   }
+
   .board-page .podium {
     gap: 10px !important;
     max-width: 100% !important;
   }
+
   .board-page .podium-spot {
     flex: 1 1 0 !important;
   }
@@ -9749,7 +9784,7 @@ form.form textarea:focus {
   margin: 12px 0 !important;
 }
 
-.settings-grid .stat-row.two > div {
+.settings-grid .stat-row.two>div {
   padding: 10px !important;
   background: #ffffff !important;
   border: 1.5px solid var(--color-ink-black) !important;
@@ -9858,5 +9893,3 @@ section.card.cms-main {
   align-items: center !important;
   gap: 8px !important;
 }
-
-
