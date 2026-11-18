@@ -127,4 +127,12 @@ await js(`window.scrollTo(0, document.body.scrollHeight)`);
 await sleep(500);
 await shot("tests/inspect_mobile_play_bottom.png");
 
+// Studio page on mobile
+await js(`
+  location.hash = '#/studio';
+  window.__app.route();
+`);
+await sleep(1500);
+await shot("tests/inspect_mobile_studio.png");
+
 process.exit(0);
