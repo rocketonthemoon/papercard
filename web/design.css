@@ -4622,6 +4622,175 @@ svg.check-icon {
   gap: 16px;
 }
 
+/* Duel Results & Answer Key */
+.kv {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.kv li {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 13.5px !important;
+  line-height: 1.4 !important;
+}
+
+.kv li span {
+  color: rgba(22, 21, 29, 0.7) !important;
+  font-weight: 500 !important;
+}
+
+.kv li b {
+  font-family: var(--font-bergenmonoregular), monospace !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  color: var(--color-ink-black) !important;
+}
+
+.kv li b.good {
+  color: #2e7d32 !important;
+}
+
+.kv li b.bad {
+  color: #c62828 !important;
+}
+
+.workspace .score {
+  font-family: var(--font-degularvariable), sans-serif !important;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  color: var(--color-ink-black) !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 6px !important;
+}
+
+.workspace .score b {
+  font-size: 28px !important;
+  font-weight: 800 !important;
+}
+
+.workspace .score .muted {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: rgba(22, 21, 29, 0.55) !important;
+}
+
+.winner {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+  background: var(--color-hi-vis-yellow) !important;
+  color: var(--color-ink-black) !important;
+  border: 1.5px solid var(--color-ink-black) !important;
+  border-radius: 4px !important;
+  font-family: var(--font-degulardisplay-bold), sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.winner svg {
+  width: 18px !important;
+  height: 18px !important;
+  flex-shrink: 0 !important;
+}
+
+.list-card .rows {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+li.answer {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 14px 16px !important;
+  background: #ffffff !important;
+  border: 1.5px solid var(--color-ink-black) !important;
+  border-radius: var(--radius-cards, 6px) !important;
+  font-size: 14px !important;
+}
+
+li.answer svg.mark-ok,
+li.answer svg.mark-miss,
+svg.mark-ok,
+svg.mark-miss {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+  flex: 0 0 20px !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+li.answer svg.mark-ok,
+svg.mark-ok {
+  color: #2e7d32 !important;
+}
+
+li.answer svg.mark-miss,
+svg.mark-miss {
+  color: #c62828 !important;
+}
+
+li.answer > div {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+li.answer .found {
+  font-weight: 600 !important;
+  color: var(--color-ink-black) !important;
+}
+
+li.answer b {
+  font-weight: 700 !important;
+  color: var(--color-ink-black) !important;
+}
+
+li.answer p.muted {
+  margin: 3px 0 0 0 !important;
+  font-size: 12px !important;
+  color: rgba(22, 21, 29, 0.6) !important;
+}
+
+li.answer .tag {
+  margin-left: auto !important;
+  font-family: var(--font-bergenmonoregular), monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  padding: 3px 8px !important;
+  border-radius: 100px !important;
+  border: 1px solid var(--color-ink-black) !important;
+  flex-shrink: 0 !important;
+}
+
+li.answer .tag.ok {
+  background: var(--color-matcha-cream) !important;
+  color: var(--color-ink-black) !important;
+}
+
+li.answer .tag.miss {
+  background: #ffcdd2 !important;
+  color: #b71c1c !important;
+}
+
 /* ==========================================================================
    Finish Screen (Lessons, Reviews, Duels)
    ========================================================================== */
