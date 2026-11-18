@@ -5072,6 +5072,35 @@ label.field {
   line-height: 1.5;
 }
 
+/* Ensure search inputs inside pill wraps never render an inner box/border */
+.search-input-wrap input,
+.search-input-wrap input[type="search"],
+.discover-search input,
+.discover-search input[type="search"] {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: var(--font-degularvariable) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: var(--color-ink-black) !important;
+  height: auto !important;
+}
+
+.search-input-wrap input:focus,
+.search-input-wrap input[type="search"]:focus,
+.discover-search input:focus,
+.discover-search input[type="search"]:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 
 
 /* ==========================================================================
@@ -5364,4 +5393,33 @@ label.field {
   margin: 0;
   max-width: 480px;
   line-height: 1.5;
+}
+
+/* Ensure search inputs inside pill wraps never render an inner box/border */
+.search-input-wrap input,
+.search-input-wrap input[type="search"],
+.discover-search input,
+.discover-search input[type="search"] {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: var(--font-degularvariable) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: var(--color-ink-black) !important;
+  height: auto !important;
+}
+
+.search-input-wrap input:focus,
+.search-input-wrap input[type="search"]:focus,
+.discover-search input:focus,
+.discover-search input[type="search"]:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
