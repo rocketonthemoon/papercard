@@ -532,16 +532,16 @@ function landingHtml() {
     <div class="landing-page-poster">
       ${challenged ? `<div class="confetti-card confetti-yellow" style="margin-bottom:24px;"><b>WORD DUEL:</b> You've been challenged to duel <b>${esc(challenged)}</b>. Jump into the arena!</div>` : ""}
       
-      <!-- Hero Screen: Bold, Uncluttered, Pure Poster -->
+      <!-- Hero Screen: Bold, Uncluttered Language Learning Poster -->
       <section class="poster-hero">
-        <span class="mono-tag eyebrow-tag">[ RISO CARDSTOCK // ISSUE #01 ]</span>
+        <span class="mono-tag eyebrow-tag">[ LITHUANIAN LANGUAGE // A1–B1 ]</span>
         <h1 class="poster-display-title">
           <span class="txt-hi">FLYING</span> <span class="txt-butter">PAPERS</span>
           <br>
-          <span class="txt-butter">SPEAK</span> <span class="txt-hi">LITHUANIAN</span>
+          <span class="txt-butter">LEARN</span> <span class="txt-hi">LITHUANIAN</span>
         </h1>
         
-        <p class="poster-lead">Printed on thick riso cardstock: a flat muted-violet stage, saturated confetti colors, and type so oversized it takes the viewport. Learn words that stick.</p>
+        <p class="poster-lead">Short, game-like vocabulary lessons, spaced-repetition flashcards, and live word duels with friends. No cramming, no paywalls.</p>
         
         <div class="poster-actions">
           <button type="button" class="btn-gate-pill big" id="cta-get-started">START LEARNING →</button>
@@ -552,7 +552,7 @@ function landingHtml() {
         
         <div class="poster-signin-drawer" id="signin-drawer" hidden>
           <div class="signin-box card">
-            <span class="mono-tag dark-ink">[ ACCESS GATE // AUTHENTICATE ]</span>
+            <span class="mono-tag dark-ink">[ ACCESS GATE // SIGN IN ]</span>
             <div id="gsi" class="gsi-slot"></div>
             <p id="signin-error" class="error" hidden></p>
             ${
@@ -567,79 +567,23 @@ function landingHtml() {
         </div>
       </section>
 
-      <!-- Confetti Cards: Clean 3-Card Row with Generous 40px Breathing Room -->
+      <!-- Language Learning Features: Simple, Real, Clean -->
       <section class="poster-section">
-        <div class="section-label-row">
-          <span class="mono-tag light-bone" style="align-self:flex-start;">[ CONFETTI CARDS // SPECIFICATION ]</span>
-          <h2 class="section-title"><span class="txt-hi">SATURATED</span> <span class="txt-butter">CONFETTI</span></h2>
-        </div>
         <div class="confetti-grid">
           <div class="confetti-card confetti-matcha">
             <span class="mono-tag dark-ink">[ 01 // VOCABULARY ]</span>
             <h3>Conversational Lithuanian</h3>
-            <p>Everyday vocabulary, campus conversation, dining, and street idioms printed into long-term memory.</p>
+            <p>Everyday words, phrases, and grammar essentials built for real conversations from day one.</p>
           </div>
           <div class="confetti-card confetti-pink">
-            <span class="mono-tag dark-ink">[ 02 // SPACED REVIEWS ]</span>
-            <h3>Receipts on Cardstock</h3>
-            <p>Tight spaced intervals return each card right before you'd forget it. Zero cramming.</p>
+            <span class="mono-tag dark-ink">[ 02 // SPACED MEMORY ]</span>
+            <h3>Smart Review</h3>
+            <p>Words return right before you would forget them. A few minutes a day keeps everything fresh.</p>
           </div>
           <div class="confetti-card confetti-magenta">
-            <span class="mono-tag light-bone">[ 03 // WORD DUELS ]</span>
-            <h3>10 Cards. Real Showdown.</h3>
-            <p>Challenge a friend to the exact same 10 words. Speed and precision take the crown.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Palette Swatch Legend Block (from DESIGN.md) -->
-      <section class="poster-section">
-        <div class="card swatch-legend-card">
-          <div class="swatch-head">
-            <span class="mono-tag dark-ink">[ SYSTEM // PALETTE TOKENS ]</span>
-            <h3 class="swatch-heading">PALETTE</h3>
-          </div>
-          <div class="swatch-grid">
-            <div class="swatch-item" style="background:#8584bd; color:#f9f5f2;">
-              <span class="swatch-name">Dusk Violet</span>
-              <span class="swatch-hex">#8584bd</span>
-            </div>
-            <div class="swatch-item" style="background:#f4ed36; color:#000000;">
-              <span class="swatch-name">Hi-Vis Yellow</span>
-              <span class="swatch-hex">#f4ed36</span>
-            </div>
-            <div class="swatch-item" style="background:#f9cc73; color:#1a1a1a;">
-              <span class="swatch-name">Buttery Yellow</span>
-              <span class="swatch-hex">#f9cc73</span>
-            </div>
-            <div class="swatch-item" style="background:#61609a; color:#f9f5f2;">
-              <span class="swatch-name">Lilac Shadow</span>
-              <span class="swatch-hex">#61609a</span>
-            </div>
-            <div class="swatch-item" style="background:#b5c995; color:#1a1a1a;">
-              <span class="swatch-name">Matcha Cream</span>
-              <span class="swatch-hex">#b5c995</span>
-            </div>
-            <div class="swatch-item" style="background:#f8c1ba; color:#1a1a1a;">
-              <span class="swatch-name">Bubblegum Pink</span>
-              <span class="swatch-hex">#f8c1ba</span>
-            </div>
-            <div class="swatch-item" style="background:#ac4f98; color:#f9f5f2;">
-              <span class="swatch-name">Magenta Punch</span>
-              <span class="swatch-hex">#ac4f98</span>
-            </div>
-            <div class="swatch-item" style="background:#c94245; color:#f9f5f2;">
-              <span class="swatch-name">Firecracker Red</span>
-              <span class="swatch-hex">#c94245</span>
-            </div>
-            <div class="swatch-item" style="background:#f9f5f2; color:#1a1a1a; border:1.5px solid #1a1a1a;">
-              <span class="swatch-name">Bone White</span>
-              <span class="swatch-hex">#f9f5f2</span>
-            </div>
-            <div class="swatch-item" style="background:#1a1a1a; color:#f9f5f2;">
-              <span class="swatch-name">Ink Black</span>
-              <span class="swatch-hex">#1a1a1a</span>
-            </div>
+            <span class="mono-tag light-bone">[ 03 // MULTIPLAYER ]</span>
+            <h3>Word Duels</h3>
+            <p>Challenge a friend to the same 10 words under a live timer. Speed and accuracy take the crown.</p>
           </div>
         </div>
       </section>
