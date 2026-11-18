@@ -496,6 +496,7 @@ async function doLogout() {
 function renderNav() {
   const signedIn = !!me;
   document.body.classList.toggle("shell", signedIn);
+  document.body.classList.toggle("landing", !signedIn);
   const sidebar = document.getElementById("sidebar");
   if (sidebar) sidebar.hidden = !signedIn;
   const mobileNav = document.getElementById("mobile-nav");
@@ -578,6 +579,7 @@ function landingHtml() {
 
         <div class="poster-actions poster-signin-actions" id="signin">
           <div id="gsi" class="gsi-slot"></div>
+          <div id="dev-signin" class="dev-signin-slot"></div>
           <p id="signin-error" class="error" hidden></p>
         </div>
 
@@ -713,6 +715,20 @@ function renderLanding() {
     const gsi = document.getElementById("gsi");
     if (gsi) gsi.innerHTML = `<p class="mono-tag dark-ink" style="background:#f9f5f2; padding:10px 20px; border-radius:100px; border:2px solid #000;">Google Sign-In is required to enter Papercard.</p>`;
   }
+  if (config.devLogin) {
+    const devSlot = document.getElementById("dev-signin");
+    if (devSlot) {
+      devSlot.innerHTML = `<button type="button" class="btn btn-gate-pill" id="dev-signin-btn" style="margin-top:10px;width:100%;max-width:280px;justify-content:center;">Dev sign in</button>`;
+      document.getElementById("dev-signin-btn").onclick = async () => {
+        try {
+          ({ user: me } = await api("/auth/dev", { method: "POST", body: { name: "Abdul Salam", handle: "abdulsalam" } }));
+          afterSignIn();
+        } catch (x) {
+          err(x.message);
+        }
+      };
+    }
+  }
   document.getElementById("landing-cta-btn")?.addEventListener("click", () => {
     document.getElementById("signin")?.scrollIntoView({ behavior: "smooth", block: "center" });
   });
@@ -721,6 +737,8 @@ function renderLanding() {
 
 /** After signing in, go where the visitor was headed (a duel link) or to Learn. */
 function afterSignIn() {
+  document.body.classList.remove("landing");
+  document.body.classList.add("shell");
   if (!duelCodeFromHash() && page() === "home") location.hash = "#/learn";
   window.__app = { get me() { return me; }, set me(v) { me = v; }, route };
   route();
@@ -3641,9 +3659,17 @@ function route() {
   stopTimers();
   document.body.classList.remove("focus");
   document.querySelector(".modal-back")?.remove();
+  if (!me || location.hash === "#/landing" || location.hash === "#/about") {
+    document.body.classList.remove("shell");
+    document.body.classList.add("landing");
+    renderNav();
+    window.scrollTo(0, 0);
+    return renderLanding();
+  }
+  document.body.classList.remove("landing");
+  document.body.classList.add("shell");
   renderNav();
   window.scrollTo(0, 0);
-  if (!me || location.hash === "#/landing" || location.hash === "#/about") return renderLanding();
   const code = duelCodeFromHash();
   if (code) return renderDuel(code);
   const learnCourseId = /^#\/learn\/course\/(\d+)$/.exec(location.hash)?.[1];

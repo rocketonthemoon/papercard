@@ -611,7 +611,8 @@ body.shell {
     min-height: 100vh;
   }
 
-  body.shell:not(.focus)>.sidebar {
+  body.shell:not(.focus)>.sidebar:not([hidden]) {
+    display: flex !important;
     position: fixed !important;
     left: 0;
     top: 0;
@@ -710,19 +711,19 @@ body:not(.shell) #page-title {
   display: none !important;
 }
 
-body.landing .sidebar,
+body.landing:not(.shell) .sidebar,
 body:not(.shell) .sidebar,
 .sidebar[hidden] {
   display: none !important;
 }
 
-body.landing .mobile-nav,
+body.landing:not(.shell) .mobile-nav,
 body:not(.shell) .mobile-nav,
 .mobile-nav[hidden] {
   display: none !important;
 }
 
-body.landing .nav .links,
+body.landing:not(.shell) .nav .links,
 body:not(.shell) .nav .links {
   display: none !important;
 }
