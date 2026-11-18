@@ -16,7 +16,7 @@ const proc = spawn(chrome, [
 ], { stdio: "ignore" });
 
 process.on("exit", () => {
-  try { proc.kill(); } catch {}
+  try { proc.kill(); } catch { }
 });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
