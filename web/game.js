@@ -508,6 +508,8 @@ function renderNav() {
     const tc = document.getElementById("top-chips");
     if (tc) tc.innerHTML = "";
     $account.innerHTML = "";
+    const topLinks = document.querySelector(".links");
+    if (topLinks) topLinks.innerHTML = "";
     return;
   }
   const items = me.isAdmin ? [...NAV, ["admin", "#/admin", "Admin", "admin"]] : NAV;
@@ -690,6 +692,13 @@ function renderLanding() {
   if (sidebar) sidebar.hidden = true;
   const mobileNav = document.getElementById("mobile-nav");
   if (mobileNav) mobileNav.hidden = true;
+  const topLinks = document.querySelector(".links");
+  if (topLinks) topLinks.innerHTML = "";
+  const pt = document.getElementById("page-title");
+  if (pt) pt.textContent = "";
+  const tc = document.getElementById("top-chips");
+  if (tc) tc.innerHTML = "";
+  if (typeof $account !== "undefined" && $account) $account.innerHTML = "";
   $app.innerHTML = landingHtml();
   const err = (msg) => {
     const e = document.getElementById("signin-error");

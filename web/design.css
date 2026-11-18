@@ -722,6 +722,18 @@ body:not(.shell) .mobile-nav,
   display: none !important;
 }
 
+body.landing .nav .links,
+body:not(.shell) .nav .links {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  body.landing .nav,
+  body:not(.shell) .nav {
+    display: none !important;
+  }
+}
+
 .sidebar {
   background: var(--color-lilac-shadow) !important;
   border-right: 2.5px solid var(--color-ink-black) !important;
@@ -8663,6 +8675,91 @@ ul.tree li,
   align-items: start !important;
 }
 
+.course-hero {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 20px !important;
+  padding: 24px !important;
+  background: var(--color-bone-white) !important;
+  border: 2px solid var(--color-ink-black) !important;
+  border-radius: var(--radius-cards, 6px) !important;
+  margin-bottom: 20px !important;
+}
+
+.course-flag.big {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  background: var(--color-hi-vis-yellow) !important;
+  border: 2px solid var(--color-ink-black) !important;
+  border-radius: 6px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-family: var(--font-obviouslyvariable), 'Syne', sans-serif !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: var(--color-ink-black) !important;
+  flex-shrink: 0 !important;
+  margin-top: 2px !important;
+}
+
+.course-hero-details {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.course-hero-details h1 {
+  font-family: var(--font-obviouslyvariable), 'Syne', sans-serif !important;
+  font-size: 30px !important;
+  font-weight: 800 !important;
+  color: var(--color-ink-black) !important;
+  margin: 6px 0 8px !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.course-hero-actions {
+  margin-top: 16px !important;
+}
+
+.course-hero-actions .btn-hero-primary {
+  background: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
+  border: 2px solid var(--color-ink-black) !important;
+  border-radius: 100px !important;
+  padding: 10px 24px !important;
+  font-family: var(--font-degulardisplay-bold), sans-serif !important;
+  font-size: 14.5px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+}
+
+.course-hero-actions .btn-hero-primary:hover {
+  background: var(--color-hi-vis-yellow) !important;
+}
+
+.course-leave-row {
+  margin-top: 14px !important;
+  padding: 6px 4px !important;
+}
+
+.course-leave-row #leave {
+  font-family: var(--font-degularvariable), sans-serif !important;
+  font-size: 13px !important;
+  color: rgba(26, 26, 26, 0.6) !important;
+  text-decoration: underline !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 4px 0 !important;
+}
+
+.course-leave-row #leave:hover {
+  color: var(--color-firecracker-red) !important;
+}
+
 @media (max-width: 900px) {
   .course-page {
     grid-template-columns: 1fr !important;
@@ -8767,90 +8864,6 @@ ul.tree li,
     font-size: 11px !important;
     white-space: nowrap !important;
   }
-}
-
-.course-hero {
-  display: flex !important;
-  align-items: flex-start !important;
-  gap: 20px !important;
-  padding: 24px !important;
-  background: var(--color-bone-white) !important;
-  border: 2px solid var(--color-ink-black) !important;
-  border-radius: var(--radius-cards, 6px) !important;
-  margin-bottom: 20px !important;
-}
-
-.course-flag.big {
-  width: 56px !important;
-  height: 56px !important;
-  min-width: 56px !important;
-  background: var(--color-hi-vis-yellow) !important;
-  border: 2px solid var(--color-ink-black) !important;
-  border-radius: 6px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-family: var(--font-obviouslyvariable), 'Syne', sans-serif !important;
-  font-size: 22px !important;
-  font-weight: 800 !important;
-  color: var(--color-ink-black) !important;
-  flex-shrink: 0 !important;
-  margin-top: 2px !important;
-}
-
-.course-hero-details {
-  flex: 1 1 auto !important;
-}
-
-.course-hero-details h1 {
-  font-family: var(--font-obviouslyvariable), 'Syne', sans-serif !important;
-  font-size: 30px !important;
-  font-weight: 800 !important;
-  color: var(--color-ink-black) !important;
-  margin: 6px 0 8px !important;
-  line-height: 1.15 !important;
-  letter-spacing: -0.01em !important;
-}
-
-.course-hero-actions {
-  margin-top: 16px !important;
-}
-
-.course-hero-actions .btn-hero-primary {
-  background: var(--color-bone-white) !important;
-  color: var(--color-ink-black) !important;
-  border: 2px solid var(--color-ink-black) !important;
-  border-radius: 100px !important;
-  padding: 10px 24px !important;
-  font-family: var(--font-degulardisplay-bold), sans-serif !important;
-  font-size: 14.5px !important;
-  font-weight: 700 !important;
-  box-shadow: none !important;
-  cursor: pointer !important;
-}
-
-.course-hero-actions .btn-hero-primary:hover {
-  background: var(--color-hi-vis-yellow) !important;
-}
-
-.course-leave-row {
-  margin-top: 14px !important;
-  padding: 6px 4px !important;
-}
-
-.course-leave-row #leave {
-  font-family: var(--font-degularvariable), sans-serif !important;
-  font-size: 13px !important;
-  color: rgba(26, 26, 26, 0.6) !important;
-  text-decoration: underline !important;
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer !important;
-  padding: 4px 0 !important;
-}
-
-.course-leave-row #leave:hover {
-  color: var(--color-firecracker-red) !important;
 }
 
 /* 5. Course Made-by Aside Card & Mini Profile */
