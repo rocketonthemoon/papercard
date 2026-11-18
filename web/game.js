@@ -3223,7 +3223,7 @@ async function drawArrange() {
   const units = cms.content.units;
   const words = (l) => l.words.length;
   $app.innerHTML = `${studioToolbar("arrange")}
-    <p class="muted arrange-help">Drag lessons to reorder them or move them to another deck. Drag a deck by ${I.grip.replace("<svg", '<svg class="inline-grip"')} to reorder decks. Click a name to rename it.</p>
+    <p class="muted arrange-help">Drag lessons to reorder them or move them to another deck. Drag a deck by <span class="grip-inline-badge">${I.grip}</span> to reorder decks. Click a name to rename it.</p>
     <div class="board" id="board">
       ${units
       .map(
