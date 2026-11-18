@@ -740,10 +740,10 @@ async function renderPlayHub() {
         </div>
         <div class="pane" id="pane-create" role="tabpanel" aria-labelledby="tab-create">
           <label class="field" id="course-pick" hidden>Course <select id="duel-course"></select></label>
-          <div class="row spread"><h3>Which decks?</h3><span class="muted small" id="deck-count"></span></div>
+          <div class="row spread" style="margin:14px 0 10px;align-items:baseline;"><h3>Which decks?</h3><span class="muted small mono-tag" id="deck-count"></span></div>
           <div class="deck-picker" id="decks"><p class="muted">Loading decks…</p></div>
           <p id="create-error" class="error" hidden></p>
-          <div class="pane-actions"><span class="muted small mono-tag">10 RANDOM WORDS · YOU PLAY FIRST</span><button class="btn btn-gate-pill" id="create">Create room →</button></div>
+          <div class="pane-actions" style="margin-top:20px;padding-top:16px;border-top:1.5px solid rgba(22,21,29,0.1);"><span class="muted small mono-tag">10 RANDOM WORDS · YOU PLAY FIRST</span><button class="btn btn-gate-pill" id="create">Create room →</button></div>
         </div>
         <form class="pane" id="pane-join" role="tabpanel" aria-labelledby="tab-join" hidden>
           <label class="field">Room code
@@ -801,7 +801,7 @@ async function renderPlayHub() {
         .map(
           ([level, us], idx) => {
             const countSel = us.filter((u) => picked.has(u.id)).length;
-            return `<details class="deck-group" data-level-group="${esc(level)}" ${idx === 0 || countSel > 0 ? "open" : ""}>
+            return `<details class="deck-group" data-level-group="${esc(level)}" ${idx === 0 ? "open" : ""}>
               <summary class="deck-group-summary">
                 <div class="row spread deck-summary-row">
                   <span class="deck-summary-title">
@@ -2700,7 +2700,7 @@ async function renderProfile(name) {
         <div class="row" style="justify-content:flex-end"><button type="button" class="btn outline" id="pf-cancel">Cancel</button><button class="btn">Save</button></div>
       </form>
       <div class="row spread section-row"><h2>${u.isYou ? "Your courses" : "Courses"}</h2>${u.isYou && d.courses.length ? `<a class="btn small outline" href="#/studio">${I.plus} New course</a>` : ""}</div>
-      <div class="course-grid">${d.courses.length ? d.courses.map(courseCard).join("") : `<p class="muted empty-line center" style="padding:24px 0;">${u.isYou ? `You haven't made a course yet. <a href="#/studio" class="quiet-link-inline">Open the Studio to create one →</a>` : "No courses yet."}</p>`}</div>
+      <div class="course-grid">${d.courses.length ? d.courses.map(courseCard).join("") : `<div class="empty-profile-card"><p>${u.isYou ? "You haven't made a course yet." : "No courses yet."}</p>${u.isYou ? `<a href="#/studio" class="btn btn-gate-pill small">Create a course in Studio →</a>` : ""}</div>`}</div>
     </div>`;
   wireCourseCards();
   wireFollow();
