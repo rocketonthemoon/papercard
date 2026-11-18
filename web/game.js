@@ -846,22 +846,25 @@ function wireChartTips(root) {
 function dashSideHtml(stats, board, feed = { courses: [] }) {
   const today = stats?.days?.at(-1)?.xp ?? 0;
   const fresh = (feed?.courses || []).filter((c) => !c.enrolled);
-  const quests = stats ? QUESTS.filter((q) => q > stats.xp)
+  const questList = stats ? QUESTS.filter((q) => q > stats.xp) : [];
+  const quests = questList
     .slice(0, 3)
     .map((q) => `<li><div class="row spread mono-tag"><span>Earn ${q} XP</span><span class="muted small">${stats.xp}/${q}</span></div><div class="bar"><i style="width:${Math.round((100 * stats.xp) / q)}%"></i></div></li>`)
-    .join("") : "";
+    .join("");
+
   const isMobile = typeof window !== "undefined" && window.innerWidth < 900;
-  const savedState = typeof localStorage !== "undefined" ? localStorage.getItem("vokab_dash_progress_open") : null;
-  const isOpen = !isMobile || savedState === "true";
+  const isProgOpen = !isMobile || localStorage.getItem("vokab_dash_progress_open") === "true";
+  const isBoardOpen = !isMobile || localStorage.getItem("vokab_dash_board_open") === "true";
+  const isQuestsOpen = !isMobile || localStorage.getItem("vokab_dash_quests_open") === "true";
+  const isFeedOpen = !isMobile || localStorage.getItem("vokab_dash_feed_open") === "true";
+  const chevSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`;
 
   return `
     <aside class="dash-side">
-      <details class="card widget dash-progress-card profile-card" id="dash-progress-widget" ${isOpen ? "open" : ""}>
-        <summary class="widget-head dash-progress-summary">
-          <div class="dash-progress-title-wrap">
-            <span class="dash-progress-chev" aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-            </span>
+      <details class="card widget dash-collapsible-card dash-progress-card profile-card" id="dash-progress-widget" ${isProgOpen ? "open" : ""}>
+        <summary class="widget-head dash-collapsible-summary dash-progress-summary">
+          <div class="dash-collapsible-title-wrap">
+            <span class="dash-collapsible-chev" aria-hidden="true">${chevSvg}</span>
             <h3>Daily Progress</h3>
           </div>
           <div class="dash-progress-summary-meta">
@@ -870,7 +873,7 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
             <span class="dash-progress-quick-stats mono-tag">${stats?.streak ?? 0}d · ${stats?.learned ?? 0} learned</span>
           </div>
         </summary>
-        <div class="dash-progress-body">
+        <div class="dash-collapsible-body dash-progress-body">
           <div class="stat-row">
             <div class="stat-box"><span class="mono-tag">Streak</span><b class="mono-tag">${stats?.streak ?? 0}d</b></div>
             <div class="stat-box"><span class="mono-tag">Learned</span><b class="mono-tag">${stats?.learned ?? 0}</b></div>
@@ -886,28 +889,65 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
           </div>
         </div>
       </details>
-      <section class="card widget" id="board-widget">
-        <div class="widget-head"><h3>Leaderboard</h3><select id="board-period" class="mono-tag" aria-label="Period"><option value="week">Weekly</option><option value="all">All time</option></select></div>
-        <div id="board-body">${boardHtml(board?.rows ?? [])}</div>
-      </section>
+      <details class="card widget dash-collapsible-card" id="dash-board-widget" ${isBoardOpen ? "open" : ""}>
+        <summary class="widget-head dash-collapsible-summary">
+          <div class="dash-collapsible-title-wrap">
+            <span class="dash-collapsible-chev" aria-hidden="true">${chevSvg}</span>
+            <h3>Leaderboard</h3>
+          </div>
+          <div class="dash-collapsible-actions" onclick="event.stopPropagation()">
+            <select id="board-period" class="mono-tag" aria-label="Period"><option value="week">Weekly</option><option value="all">All time</option></select>
+          </div>
+        </summary>
+        <div id="board-body" class="dash-collapsible-body">${boardHtml(board?.rows ?? [])}</div>
+      </details>
+      ${quests ? `<details class="card widget dash-collapsible-card" id="dash-quests-widget" ${isQuestsOpen ? "open" : ""}>
+        <summary class="widget-head dash-collapsible-summary">
+          <div class="dash-collapsible-title-wrap">
+            <span class="dash-collapsible-chev" aria-hidden="true">${chevSvg}</span>
+            <h3>Quests</h3>
+          </div>
+          <span class="pill mono-tag quests-pill">${questList.slice(0, 3).length} ACTIVE</span>
+        </summary>
+        <div class="dash-collapsible-body">
+          <ul class="quests">${quests}</ul>
+        </div>
+      </details>` : ""}
       ${fresh.length
-      ? `<section class="card widget"><div class="widget-head"><h3>From people you follow</h3><a href="#/discover?tab=following" class="small mono-tag">All</a></div>
-              <ul class="feed">${fresh.slice(0, 3).map((c) => `<li><a href="#/course/${c.id}"><b>${esc(c.title)}</b></a><span class="muted small mono-tag">by ${userLink(c.creator)} · ${plural(c.words, "word")}</span></li>`).join("")}</ul></section>`
+      ? `<details class="card widget dash-collapsible-card" id="dash-feed-widget" ${isFeedOpen ? "open" : ""}>
+        <summary class="widget-head dash-collapsible-summary">
+          <div class="dash-collapsible-title-wrap">
+            <span class="dash-collapsible-chev" aria-hidden="true">${chevSvg}</span>
+            <h3>From people you follow</h3>
+          </div>
+          <a href="#/discover?tab=following" class="small mono-tag" onclick="event.stopPropagation()">All</a>
+        </summary>
+        <div class="dash-collapsible-body">
+          <ul class="feed">${fresh.slice(0, 3).map((c) => `<li><a href="#/course/${c.id}"><b>${esc(c.title)}</b></a><span class="muted small mono-tag">by ${userLink(c.creator)} · ${plural(c.words, "word")}</span></li>`).join("")}</ul>
+        </div>
+      </details>`
       : ""
     }
-      ${quests ? `<section class="card widget"><h3>Quests</h3><ul class="quests">${quests}</ul></section>` : ""}
     </aside>`;
 }
 
 function wireDashSide(root = $app) {
   wireChartTips(root);
-  const progWidget = root.querySelector("#dash-progress-widget");
-  if (progWidget) {
-    progWidget.addEventListener("toggle", () => {
-      if (window.innerWidth < 900) {
-        localStorage.setItem("vokab_dash_progress_open", progWidget.open ? "true" : "false");
-      }
-    });
+  const collapsibles = [
+    ["#dash-progress-widget", "vokab_dash_progress_open"],
+    ["#dash-board-widget", "vokab_dash_board_open"],
+    ["#dash-quests-widget", "vokab_dash_quests_open"],
+    ["#dash-feed-widget", "vokab_dash_feed_open"]
+  ];
+  for (const [sel, key] of collapsibles) {
+    const el = root.querySelector(sel);
+    if (el) {
+      el.addEventListener("toggle", () => {
+        if (window.innerWidth < 900) {
+          localStorage.setItem(key, el.open ? "true" : "false");
+        }
+      });
+    }
   }
   const period = root.querySelector("#board-period");
   if (period) {
