@@ -482,7 +482,7 @@ function setTopStats(stats) {
   if (stats) topStats = stats;
   const chips = document.getElementById("top-chips");
   if (!me || !topStats || !chips) return;
-  chips.innerHTML = `<span class="top-chip stat-chip mono-tag" title="Day streak">${I.fire}<b>${topStats.streak}d</b></span><span class="top-chip stat-chip mono-tag" title="Hearts">${I.heart}<b>${topStats.hearts}</b></span>`;
+  chips.innerHTML = `<span class="top-chip stat-chip mono-tag" title="Day streak">${I.fire}<b>${topStats.streak}d</b></span>`;
   const review = document.querySelector('.side-links a[data-nav="review"]');
   if (review) {
     review.querySelector(".badge-dot")?.remove();
@@ -955,7 +955,6 @@ function statChips(stats) {
   return `<div class="chips">
     <span class="chip" title="Day streak">${I.fire}<b>${stats.streak}</b></span>
     <span class="chip" title="Total XP">${I.bolt}<b>${stats.xp}</b></span>
-    <span class="chip" title="Hearts">${I.heart}<b>${stats.hearts}</b></span>
   </div>`;
 }
 
@@ -1082,7 +1081,6 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
             <div class="stat-box"><span class="mono-tag">Due</span><b class="mono-tag">${stats?.due ?? 0}</b></div>
           </div>
           ${stats?.due ? `<a class="btn btn-gate-pill block" href="#/learn/review">${FC_ICONS.shuffle} Review ${plural(stats.due, "word")} now</a>` : stats?.learned ? `<p class="stat-note">All caught up! Next review ${fmtUntil(stats.nextDueAt)}.</p>` : ""}
-          ${stats && stats.hearts < stats.maxHearts ? `<p class="stat-note small mono-tag">Next heart in ${fmtMinutes(stats.nextHeartMs)}.</p>` : ""}
           ${stats?.days?.length ? `<div class="dash-activity-wrap"><div class="dash-activity-head"><span class="muted small mono-tag">XP · last 14 days</span></div>${activityHtml(stats.days)}</div>` : ""}
           ${quests ? `<div class="dash-today-quests"><div class="dash-activity-head"><span class="muted small mono-tag">Active quests</span></div><ul class="quests">${quests}</ul></div>` : ""}
           <div class="dash-side-links">
@@ -1885,7 +1883,7 @@ async function renderReview() {
 function runPlayer({ mode, queue, stats, lesson = null }) {
   document.body.classList.add("focus");
   const review = mode === "review";
-  const safe = mode !== "lesson";
+  const safe = true;
   const total = queue.length;
   let solved = 0;
   let mistakes = 0;
@@ -1896,7 +1894,6 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
       <header class="lesson-top">
         <button class="icon-btn" id="quit" aria-label="Quit">${I.close}</button>
         <div class="progress progress-bar lesson-bar" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="${total}"><i id="prog"></i></div>
-        <span class="hearts" title="${review ? "Review: no hearts lost" : safe ? "Practice: no hearts lost" : "Hearts"}">${I.heart}<b id="hearts">${safe ? "∞" : stats.hearts}</b></span>
       </header>
       <main class="lesson-body" id="stage"></main>
       <footer class="lesson-foot" id="foot">
@@ -1918,9 +1915,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
     document.getElementById("prog").style.width = `${(100 * solved) / total}%`;
     document.querySelector(".progress").setAttribute("aria-valuenow", solved);
   };
-  const setHearts = () => {
-    if (!safe) document.getElementById("hearts").textContent = stats.hearts;
-  };
+  const setHearts = () => {};
   const courseBack = course?.id ? `#/learn/course/${course.id}` : "#/learn";
   document.getElementById("quit").onclick = () => {
     if (solved === 0 || confirm(review ? "Stop reviewing? Words you've answered are saved." : "Quit the lesson? Words you've finished are saved.")) location.hash = courseBack;
@@ -1930,18 +1925,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
   let mode2 = "check"; // check | continue
   let answer = null; // () => request body fields, or null when nothing is entered yet
 
-  const outOfHearts = () => {
-    const d = document.createElement("div");
-    d.className = "modal-back";
-    d.innerHTML = `<div class="modal modal-box card" role="dialog" aria-modal="true" aria-labelledby="oh-title">
-      <span class="modal-icon">${I.heart}</span>
-      <h2 id="oh-title">You ran out of hearts</h2>
-      <p class="muted">Practise a lesson you've finished to earn hearts back, or wait: the next one comes back in ${fmtMinutes(stats.nextHeartMs)}.</p>
-      <div class="row" style="justify-content:center"><a class="btn" href="${courseBack}">Back to course</a></div>
-    </div>`;
-    document.body.append(d);
-    addEventListener("hashchange", () => d.remove(), { once: true });
-  };
+  const outOfHearts = () => {};
 
   const footHint = document.getElementById("foot-hint");
   const ready = (ok) => {
@@ -2035,7 +2019,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
       <div class="finish-stats">
         <div class="fstat xp"><span>Total XP</span><b>${I.bolt}${xpEarned}</b></div>
         <div class="fstat acc"><span>Accuracy</span><b>${accuracy}%</b></div>
-        ${review ? `<div class="fstat hp"><span>Still due</span><b>${stats.due}</b></div>` : `<div class="fstat hp"><span>Hearts</span><b>${I.heart}${stats.hearts}</b></div>`}
+        ${review ? `<div class="fstat hp"><span>Still due</span><b>${stats.due}</b></div>` : ""}
       </div>
       <div id="unit-feedback"></div>
       <div class="row" style="justify-content:center">${review && stats.due ? `<a class="btn big outline" href="#/learn/review" id="more">Review more</a>` : ""}<a class="btn big" href="${courseBack}">Continue</a></div>
@@ -2072,12 +2056,7 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
       res = await api(`/learn/words/${challenge.wordId}/answer`, { method: "POST", body: { kind: challenge.kind, review, ...answer() } });
     } catch (x) {
       action.disabled = false;
-      if (x.status === 403) {
-        stats.hearts = 0;
-        setHearts();
-        return outOfHearts();
-      }
-      return toast(x.message);
+      return toast(x.message || "Failed to submit answer");
     }
     stats = res.stats;
     setHearts();
@@ -2102,20 +2081,36 @@ function runPlayer({ mode, queue, stats, lesson = null }) {
       setProgress();
       foot.className = "lesson-foot right";
       const head = { accents: "Correct! Mind the accents:", typo: "Correct! Watch the spelling:" }[res.verdict];
-      const extra = res.xp ? `+${res.xp} XP${res.practice ? " · +1 heart" : ""}` : review ? "Not due yet, so no XP" : "";
-      feedback.innerHTML = `<span class="fb-icon">${I.tick}</span><div><b>${head ? `${head} <span${L()}>${esc(res.expected)}</span>` : "Nicely done!"}</b>${pairHtml(res.word)}${extra ? `<span>${extra}</span>` : ""}</div>`;
+      const extra = res.xp ? `+${res.xp} XP` : review ? "Not due yet, so no XP" : "";
+      feedback.innerHTML = `
+        <span class="fb-icon">${I.tick}</span>
+        <div class="fb-body">
+          <div class="fb-title">${head ? `${head} <span${L()}>${esc(res.expected)}</span>` : "Nicely done!"}</div>
+          <div class="fb-answer"><b class="fb-main"${L()}>${esc(res.word.lt)}</b> <span class="fb-eq">=</span> <span class="fb-trans">${esc(res.word.en)}</span></div>
+          ${res.word.note ? `<div class="fb-note">${esc(res.word.note)}</div>` : ""}
+          ${extra ? `<div class="fb-extra">${extra}</div>` : ""}
+        </div>
+      `;
     } else {
       sfx.wrong();
       mistakes++;
       challenge.retry = true; // comes back at the end of the queue
       foot.className = "lesson-foot wrong";
-      const right = challenge.kind === "pick_en" ? esc(res.word.en) : `<span${L()}>${esc(res.word.lt)}</span>`;
-      const mixup = res.confused ? `<span>You wrote <b${L()}>${esc(res.confused.lt)}</b>, which means “${esc(res.confused.en)}”.</span>` : "";
-      feedback.innerHTML = `<span class="fb-icon">${I.close}</span><div><b>Correct answer: ${right}</b>${mixup}${pairHtml(res.word)}<span>${safe ? "It'll come back at the end." : "You lost a heart. It'll come back at the end."}</span></div>`;
-      if (!safe && stats.hearts <= 0) {
-        action.disabled = true;
-        return outOfHearts();
-      }
+      const isPickEn = challenge.kind === "pick_en";
+      const mainWord = isPickEn ? esc(res.word.en) : `<span${L()}>${esc(res.word.lt)}</span>`;
+      const transWord = isPickEn ? `<span${L()}>${esc(res.word.lt)}</span>` : esc(res.word.en);
+      const mixup = res.confused ? `<div class="fb-mixup">You wrote <b${L()}>${esc(res.confused.lt)}</b>, which means “${esc(res.confused.en)}”.</div>` : "";
+      const note = res.word.note ? `<div class="fb-note">${esc(res.word.note)}</div>` : "";
+      feedback.innerHTML = `
+        <span class="fb-icon">${I.close}</span>
+        <div class="fb-body">
+          <div class="fb-title">Correct answer:</div>
+          <div class="fb-answer"><b class="fb-main">${mainWord}</b> <span class="fb-eq">=</span> <span class="fb-trans">${transWord}</span></div>
+          ${mixup}
+          ${note}
+          <div class="fb-status">It'll come back at the end.</div>
+        </div>
+      `;
     }
     action.disabled = false;
     action.focus();

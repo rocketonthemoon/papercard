@@ -809,10 +809,7 @@ static void answer_word(struct mg_connection *c, struct mg_http_message *hm, lon
     }
   } else if (correct) {
     xp = XP_PER_CHALLENGE;
-    if (practice) set_hearts(uid, hearts + 1);
-    else if (is_text) srs_learn(uid, wid);
-  } else if (!practice) {
-    set_hearts(uid, hearts - 1);
+    if (!practice && is_text) srs_learn(uid, wid);
   }
   if (xp > 0) db_exec("INSERT INTO xp_events (user_id, xp, at) VALUES (?, ?, ?)", "iii", uid, (long long) xp, now_ms());
 
