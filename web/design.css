@@ -4334,34 +4334,6 @@ input[type="text"].type-box:focus {
   font-weight: 600;
 }
 
-.fc-speaker {
-  border-radius: 100px !important;
-  border: 1.5px solid var(--color-ink-black) !important;
-  background: var(--color-bone-white) !important;
-  color: var(--color-ink-black) !important;
-  width: 38px !important;
-  height: 38px !important;
-  min-width: 38px !important;
-  max-width: 38px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer;
-  box-shadow: none !important;
-  padding: 0 !important;
-}
-
-.fc-speaker svg {
-  width: 18px !important;
-  height: 18px !important;
-  min-width: 18px !important;
-  max-width: 18px !important;
-  flex: none !important;
-}
-
-.fc-speaker:hover {
-  background: var(--color-hi-vis-yellow) !important;
-}
 
 .fc-foot {
   text-align: center;

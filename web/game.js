@@ -1216,16 +1216,14 @@ async function renderCoursePath(courseId) {
     return;
   }
 
-  // Which lessons are open: everything up to the first unfinished one.
+  // All lessons are open and playable.
   const current = currentLessonId(units);
-  let reached = true;
   const state = new Map();
   for (const u of units)
     for (const l of u.lessons) {
       const done = l.total > 0 && l.done >= l.total;
       const isCurrent = l.id === current;
-      state.set(l.id, { done, isCurrent, locked: !done && !isCurrent && !reached });
-      if (isCurrent) reached = false;
+      state.set(l.id, { done, isCurrent, locked: false });
     }
   const openUnit = units.find((u) => u.lessons.some((l) => l.id === current))?.id ?? units[0]?.id;
 
@@ -1235,30 +1233,26 @@ async function renderCoursePath(courseId) {
     const pct = words ? Math.round((100 * learned) / words) : 0;
     const done = u.lessons.length > 0 && u.lessons.every((l) => state.get(l.id).done);
     const hasCurrent = u.lessons.some((l) => l.id === current);
-    const allLocked = u.lessons.length > 0 && u.lessons.every((l) => state.get(l.id).locked);
     const currentLesson = u.lessons.find((l) => l.id === current);
     const currentLessonIdx = u.lessons.findIndex((l) => l.id === current);
 
     const action = hasCurrent && currentLesson
       ? `<a class="btn unit-primary-btn" href="#/learn/lesson/${current}"><span>${learned ? "Continue →" : "Start course →"}</span><small class="unit-btn-sub">Lesson ${currentLessonIdx + 1}: ${esc(currentLesson.title)} · ${plural(currentLesson.total, "word")}</small></a>`
       : done
-        ? `<a class="btn outline unit-secondary-btn" href="#/learn/lesson/${u.lessons[0].id}"><span>Practise Unit</span> <span class="btn-arrow">↺</span></a>`
-        : allLocked
-          ? `<span class="unit-locked-badge mono-tag">${ICON.lock} Locked</span>`
+        ? `<a class="btn outline unit-secondary-btn" href="#/learn/lesson/${u.lessons[0].id}"><span>Practise Deck</span> <span class="btn-arrow">↺</span></a>`
+        : u.lessons.length > 0
+          ? `<a class="btn outline unit-secondary-btn" href="#/learn/lesson/${u.lessons[0].id}"><span>${learned > 0 ? "Continue Deck" : "Start Deck"}</span> <span class="btn-arrow">→</span></a>`
           : "";
     const rows = u.lessons
       .map((l, li) => {
         const s = state.get(l.id);
         const isDone = s.done;
         const isCur = s.isCurrent;
-        const isLock = s.locked;
         let badge;
         if (isDone) {
           badge = `<span class="lesson-num step-badge done" title="Completed"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 10.5l3.5 3.5 7.5-7.5"/></svg></span>`;
         } else if (isCur) {
           badge = `<span class="lesson-num step-badge current" title="Current lesson"><span class="badge-dot-inner"></span>${li + 1}</span>`;
-        } else if (isLock) {
-          badge = `<span class="lesson-num step-badge locked" title="Locked">${ICON.lock}</span>`;
         } else {
           badge = `<span class="lesson-num step-badge" title="Lesson ${li + 1}">${li + 1}</span>`;
         }
@@ -1269,17 +1263,16 @@ async function renderCoursePath(courseId) {
             ? `${l.done}/${l.total} learned`
             : `${plural(l.total, "word")}`;
 
+        const ctaText = isDone ? "Review" : isCur ? "Start →" : l.done > 0 ? "Continue" : "Start";
+
         const inner = `${badge}
           <div class="lesson-step-content">
             <span class="lesson-title">Lesson ${li + 1}: ${esc(l.title)}</span>
             <span class="lesson-step-meta mono-tag">${metaText}</span>
           </div>
-          <span class="lesson-state mono-tag">${ringHtml(l.done, l.total)} <span class="lesson-cta-text">${isDone ? "Review" : isCur ? "Start →" : isLock ? "Locked" : "Open"}</span></span>
-          <span class="lesson-end">${isLock ? ICON.lock : ICON.chev.replace("m5 7.5 5 5 5-5", "m7.5 5 5 5-5 5")}</span>`;
-        return `<li>${isLock
-          ? `<div class="lesson-row-link lesson-node locked" title="Finish the lessons before this one first">${inner}</div>`
-          : `<a class="lesson-row-link lesson-node ${isCur ? "current" : isDone ? "done" : ""}" href="#/learn/lesson/${l.id}" title="${isDone ? "Practise" : isCur ? "Up next" : "Open"}">${inner}</a>`
-          }</li>`;
+          <span class="lesson-state mono-tag">${ringHtml(l.done, l.total)} <span class="lesson-cta-text">${ctaText}</span></span>
+          <span class="lesson-end">${ICON.chev.replace("m5 7.5 5 5 5-5", "m7.5 5 5 5-5 5")}</span>`;
+        return `<li><a class="lesson-row-link lesson-node ${isCur ? "current" : isDone ? "done" : ""}" href="#/learn/lesson/${l.id}" title="${isDone ? "Practise" : isCur ? "Up next" : "Play"}">${inner}</a></li>`;
       })
       .join("");
     const feedbackBlock =
@@ -1287,7 +1280,7 @@ async function renderCoursePath(courseId) {
         ? `<div class="unit-done compact"><div><b>Deck complete! How was it?</b><p class="muted small mono-tag">Tell the creator what to improve.</p></div>
             <div class="stars" role="group" aria-label="Rate this deck">${[1, 2, 3, 4, 5].map((n) => `<button class="star" data-feedback="${u.id}" data-rating="${n}" aria-label="${n} star${n > 1 ? "s" : ""}">${I.star}</button>`).join("")}</div></div>`
         : "";
-    return `<section class="card module-card unit-card ${u.id === openUnit ? "open" : ""} ${allLocked ? "all-locked" : ""}" data-unit="${u.id}">
+    return `<section class="card module-card unit-card ${u.id === openUnit ? "open" : ""}" data-unit="${u.id}">
       <div class="module-head" data-toggle="${u.id}">
         <span class="module-no mono-tag">Unit ${String(ui + 1).padStart(2, '0')}<small>/${String(units.length).padStart(2, '0')}</small></span>
         <div class="module-info">
@@ -1672,7 +1665,6 @@ function runFlashcards({ words, stats, course, now }) {
               <div class="fc-body">
                 <h2 class="fc-word"${isLtFront ? L() : ""}>${esc(frontText)}</h2>
                 <span class="fc-lang">${esc(frontLang)}</span>
-                <button type="button" class="icon-btn fc-speaker" id="fc-speak" title="Listen" aria-label="Listen to pronunciation">${FC_ICONS.speaker}</button>
               </div>
               <div class="fc-foot">
                 <span>${FC_ICONS.flip} Tap card or press <b>Space</b> to flip</span>
@@ -1708,23 +1700,18 @@ function runFlashcards({ words, stats, course, now }) {
             <button class="btn outline learning" id="fc-learning">Still learning</button>
             <button class="btn mastered" id="fc-mastered">Got it! ✓</button>
           </div>
-          <p class="fc-keyboard-hints">Keyboard: <b>Space</b> flip · <b>1</b> Still learning · <b>2</b> Got it · <b>A</b> Audio · <b>← / →</b></p>
+          <p class="fc-keyboard-hints">Keyboard: <b>Space</b> flip · <b>1</b> Still learning · <b>2</b> Got it · <b>← / →</b></p>
         </div>
       </div>`;
 
     document.getElementById("fc-card")?.addEventListener("click", (e) => {
-      if (e.target.closest("#fc-speak") || e.target.closest("button")) return;
+      if (e.target.closest("button")) return;
       toggleFlip();
     });
 
     document.getElementById("fc-flip-btn")?.addEventListener("click", (e) => {
       e.stopPropagation();
       toggleFlip(true);
-    });
-
-    document.getElementById("fc-speak")?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      speakWord(isLtFront ? w.lt : w.en, isLtFront ? "lt-LT" : "en-US", document.getElementById("fc-speak"));
     });
 
     document.getElementById("fc-quit")?.addEventListener("click", () => {
@@ -1796,13 +1783,6 @@ function runFlashcards({ words, stats, course, now }) {
     if (e.code === "Space" || e.code === "Enter" || e.code === "ArrowUp" || e.code === "ArrowDown") {
       e.preventDefault();
       toggleFlip();
-    } else if (e.key === "a" || e.key === "A" || e.key === "s" || e.key === "S") {
-      e.preventDefault();
-      const currentWord = deck[index];
-      if (currentWord) {
-        const isLt = direction === "lt-en";
-        speakWord(isLt ? currentWord.lt : currentWord.en, isLt ? "lt-LT" : "en-US", document.getElementById("fc-speak"));
-      }
     } else if (e.key === "1" && flipped) {
       e.preventDefault();
       document.getElementById("fc-learning")?.click();
