@@ -465,44 +465,96 @@ const refreshTopStats = () =>
     .then((d) => setTopStats(d.stats))
     .catch(() => {});
 
+const MASCOT_SVG = `
+<svg class="poster-mascot" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Flying Papers Mascot">
+  <!-- Body (Bone White Cream fill, 3.5px Pure Black outline) -->
+  <path d="M50 140 C50 80, 80 40, 120 40 C160 40, 190 80, 190 140 C190 185, 165 210, 120 210 C75 210, 50 185, 50 140 Z" fill="#f9f5f2" stroke="#000000" stroke-width="3.5" stroke-linejoin="round"/>
+  <!-- Belly patch / Riso texture accent -->
+  <path d="M75 145 C75 110, 95 85, 120 85 C145 85, 165 110, 165 145 C165 175, 145 195, 120 195 C95 195, 75 175, 75 145 Z" fill="#f4ed36" stroke="#000000" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Hi-Vis Cap / Hat on top -->
+  <path d="M85 45 C85 25, 110 20, 120 20 C130 20, 155 25, 155 45 Z" fill="#f4ed36" stroke="#000000" stroke-width="3.5"/>
+  <path d="M80 45 L175 42 C185 42, 185 48, 175 50 L80 50 Z" fill="#000000" stroke="#000000" stroke-width="2"/>
+  <!-- Cartoon Big Eyes -->
+  <ellipse cx="102" cy="100" rx="16" ry="20" fill="#f9f5f2" stroke="#000000" stroke-width="3"/>
+  <ellipse cx="138" cy="100" rx="16" ry="20" fill="#f9f5f2" stroke="#000000" stroke-width="3"/>
+  <!-- Mischievous Ink Pupils looking sideways -->
+  <ellipse cx="108" cy="102" rx="7" ry="10" fill="#000000"/>
+  <ellipse cx="144" cy="102" rx="7" ry="10" fill="#000000"/>
+  <circle cx="106" cy="98" r="2.5" fill="#f9f5f2"/>
+  <circle cx="142" cy="98" r="2.5" fill="#f9f5f2"/>
+  <!-- Cheeky Cartoon Smile with Tongue -->
+  <path d="M105 130 Q120 145 135 130" stroke="#000000" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <path d="M112 135 Q120 148 128 135" fill="#f8c1ba" stroke="#000000" stroke-width="2.5"/>
+  <!-- Flying Paper sheet held in wing/hand -->
+  <path d="M175 110 L215 95 L225 140 L185 155 Z" fill="#f9f5f2" stroke="#000000" stroke-width="3.5" stroke-linejoin="round"/>
+  <line x1="185" y1="118" x2="210" y2="108" stroke="#000000" stroke-width="2"/>
+  <line x1="188" y1="128" x2="215" y2="118" stroke="#000000" stroke-width="2"/>
+  <line x1="192" y1="138" x2="218" y2="128" stroke="#000000" stroke-width="2"/>
+  <!-- Hand grasping the paper -->
+  <ellipse cx="178" cy="132" rx="8" ry="12" fill="#f4ed36" stroke="#000000" stroke-width="3"/>
+  <!-- Left hand resting on hip -->
+  <path d="M60 135 Q40 145 55 165" stroke="#000000" stroke-width="3.5" fill="#f4ed36" stroke-linejoin="round"/>
+  <!-- Cartoon Shoes / Feet -->
+  <path d="M90 205 L80 225 L105 225 L105 208 Z" fill="#f4ed36" stroke="#000000" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M135 205 L135 225 L160 225 L150 205 Z" fill="#f4ed36" stroke="#000000" stroke-width="3.5" stroke-linejoin="round"/>
+</svg>`;
+
 function renderNav() {
   const signedIn = !!me;
   document.body.classList.toggle("shell", signedIn);
-  document.getElementById("sidebar").hidden = !signedIn;
+  const sidebar = document.getElementById("sidebar");
+  if (sidebar) sidebar.hidden = !signedIn;
   const themeBtn = document.getElementById("theme");
   if (!signedIn) {
-    document.querySelector(".nav-inner").append(themeBtn);
-    document.getElementById("page-title").textContent = "";
-    document.getElementById("top-chips").innerHTML = "";
-    $account.innerHTML = `<a class="btn small" href="#signin" id="nav-signin">Sign in</a>`;
+    if (themeBtn) document.querySelector(".nav-inner")?.append(themeBtn);
+    const pt = document.getElementById("page-title");
+    if (pt) pt.textContent = "";
+    const tc = document.getElementById("top-chips");
+    if (tc) tc.innerHTML = "";
+    $account.innerHTML = `<a class="btn-outlined-display small" href="#signin" id="nav-signin">SIGN IN</a>`;
     document.getElementById("nav-signin").onclick = (e) => {
       e.preventDefault();
-      document.getElementById("signin")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      const drawer = document.getElementById("signin-drawer");
+      if (drawer) {
+        drawer.hidden = false;
+        drawer.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
     };
     return;
   }
   const items = me.isAdmin ? [...NAV, ["admin", "#/admin", "Admin", "admin"]] : NAV;
-  document.getElementById("side-links").innerHTML = items
-    .map(([key, href, label, ic]) => `<a href="${href}" data-nav="${key}"${page() === key ? ' aria-current="page"' : ""}>${ICON[ic]}<span>${label}</span></a>`)
-    .join("");
-  const bottom = document.getElementById("side-bottom");
-  bottom.innerHTML = `<button class="icon-btn" id="logout" title="Sign out" aria-label="Sign out">${ICON.logout}</button>`;
-  bottom.prepend(themeBtn);
+  if (sidebar) {
+    document.getElementById("side-links").innerHTML = items
+      .map(([key, href, label, ic]) => `<a href="${href}" class="side-pill" data-nav="${key}"${page() === key ? ' aria-current="page"' : ""}>${ICON[ic]}<span>${label}</span></a>`)
+      .join("");
+    const bottom = document.getElementById("side-bottom");
+    bottom.innerHTML = `<button class="btn-gate-pill small" id="logout" title="Sign out" aria-label="Sign out">SIGN OUT</button>`;
+    if (themeBtn) bottom.prepend(themeBtn);
+  }
+  const topLinks = document.querySelector(".links");
+  if (topLinks) {
+    topLinks.innerHTML = items
+      .map(([key, href, label]) => `<a href="${href}" class="nav-pill" data-nav="${key}"${page() === key ? ' aria-current="page"' : ""}>${label}</a>`)
+      .join("");
+  }
   const learnCourseMatch = /^#\/learn\/course\/(\d+)$/.exec(location.hash);
-  document.getElementById("page-title").textContent = location.hash.startsWith("#/learn/words")
-    ? "Your words"
-    : learnCourseMatch
-      ? (course?.title || "Learn")
-      : (TITLES[page()] ?? "Vokab");
-  $account.innerHTML = `<a class="who" href="#/u/${esc(me.username)}" title="Your profile (@${esc(me.username)})">${avatar(me)}<span>${esc(me.name)}</span></a>`;
-  document.getElementById("logout").onclick = async () => {
+  const pageTitle = document.getElementById("page-title");
+  if (pageTitle) {
+    pageTitle.textContent = location.hash.startsWith("#/learn/words")
+      ? "YOUR WORDS"
+      : learnCourseMatch
+        ? (course?.title || "LEARN")
+        : (TITLES[page()]?.toUpperCase() ?? "FLYING PAPERS");
+  }
+  $account.innerHTML = `<a class="who-pill" href="#/u/${esc(me.username)}" title="Your profile (@${esc(me.username)})">${avatar(me)}<span>${esc(me.name)}</span></a>`;
+  document.getElementById("logout")?.addEventListener("click", async () => {
     await api("/auth/logout", { method: "POST", body: {} });
     window.google?.accounts?.id?.disableAutoSelect?.();
     me = null;
     topStats = null;
     location.hash = "#/";
     route();
-  };
+  });
   setTopStats();
 }
 
@@ -510,161 +562,257 @@ function renderNav() {
 
 /** [phrase, language code, language, meaning]: phrases from courses, in several languages. */
 const EXAMPLES = [
-  ["¿Dónde está la biblioteca?", "es", "Spanish", "Where is the library?"],
-  ["Je ne comprends pas.", "fr", "French", "I don't understand."],
-  ["Kur yra biblioteka?", "lt", "Lithuanian", "Where is the library?"],
-  ["Was kostet das?", "de", "German", "How much does this cost?"],
-  ["ありがとう", "ja", "Japanese", "Thank you"],
-  ["Привет!", "ru", "Russian", "Hi!"],
-  ["Buon appetito!", "it", "Italian", "Enjoy your meal!"],
-  ["Pode falar mais devagar?", "pt", "Portuguese", "Can you speak more slowly?"],
+  ["Labas rytas!", "lt", "Lithuanian", "Good morning!"],
+  ["Ačiū labai!", "lt", "Lithuanian", "Thank you very much!"],
+  ["Kaip sekasi?", "lt", "Lithuanian", "How are you doing?"],
+  ["Kur yra kavinė?", "lt", "Lithuanian", "Where is the cafe?"],
+  ["Noriu kavos, prašau.", "lt", "Lithuanian", "I'd like a coffee, please."],
+  ["Malonu susipažinti!", "lt", "Lithuanian", "Nice to meet you!"],
+  ["Aš mokausi lietuvių kalbos.", "lt", "Lithuanian", "I am learning Lithuanian."],
+  ["Iki pasimatymo!", "lt", "Lithuanian", "See you later!"],
 ];
 
 const FAQ = [
-  ["Is it free?", "Yes. Sign in with Google and start learning. There's nothing to buy."],
-  ["Which languages can I learn?", "Any language. We publish official courses (the first one teaches Lithuanian to English speakers, A1 to B1), learners publish courses for other languages, and you can make your own in the Studio. Search works in every script: case and accents never matter."],
-  ["Do I need a special keyboard?", "No. Each course adds buttons for its language's special letters (like ñ, ą, ß or é) under the answer box. If you leave the accents off, the answer still counts, and we show you the right spelling."],
-  ["How does review work?", "Once you've learned a word, it comes back for review a day later, then after 3 days, then at longer and longer gaps. Get it wrong and it starts again. A few minutes a day keeps everything fresh."],
-  ["How do hearts work?", "You start with 5 hearts and lose one for each wrong answer in a new lesson. A heart comes back every 30 minutes, and practising a finished lesson earns them back too. Review never costs hearts."],
-  ["What's the difference between Learn and Play?", "Learn is your own path of short lessons, with review, XP and streaks. Play is a duel: you and a friend answer the same 10 words once, and whoever gets more right wins."],
-  ["Can I make my own course?", "Yes. Open the Studio, create a course for any language, and add decks, lessons and words. It appears on Discover and on your profile, and people who follow you see it on their Learn page. You can also export a course as a file and import courses others share."],
-  ["What do you store about me?", "Your Google name and profile picture (for the leaderboard), your email, the words you've learned and your XP, and your duel answers."],
+  ["Is it free?", "Yes. Sign in with Google or join as a guest and start learning. Everything is accessible."],
+  ["What is the Flying Papers aesthetic?", "Operates like a Saturday-morning cartoon printed on thick riso cardstock: a flat muted-violet stage, a small cast of saturated confetti colors, and poster-scale display type."],
+  ["What courses are available?", "We offer authentic Lithuanian vocabulary courses (A1–B1) covering everyday conversation, campus life, food, and culture, plus historical chronicles of the Grand Duchy."],
+  ["Do I need a Lithuanian keyboard?", "No. On-screen buttons for letters like ą, č, ę, ė, į, š, ų, ū, ž appear under the answer box. Leaving accents off still counts, and we display proper orthography."],
+  ["How does spaced review work?", "Words you master return in 1 day, then 3 days, then at expanding intervals like a printed receipt. Keep your retention near 100%."],
+  ["How do hearts work?", "You start each round with 5 hearts. Wrong answers in fresh lessons consume a heart. Practice sessions earn them back."],
+  ["What are Word Duels?", "Head-to-head multiplayer. You and a rival answer the exact same 10 words under the clock. Higher score wins the crown."],
 ];
 
 const FEATURES = [
-  ["learn", "Courses for any language", "Start with our official courses, take ones made by other learners, or build your own in the Studio."],
-  ["cards", "Review that sticks", "Spaced repetition brings each word back just before you'd forget it."],
-  ["heart", "Hearts keep you sharp", "Each wrong answer in a new lesson costs a heart. Practise finished lessons to earn them back."],
-  ["fire", "Streaks and quests", "Learn a little every day to grow your streak, and hit XP goals along the way."],
-  ["cup", "Follow creators", "Follow us and other learners, take their courses, or publish your own: same lessons, review and duels."],
-  ["room", "Duel your friends", "Same 10 words, one try each. Whoever gets more right wins."],
+  ["learn", "Conversational Lithuanian", "Practical vocabulary courses from first greetings to fluent conversations."],
+  ["cards", "Receipts on Cardstock", "Spaced repetition brings words back right before you would forget them."],
+  ["heart", "5 Hearts Keep You Sharp", "Each miss matters in fresh lessons. Practise finished decks to restore hearts."],
+  ["fire", "Streaks & Confetti XP", "Learn a little every day to grow your streak and hit your goals."],
+  ["cup", "Saturday Showdowns", "Compete with fellow learners on the weekly confessional leaderboard."],
+  ["room", "1-on-1 Word Duels", "Same 10 cards, real-time stopwatch. Whoever gets more right wins."],
 ];
 
 function landingHtml() {
   const challenged = duelCodeFromHash();
-  const node = (state, icon, label, x) => `<div class="mini-node ${state}" style="--x:${x}px"><span>${icon}</span><small>${esc(label)}</small></div>`;
   return `
-    <div class="landing">
-      ${challenged ? `<div class="notice">You've been challenged to word duel <b>${esc(challenged)}</b>. Sign in to play.</div>` : ""}
-      <section class="card hero">
-        <div>
-          <span class="eyebrow">Free · No ads · Any language</span>
-          <h1>Learn words in any language, <em>one lesson at a time.</em></h1>
-          <p class="lede">Short, game-like vocabulary lessons. Take courses from us and from other learners, or make your own for any language. Keep your streak, review words before you forget them, challenge friends to a word duel, and follow creators for more courses.</p>
-          <div class="signin" id="signin"><div id="gsi" class="gsi-slot"></div><p id="signin-error" class="error" hidden></p>${
-            config.devLogin
-              ? `<form id="dev-login" class="dev-login"><input type="text" id="dev-name" placeholder="Your name (guest login)" maxlength="40" required><button class="btn outline">Play as guest</button></form>`
-              : ""
-          }<p class="fine">Sign in with Google to save your progress. We only use your name and picture.</p></div>
-        </div>
-        <div class="hero-demo" aria-hidden="true">
-          <div class="demo-card">
-            <div class="demo-top"><span class="demo-x">${I.close}</span><span class="demo-bar"><i></i></span><span class="demo-hearts">${I.heart}<b>4</b></span></div>
-            <p class="demo-q">What does this mean?</p>
-            <p class="demo-word" lang="es">el libro <span class="wtag">Spanish · noun</span></p>
-            <div class="demo-opt"><span class="key">1</span>pencil</div>
-            <div class="demo-opt picked"><span class="key">2</span>book</div>
-            <div class="demo-opt"><span class="key">3</span>notebook</div>
-            <div class="demo-foot"><span class="demo-ok">${I.tick}</span><div><b>Nicely done!</b><span>+10 XP</span></div></div>
+    <div class="landing-page-poster">
+      ${challenged ? `<div class="confetti-card confetti-yellow" style="margin-bottom:24px;"><b>WORD DUEL CHALLENGE:</b> You've been challenged to duel <b>${esc(challenged)}</b>. Jump into the arena!</div>` : ""}
+      
+      <!-- Component 1: Hero screen with mascot (from DESIGN.md) -->
+      <section class="poster-hero">
+        <span class="eyebrow-tag">[ RISO CARDSTOCK // ISSUE #01 ]</span>
+        <div class="poster-headline-container">
+          <h1 class="poster-display-title">
+            <span class="txt-hi">FLYING</span> <span class="txt-butter">PAPERS</span>
+            <br>
+            <span class="txt-butter">SATURDAY</span> <span class="txt-hi">MORNING</span>
+            <br>
+            <span class="txt-hi">CONFESSIONAL</span>
+          </h1>
+          <div class="poster-mascot-slot">
+            ${MASCOT_SVG}
           </div>
-          <div class="float-chip streak">${I.fire}<b>7</b><span>day streak</span></div>
-          <div class="float-chip xp">${I.bolt}<b>+10</b><span>XP</span></div>
+        </div>
+        
+        <p class="poster-lead">Printed on thick riso cardstock: a flat muted-violet stage, saturated confetti colors, and type so loud it takes the viewport. Learn Lithuanian and words that stick.</p>
+        
+        <div class="poster-actions">
+          <button type="button" class="btn-gate-pill big" id="cta-get-started">START LEARNING →</button>
+          <button type="button" class="btn-outlined-display big" id="cta-guest-btn">PLAY AS GUEST</button>
+        </div>
+        
+        <a href="#signin" class="link-disclaimer-underline" id="cta-signin-link">Already a member? Sign in with Google or account</a>
+        
+        <div class="poster-signin-drawer" id="signin-drawer" hidden>
+          <div class="signin-box card">
+            <span class="mono-tag dark-ink">[ ACCESS GATE // AUTHENTICATE ]</span>
+            <div id="gsi" class="gsi-slot"></div>
+            <p id="signin-error" class="error" hidden></p>
+            ${
+              config.devLogin
+                ? `<form id="dev-login" class="dev-login">
+                     <input type="text" id="dev-name" placeholder="Your name (guest pass)" maxlength="40" required class="riso-input" value="Learner">
+                     <button class="btn-gate-pill" style="width:100%; justify-content:center;">ENTER AS GUEST →</button>
+                   </form>`
+                : ""
+            }
+          </div>
         </div>
       </section>
 
-      <section class="card section">
-        <div class="section-head"><h2>Why it works</h2><p>Little and often beats cramming. Vokab keeps you coming back, and keeps it fun.</p></div>
-        <div class="features">${FEATURES.map(([icon, title, text]) => `<div class="feature"><span class="feature-icon fi-${icon}">${I[icon]}</span><h3>${title}</h3><p>${text}</p></div>`).join("")}</div>
+      <!-- Component 2: Confetti Card Grid Section (from DESIGN.md) -->
+      <section class="poster-section">
+        <div class="section-label-row">
+          <span class="mono-tag light-bone" style="align-self:flex-start;">[ CONFETTI CARDS // SPECIFICATION ]</span>
+          <h2 class="section-title"><span class="txt-hi">SATURATED</span> <span class="txt-butter">CONFETTI</span></h2>
+        </div>
+        <div class="confetti-grid">
+          <div class="confetti-card confetti-matcha">
+            <span class="mono-tag dark-ink">[ 01 // VOCABULARY ]</span>
+            <h3>Authentic Lithuanian</h3>
+            <p>Everyday vocabulary, campus conversation, dining, and street idioms printed into long-term memory.</p>
+          </div>
+          <div class="confetti-card confetti-pink">
+            <span class="mono-tag dark-ink">[ 02 // SPACED REVIEWS ]</span>
+            <h3>Receipts on Cardstock</h3>
+            <p>Tight spaced intervals return each learned card right before you'd forget it. Zero cramming.</p>
+          </div>
+          <div class="confetti-card confetti-magenta">
+            <span class="mono-tag light-bone">[ 03 // WORD DUELS ]</span>
+            <h3>10 Cards. Real Showdown.</h3>
+            <p>Challenge a friend or rival to the exact same 10 words. Speed and precision take the crown.</p>
+          </div>
+          <div class="confetti-card confetti-red">
+            <span class="mono-tag light-bone">[ 04 // 5 HEARTS FLAME ]</span>
+            <h3>Hearts Keep You Sharp</h3>
+            <p>5 hearts per round. Misses sting, practice heals. Daily streaks keep the confessional burning.</p>
+          </div>
+          <div class="confetti-card confetti-lilac">
+            <span class="mono-tag light-bone">[ 05 // BALTIC CHRONICLES ]</span>
+            <h3>Grand Duchy to Baltic Way</h3>
+            <p>Castles, kings, book smugglers, and restored independence in authentic A1–B1 historical decks.</p>
+          </div>
+          <div class="confetti-card confetti-butter">
+            <span class="mono-tag dark-ink">[ 06 // STUDIO CMS ]</span>
+            <h3>Create & Publish Decks</h3>
+            <p>Build custom courses, arrange lessons, and export portable SQLite files with open access.</p>
+          </div>
+        </div>
       </section>
 
-      <section class="card section path-section">
-        <div class="path-copy">
-          <span class="eyebrow">Learn</span>
-          <h2>Follow your path</h2>
-          <p class="muted">Every course is a path of themed decks and short lessons. Each lesson first shows you the words, then asks you to type them in the language you're learning or build whole phrases from word tiles.</p>
-          <ul class="checks">
-            <li>${I.check} Lessons unlock as you go</li>
-            <li>${I.check} Gender and part of speech for every word</li>
-            <li>${I.check} On-screen keys for special letters (ñ, ą, ß…)</li>
-            <li>${I.check} 10 XP for every correct answer</li>
+      <!-- Component 3: Color Swatch Legend Block (from DESIGN.md) -->
+      <section class="poster-section">
+        <div class="card swatch-legend-card">
+          <div class="swatch-head">
+            <span class="mono-tag dark-ink">[ SYSTEM // TOKENS ]</span>
+            <h3 class="swatch-heading">PALETTE</h3>
+          </div>
+          <div class="swatch-grid">
+            <div class="swatch-item" style="background:#8584bd; color:#f9f5f2;">
+              <span class="swatch-name">Dusk Violet</span>
+              <span class="swatch-hex">#8584bd</span>
+            </div>
+            <div class="swatch-item" style="background:#f4ed36; color:#000000;">
+              <span class="swatch-name">Hi-Vis Yellow</span>
+              <span class="swatch-hex">#f4ed36</span>
+            </div>
+            <div class="swatch-item" style="background:#f9cc73; color:#1a1a1a;">
+              <span class="swatch-name">Buttery Yellow</span>
+              <span class="swatch-hex">#f9cc73</span>
+            </div>
+            <div class="swatch-item" style="background:#61609a; color:#f9f5f2;">
+              <span class="swatch-name">Lilac Shadow</span>
+              <span class="swatch-hex">#61609a</span>
+            </div>
+            <div class="swatch-item" style="background:#f8c1ba; color:#1a1a1a;">
+              <span class="swatch-name">Bubblegum Pink</span>
+              <span class="swatch-hex">#f8c1ba</span>
+            </div>
+            <div class="swatch-item" style="background:#b5c995; color:#1a1a1a;">
+              <span class="swatch-name">Matcha Cream</span>
+              <span class="swatch-hex">#b5c995</span>
+            </div>
+            <div class="swatch-item" style="background:#ac4f98; color:#f9f5f2;">
+              <span class="swatch-name">Magenta Punch</span>
+              <span class="swatch-hex">#ac4f98</span>
+            </div>
+            <div class="swatch-item" style="background:#c94245; color:#f9f5f2;">
+              <span class="swatch-name">Firecracker Red</span>
+              <span class="swatch-hex">#c94245</span>
+            </div>
+            <div class="swatch-item" style="background:#f9f5f2; color:#1a1a1a; border:1.5px solid #1a1a1a;">
+              <span class="swatch-name">Bone White</span>
+              <span class="swatch-hex">#f9f5f2</span>
+            </div>
+            <div class="swatch-item" style="background:#1a1a1a; color:#f9f5f2;">
+              <span class="swatch-name">Ink Black</span>
+              <span class="swatch-hex">#1a1a1a</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Vocabulary Examples -->
+      <section class="poster-section">
+        <div class="card dark-text-card">
+          <span class="mono-tag dark-ink" style="align-self:flex-start;">[ CURRICULUM // EXAMPLES ]</span>
+          <h2 class="sub-headline">AUTHENTIC VOCABULARY</h2>
+          <ul class="riso-examples">
+            ${EXAMPLES.map(([phrase, code, lang, en]) => `
+              <li class="riso-ex-item">
+                <span class="riso-phrase" lang="${code}">${esc(phrase)} <span class="mono-tag dark-ink" style="font-size:10px; margin-left:4px;">${lang.toUpperCase()}</span></span>
+                <span class="riso-arrow">→</span>
+                <span class="riso-translation">${esc(en)}</span>
+              </li>
+            `).join("")}
           </ul>
         </div>
-        <div class="mini-path" aria-hidden="true">
-          <div class="mini-banner"><small>A1 · Deck 1</small><b>First steps</b></div>
-          ${node("done", I.tick, "Greetings", 0)}
-          ${node("done", I.tick, "Numbers", 46)}
-          ${node("current", I.star, "At the café", 0)}
-          ${node("locked", I.lock, "Asking the way", -46)}
-        </div>
       </section>
 
-      <section class="card section">
-        <div class="section-head"><span class="eyebrow">Play a friend</span><h2>Word duels</h2><p>Pick a course and some decks, answer 10 words and send your friend the link. They get exactly the same questions.</p></div>
-        <div class="duel-grid">
-          <div class="hero-sheet duel-demo" aria-hidden="true">
-            <div class="sheet">
-              <div class="sheet-head"><span><b>Name :</b> You</span><span><b>Date :</b> ${fmtDate()}</span></div>
-              <p class="muted small">Question 4 of 10 · A1 · Campus Cafeteria</p>
-              <p class="demo-word" lang="lt">kava <span class="wtag">noun · fem.</span></p>
-              <div class="demo-opt"><span class="key">1</span>tea</div>
-              <div class="demo-opt picked"><span class="key">2</span>coffee</div>
-            </div>
-            <div class="hero-score">
-              <div class="lead"><span>You</span><b>90 pts</b></div>
-              <div><span>Sam</span><b>80 pts</b></div>
-            </div>
-          </div>
-          <div class="duel-steps">
-            <div class="step-row"><span class="tile-icon">${I.decks}</span><div><h3>1. Pick your decks</h3><p class="muted">Ten random words from the course and decks you choose.</p></div></div>
-            <div class="step-row"><span class="tile-icon">${I.answer}</span><div><h3>2. Answer them all</h3><p class="muted">Multiple choice, both ways round. One try, and the clock is running.</p></div></div>
-            <div class="step-row"><span class="tile-icon">${I.share}</span><div><h3>3. Send the link</h3><p class="muted">Your friend answers the same 10 words. Most right answers wins.</p></div></div>
-            <div class="points compact">
-              <div class="point plus"><b>+10</b><span>per right answer</span></div>
-              <div class="point"><b>1</b><span>try each</span></div>
-              <div class="point"><b>⏱</b><span>ties: faster wins</span></div>
-            </div>
+      <!-- Inquiries FAQ -->
+      <section class="poster-section">
+        <div class="card dark-text-card">
+          <span class="mono-tag dark-ink" style="align-self:flex-start;">[ FAQ // INQUIRIES ]</span>
+          <h2 class="sub-headline">CONFESSIONAL INQUIRIES</h2>
+          <div class="riso-faq">
+            ${FAQ.map(([q, a]) => `
+              <details class="riso-details">
+                <summary class="riso-summary"><span class="q-text">${esc(q)}</span><span class="q-icon">+</span></summary>
+                <p class="riso-answer">${esc(a)}</p>
+              </details>
+            `).join("")}
           </div>
         </div>
       </section>
 
-      <section class="card section">
-        <div class="section-head"><h2>Words and phrases in any language</h2><p>Courses teach the words you'll actually use, with the phrases that go with them.</p></div>
-        <ul class="examples">
-          ${EXAMPLES.map(([phrase, code, lang, en]) => `<li><span class="lt" lang="${code}">${esc(phrase)}<small class="ex-lang">${lang}</small></span>${I.arrow}<span class="en">${esc(en)}</span></li>`).join("")}
-        </ul>
-      </section>
-
-      <section class="card section">
-        <div class="section-head"><h2>Questions</h2></div>
-        <div class="faq">${FAQ.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div>
-      </section>
-
-      <section class="card cta">
-        <span class="cta-icon">${I.cup}</span>
-        <h2>Start your streak today</h2>
-        <p class="muted">Your first lesson takes about three minutes. ¡Suerte! Sėkmės! Bonne chance!</p>
-        <a class="btn big" href="#signin" id="cta-signin">Get started</a>
+      <!-- Final CTA Banner -->
+      <section class="poster-section">
+        <div class="confetti-card confetti-magenta cta-poster">
+          <span class="mono-tag light-bone">[ ADMISSION // FINAL STEP ]</span>
+          <h2 class="cta-title">I'M OVER 18. LET ME IN.</h2>
+          <p class="cta-desc">Your first lesson takes under three minutes. Step onto the violet stage and start learning.</p>
+          <button type="button" class="btn-gate-pill big" id="cta-bottom-start">ENTER THE STAGE →</button>
+        </div>
       </section>
     </div>`;
 }
 
 function renderLanding() {
   $app.innerHTML = landingHtml();
+  const drawer = document.getElementById("signin-drawer");
   const err = (msg) => {
     const e = document.getElementById("signin-error");
-    e.textContent = msg;
-    e.hidden = !msg;
+    if (e) {
+      e.textContent = msg;
+      e.hidden = !msg;
+    }
   };
   if (config.googleClientId) mountGoogleButton(err);
-  else document.getElementById("gsi").innerHTML = `<p class="muted small">Google sign-in isn't set up on this server yet (set <code>GOOGLE_CLIENT_ID</code>).</p>`;
-  document.getElementById("cta-signin").onclick = (e) => {
-    e.preventDefault();
-    document.getElementById("signin").scrollIntoView({ behavior: "smooth", block: "center" });
+  else {
+    const gsi = document.getElementById("gsi");
+    if (gsi) gsi.innerHTML = `<p class="mono-tag dark-ink">Guest access enabled.</p>`;
+  }
+
+  const openDrawer = () => {
+    if (drawer) {
+      drawer.hidden = false;
+      drawer.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById("dev-name")?.focus();
+    }
   };
+
+  document.getElementById("cta-get-started")?.addEventListener("click", openDrawer);
+  document.getElementById("cta-guest-btn")?.addEventListener("click", openDrawer);
+  document.getElementById("cta-signin-link")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    openDrawer();
+  });
+  document.getElementById("cta-bottom-start")?.addEventListener("click", openDrawer);
+
   document.getElementById("dev-login")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     try {
-      ({ user: me } = await api("/auth/dev", { method: "POST", body: { name: document.getElementById("dev-name").value } }));
+      const devName = document.getElementById("dev-name")?.value || "Learner";
+      ({ user: me } = await api("/auth/dev", { method: "POST", body: { name: devName } }));
       afterSignIn();
     } catch (x) {
       err(x.message);
