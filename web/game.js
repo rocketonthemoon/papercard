@@ -92,8 +92,8 @@ const lettersHtml = (c = course, title = "Shift-click for capital") =>
   letters(c).length ? `<div class="lt-keys" role="group" aria-label="${esc(toLang(c))} letters">${letters(c).map((l) => `<button type="button" class="lt-key" data-ch="${esc(l)}" title="${title}">${esc(l)}</button>`).join("")}</div>` : "";
 
 /** "[ NOUN // FEM. ]" */
-const wordTag = (w) => `<span class="wtag">[ ${esc(POS_LABELS[w.pos] ?? w.pos ?? "")}${GENDERS[w.gender] ? ` // ${GENDERS[w.gender]}` : ""} ]</span>`;
-const levelChip = (level) => (level ? `<span class="level-chip mono-tag">[ ${esc(String(level).toUpperCase())} ]</span>` : "");
+const wordTag = (w) => `<span class="wtag">${esc(POS_LABELS[w.pos] ?? w.pos ?? "")}${GENDERS[w.gender] ? ` // ${GENDERS[w.gender]}` : ""}</span>`;
+const levelChip = (level) => (level ? `<span class="level-chip mono-tag">${esc(String(level).toUpperCase())}</span>` : "");
 
 // ---------------------------------------------------------------- icons (inline SVG, gradients defined in index.html)
 
@@ -551,30 +551,122 @@ function landingHtml() {
   return `
     <div class="landing-page-poster">
       ${challenged ? `<div class="confetti-card confetti-yellow" style="margin-bottom:24px;"><b>WORD DUEL:</b> You've been challenged to duel <b>${esc(challenged)}</b>. Jump into the arena!</div>` : ""}
-      
-      <!-- Hero Screen: Bold, Uncluttered Editorial Language Poster -->
+
       <section class="poster-hero">
         <h1 class="poster-display-title">
           <span class="poster-title-line"><span class="txt-hi">PAPER</span><span class="txt-butter">CARD</span></span>
           <span class="poster-title-line"><span class="txt-butter">LEARN</span> <span class="txt-hi">LITHUANIAN</span></span>
         </h1>
-        
-        <p class="poster-lead">Short, game-like vocabulary lessons, spaced-repetition flashcards, and live word duels with friends. No cramming, no paywalls.</p>
-        
+
+        <p class="poster-lead">Lessons, flashcards and live word duels. Free, forever.</p>
+
         <div class="poster-actions poster-signin-actions" id="signin">
           <div id="gsi" class="gsi-slot"></div>
           <p id="signin-error" class="error" hidden></p>
         </div>
 
-        <!-- Authentic Language Sample Strip -->
-        <div class="poster-language-sample" aria-label="Authentic Lithuanian sample vocabulary">
-          <span class="sample-chip"><span class="chip-lt">Labas!</span> <span class="chip-en">Hello!</span></span>
-          <span class="sample-chip"><span class="chip-lt">Ačiū</span> <span class="chip-en">Thank you</span></span>
-          <span class="sample-chip"><span class="chip-lt">Prašom</span> <span class="chip-en">Please</span></span>
-          <span class="sample-chip"><span class="chip-lt">Iki pasimatymo!</span> <span class="chip-en">See you!</span></span>
+        <!-- Flying papers: sample words as tilted flashcards -->
+        <ul class="paper-fan" aria-label="Sample Lithuanian words">
+          <li class="paper p1"><b lang="lt">Labas!</b><span>Hello!</span></li>
+          <li class="paper p2 tint-pink"><b lang="lt">Ačiū</b><span>Thank you</span></li>
+          <li class="paper p3"><b lang="lt">Prašom</b><span>Please</span></li>
+          <li class="paper p4 tint-matcha"><b lang="lt">Iki!</b><span>See you!</span></li>
+        </ul>
+      </section>
+
+      <section class="landing-demos" aria-labelledby="demos-title">
+        <h2 class="landing-section-title" id="demos-title">HOW IT WORKS</h2>
+
+        <div class="landing-demos-grid">
+          <figure class="demo-block">
+            <span class="demo-step">01</span>
+            <div class="demo-stage">
+              <div class="demo-quiz" id="demo-quiz">
+                <span class="demo-quiz-prompt">What does this mean?</span>
+                <div class="demo-quiz-word" lang="lt">knyga</div>
+                <div class="demo-quiz-options">
+                  <button type="button" class="qopt" data-ok="1"><i>1</i>book</button>
+                  <button type="button" class="qopt"><i>2</i>house</button>
+                  <button type="button" class="qopt"><i>3</i>water</button>
+                </div>
+              </div>
+            </div>
+            <figcaption><b>Learn</b> in 2-minute rounds</figcaption>
+          </figure>
+
+          <figure class="demo-block">
+            <span class="demo-step">02</span>
+            <div class="demo-stage">
+              <button type="button" class="demo-fc" id="demo-fc" aria-label="Flip the flashcard">
+                <span class="demo-fc-inner">
+                  <span class="demo-fc-face demo-fc-front">
+                    <span class="mono-tag">NOUN · M</span>
+                    <span class="demo-fc-word" lang="lt">universitetas</span>
+                    <span class="demo-fc-hint">tap to flip ⟲</span>
+                  </span>
+                  <span class="demo-fc-face demo-fc-back">
+                    <span class="mono-tag">ENGLISH</span>
+                    <span class="demo-fc-word">university</span>
+                    <span class="demo-srs"><i>1d</i><i>3d</i><i>7d</i><i>30d</i></span>
+                  </span>
+                </span>
+              </button>
+            </div>
+            <figcaption><b>Review</b> right before you forget</figcaption>
+          </figure>
+
+          <figure class="demo-block">
+            <span class="demo-step">03</span>
+            <div class="demo-stage">
+              <div class="demo-duel">
+                <div class="duel-row">
+                  <span class="duel-ava you">Y</span>
+                  <div class="duel-track"><i class="duel-fill you" style="--to:82%"></i></div>
+                  <b class="duel-score">90</b>
+                </div>
+                <div class="duel-row">
+                  <span class="duel-ava foe">A</span>
+                  <div class="duel-track"><i class="duel-fill foe" style="--to:64%"></i></div>
+                  <b class="duel-score">70</b>
+                </div>
+                <div class="duel-foot"><span class="mono-tag">ROUND 4/5</span><span class="duel-timer">0:14</span></div>
+              </div>
+            </div>
+            <figcaption><b>Duel</b> friends in real time</figcaption>
+          </figure>
         </div>
       </section>
+
+      <section class="landing-cta">
+        <h2>READY?</h2>
+        <button type="button" class="btn-gate-pill big" id="landing-cta-btn">START LEARNING →</button>
+      </section>
     </div>`;
+}
+
+/** Small self-playing loops for the landing demos; clicks still work, motion respects reduced-motion. */
+function startLandingDemos() {
+  const quiz = document.getElementById("demo-quiz");
+  const fc = document.getElementById("demo-fc");
+  const opts = quiz ? [...quiz.querySelectorAll(".qopt")] : [];
+  const pick = (opt) => {
+    opts.forEach((o) => o.classList.remove("right", "wrong"));
+    opt?.classList.add(opt.dataset.ok ? "right" : "wrong");
+  };
+  opts.forEach((o) => o.addEventListener("click", () => { stop(); pick(o); }));
+  fc?.addEventListener("click", () => { stop(); fc.classList.toggle("flipped"); });
+
+  let timer = 0;
+  const stop = () => clearInterval(timer);
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let tick = 0;
+  timer = setInterval(() => {
+    if (!document.body.contains(fc)) return stop();
+    tick++;
+    // quiz: blank -> wrong guess -> right answer -> blank
+    pick([null, opts[2], opts[0]][tick % 3]);
+    if (tick % 2 === 0) fc?.classList.toggle("flipped");
+  }, 1600);
 }
 
 function renderLanding() {
@@ -592,6 +684,10 @@ function renderLanding() {
     const gsi = document.getElementById("gsi");
     if (gsi) gsi.innerHTML = `<p class="mono-tag dark-ink" style="background:#f9f5f2; padding:10px 20px; border-radius:100px; border:2px solid #000;">Google Sign-In is required to enter Papercard.</p>`;
   }
+  document.getElementById("landing-cta-btn")?.addEventListener("click", () => {
+    document.getElementById("signin")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  startLandingDemos();
 }
 
 /** After signing in, go where the visitor was headed (a duel link) or to Learn. */
@@ -632,7 +728,7 @@ async function renderPlayHub() {
           <div class="row spread"><h3>Which decks?</h3><span class="muted small" id="deck-count"></span></div>
           <div class="deck-picker" id="decks"><p class="muted">Loading decks…</p></div>
           <p id="create-error" class="error" hidden></p>
-          <div class="pane-actions"><span class="muted small mono-tag">[ 10 RANDOM WORDS · YOU PLAY FIRST ]</span><button class="btn btn-gate-pill" id="create">CREATE ROOM →</button></div>
+          <div class="pane-actions"><span class="muted small mono-tag">10 RANDOM WORDS · YOU PLAY FIRST</span><button class="btn btn-gate-pill" id="create">CREATE ROOM →</button></div>
         </div>
         <form class="pane" id="pane-join" hidden>
           <label class="field">Room code
@@ -816,7 +912,7 @@ function activityHtml(days) {
       <div class="activity-x" aria-hidden="true">${xs}</div>
     </div>
     <table class="sr-only"><caption>XP per day</caption><tbody>${days.map((d) => `<tr><th scope="row">${esc(d.day)}</th><td>${d.xp}</td></tr>`).join("")}</tbody></table>
-    <p class="stat-note">Each dot is ${step} XP.</p>`;
+`;
 }
 
 function wireChartTips(root) {
@@ -872,14 +968,12 @@ function dashSideHtml(stats, board, feed = { courses: [] }) {
         </summary>
         <div class="dash-collapsible-body dash-progress-body">
           <div class="stat-row">
-            <div class="stat-box"><span class="mono-tag">Streak</span><b class="mono-tag">${stats?.streak ?? 0}d</b></div>
             <div class="stat-box"><span class="mono-tag">Learned</span><b class="mono-tag">${stats?.learned ?? 0}</b></div>
             <div class="stat-box"><span class="mono-tag">Due</span><b class="mono-tag">${stats?.due ?? 0}</b></div>
-            <div class="stat-box"><span class="mono-tag">Hearts</span><b class="mono-tag">${stats?.hearts ?? 0}</b></div>
           </div>
-          ${stats?.due ? `<a class="btn btn-gate-pill block" href="#/learn/review">${FC_ICONS.shuffle} Review ${plural(stats.due, "word")} now</a>` : `<p class="stat-note">${stats?.learned ? `All caught up! Next review ${fmtUntil(stats.nextDueAt)}.` : "Words you learn come back for review just before you'd forget them."}</p>`}
+          ${stats?.due ? `<a class="btn btn-gate-pill block" href="#/learn/review">${FC_ICONS.shuffle} Review ${plural(stats.due, "word")} now</a>` : stats?.learned ? `<p class="stat-note">All caught up! Next review ${fmtUntil(stats.nextDueAt)}.</p>` : ""}
           ${stats && stats.hearts < stats.maxHearts ? `<p class="stat-note small mono-tag">Next heart in ${fmtMinutes(stats.nextHeartMs)}.</p>` : ""}
-          ${stats?.days?.length ? `<div class="dash-activity-wrap"><div class="dash-activity-head"><span class="muted small mono-tag">14-DAY MOMENTUM</span><span class="muted small mono-tag">XP / DAY</span></div>${activityHtml(stats.days)}</div>` : ""}
+          ${stats?.days?.length ? `<div class="dash-activity-wrap"><div class="dash-activity-head"><span class="muted small mono-tag">XP · last 14 days</span></div>${activityHtml(stats.days)}</div>` : ""}
           <div class="dash-side-links">
             <a class="small mono-tag" href="#/learn/words">${I.list} All your words</a>
             ${stats?.learned ? `<a class="small mono-tag" href="#/learn/review">${I.cards} Shuffled flashcards</a>` : ""}
@@ -1018,7 +1112,6 @@ async function renderEnrolledCourses() {
       <div>
         <span class="plus">${ICON.plus}</span>
         <b>Find more courses</b>
-        <span class="muted small mono-tag">Courses by us and by other learners</span>
       </div>
     </a>`;
 
@@ -1038,13 +1131,6 @@ async function renderEnrolledCourses() {
   $app.innerHTML = `
     <div class="dash">
       <div class="dash-main course-path">
-        <header class="dash-head">
-          <div>
-            <h1 class="dash-title">MY COURSES</h1>
-            <p class="dash-sub muted">${myCourses.length ? "Pick a course to continue learning" : "Start your language journey"}</p>
-          </div>
-          <a class="btn btn-gate-pill small" href="#/discover">${ICON.plus} DISCOVER</a>
-        </header>
         ${myCourses.length ? `<div class="enrolled-grid">${enrolledCards}${addCard}</div>` : emptyState}
       </div>
       ${dashSideHtml(stats, board, feed)}
@@ -1155,7 +1241,7 @@ async function renderCoursePath(courseId) {
         ? `<div class="unit-done compact"><div><b>Deck complete! How was it?</b><p class="muted small mono-tag">Tell the creator what to improve.</p></div>
             <div class="stars" role="group" aria-label="Rate this deck">${[1, 2, 3, 4, 5].map((n) => `<button class="star" data-feedback="${u.id}" data-rating="${n}" aria-label="${n} star${n > 1 ? "s" : ""}">${I.star}</button>`).join("")}</div></div>`
         : "";
-    return `<section class="card module-card unit-card ${u.id === openUnit ? "open" : ""}" data-unit="${u.id}">
+    return `<section class="card module-card unit-card ${u.id === openUnit ? "open" : ""} ${allLocked ? "all-locked" : ""}" data-unit="${u.id}">
       <div class="module-head" data-toggle="${u.id}">
         <span class="module-no mono-tag">Unit ${String(ui + 1).padStart(2, '0')}<small>/${String(units.length).padStart(2, '0')}</small></span>
         <div class="module-info">
@@ -1735,21 +1821,12 @@ async function renderReview() {
     const s = stats || {};
     $app.innerHTML = `
       <div class="review-empty-stage">
-        <div class="review-empty-header">
-          <h2 class="review-empty-title">Vocabulary Review</h2>
-        </div>
         <section class="card review-empty-card">
-          <div class="review-empty-badge">
-            <span class="mono-tag dark-ink">[ 0 CARDS DUE ]</span>
-          </div>
           <h3 class="review-title-display">${s.learned ? "All caught up for now!" : "Nothing to review yet"}</h3>
-          <p class="review-desc">${s.learned ? "Great job! All your learned vocabulary is fresh. Next review card queues up as words reach their spaced intervals." : "Complete your first lesson! Every word you learn automatically enters your personal spaced-repetition deck."}</p>
+          <p class="review-desc">${s.learned ? "Your words are fresh. Come back when they're due." : "Words you learn in lessons show up here, right before you'd forget them."}</p>
           <div class="review-actions-row">
             <a class="btn btn-gate-pill" href="${course?.id ? `#/learn/course/${course.id}` : '#/learn'}">START A LESSON →</a>
             <a class="btn btn-outlined-display" href="#/discover">EXPLORE COURSES</a>
-          </div>
-          <div class="review-info-strip mono-tag">
-            <span>[ SYSTEM NOTICE ]</span> Words return at 1, 3, and 7-day intervals to lock them into long-term memory.
           </div>
         </section>
       </div>`;
@@ -2155,8 +2232,8 @@ function courseCard(c) {
   return `<article class="pcard">
     <div class="tile-art ${tint(c.id)}">
       <div class="pcard-top-row">
-        <span class="tag-chip mono-tag">[ ${tag.toUpperCase()} ]</span>
-        <span class="lang-orb mono-tag">[ ${esc(flag(c))} ]</span>
+        <span class="tag-chip mono-tag">${tag.toUpperCase()}</span>
+        <span class="lang-orb mono-tag">${esc(flag(c))}</span>
       </div>
       <h3 class="pcard-title" title="${esc(c.title)}"><a href="#/course/${c.id}">${esc(c.title)}</a></h3>
       <p class="pcard-desc">${esc(c.description || "Comprehensive vocabulary and conversational practice.")}</p>
@@ -2268,8 +2345,6 @@ async function renderDiscover() {
     <div class="discover">
       <div class="discover-main">
         <section class="discover-hero">
-          <h2 class="discover-title">Find your next course</h2>
-          <p class="discover-subtitle">Courses curated for real fluency, by creators and learners. Follow creators or <a href="#/studio" class="link-disclaimer-underline">make your own</a>.</p>
           <form class="discover-search" id="d-form" role="search">
             <div class="search-input-wrap">
               <svg class="search-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="m13.2 13.2 3.3 3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -2318,13 +2393,13 @@ async function renderDiscover() {
     box.innerHTML = people.length
       ? `<div class="card search-people-card">
           <div class="search-people-head">
-            <span class="mono-tag">[ PEOPLE // CREATORS &amp; LEARNERS (${people.length}) ]</span>
+            <span class="mono-tag">PEOPLE // CREATORS &amp; LEARNERS (${people.length})</span>
             <span class="muted small mono-tag">Community Accounts</span>
           </div>
           <div class="search-people-list">
             ${people
-              .map(
-                (u) => `<div class="search-person-row">
+        .map(
+          (u) => `<div class="search-person-row">
                   <a href="#/u/${esc(u.username)}" class="search-person-link">
                     ${avatar(u)}
                     <div class="search-person-info">
@@ -2339,8 +2414,8 @@ async function renderDiscover() {
                     ${u.isYou ? "" : `<button class="btn btn-gate-pill small ${u.youFollow ? "btn-following" : ""}" data-follow="${esc(u.username)}" data-on="${u.youFollow}">${u.youFollow ? "Following" : "Follow +"}</button>`}
                   </div>
                 </div>`,
-              )
-              .join("")}
+        )
+        .join("")}
           </div>
         </div>`
       : "";
@@ -2354,7 +2429,7 @@ async function renderDiscover() {
       ? shown.map(courseCard).join("")
       : `<section class="card discover-empty-card">
           <div class="discover-empty-inner">
-            <span class="mono-tag">[ 0 COURSES MATCHED ]</span>
+            <span class="mono-tag">0 COURSES MATCHED</span>
             <p class="discover-empty-text">${empty[f.tab]}</p>
           </div>
         </section>`;
@@ -2653,8 +2728,7 @@ async function renderStudioHome() {
   $app.innerHTML = `
     <div class="toolbar studio-toolbar">
       <div class="page-head">
-        <h1 class="studio-title">STUDIO</h1>
-        <p class="muted studio-desc">Make your own course: decks, lessons and words. Learners get the same lessons, review and duels as official courses.</p>
+        <p class="muted studio-desc">Build your own course: decks, lessons and words.</p>
       </div>
       <div class="toolbar-actions">
         <label class="btn btn-gate-pill small" title="Upload a course file exported from Papercard">${I.upload} Import .db<input type="file" id="import" accept=".db,.sqlite,application/vnd.sqlite3" hidden></label>
@@ -2682,7 +2756,7 @@ async function renderStudioHome() {
       ? `<div class="studio-section">
             <div class="row spread section-row">
               <h2>Official courses</h2>
-              <span class="muted small mono-tag">[ ADMIN EDIT PRIVILEGES ]</span>
+              <span class="muted small mono-tag">ADMIN EDIT PRIVILEGES</span>
             </div>
             <div class="studio-course-grid">${official
         .map(
@@ -3286,7 +3360,7 @@ async function renderAdmin() {
     </div>
     <section class="card admin-list-card">
       <div class="admin-list-head">
-        <span class="mono-tag">[ REGISTERED COURSES (${d.courses.length}) ]</span>
+        <span class="mono-tag">REGISTERED COURSES (${d.courses.length})</span>
         <span class="muted small mono-tag">Moderation &amp; Discovery Controls</span>
       </div>
       <ul class="admin-rows">${d.courses
@@ -3297,8 +3371,8 @@ async function renderAdmin() {
               <div class="admin-course-info">
                 <div class="admin-course-title-line">
                   <a class="admin-course-title" href="#/course/${c.id}">${esc(c.title)}</a>
-                  ${c.hidden ? `<span class="admin-badge badge-hidden">[ HIDDEN ]</span>` : `<span class="admin-badge badge-live">[ LIVE ]</span>`}
-                  ${c.creator.official ? `<span class="admin-badge badge-official">[ OFFICIAL ]</span>` : ""}
+                  ${c.hidden ? `<span class="admin-badge badge-hidden">HIDDEN</span>` : `<span class="admin-badge badge-live">LIVE</span>`}
+                  ${c.creator.official ? `<span class="admin-badge badge-official">OFFICIAL</span>` : ""}
                 </div>
                 <div class="admin-course-meta">
                   <span>by <b>${userLink(c.creator)}</b></span>
