@@ -895,20 +895,7 @@ body.shell .account {
 }
 
 .eyebrow-tag {
-  background: var(--color-bone-white);
-  color: var(--color-pure-black);
-  border: 2px solid var(--color-pure-black);
-  border-radius: var(--radius-buttons);
-  padding: 6px 18px;
-  font-family: var(--font-bergenmonoregular);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  box-shadow: none !important;
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  max-width: 100%;
+  display: none !important;
 }
 
 /* Poster headline: clamped so "LEARN LITHUANIAN" / "FLYING PAPERS" never break words awkwardly */

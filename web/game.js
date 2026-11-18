@@ -556,7 +556,6 @@ function landingHtml() {
       
       <!-- Hero Screen: Bold, Uncluttered Editorial Language Poster -->
       <section class="poster-hero">
-        <span class="mono-tag eyebrow-tag">[ LITHUANIAN LANGUAGE // A1–B1 ]</span>
         <h1 class="poster-display-title">
           <span class="poster-title-line"><span class="txt-hi">PAPER</span><span class="txt-butter">CARD</span></span>
           <span class="poster-title-line"><span class="txt-butter">LEARN</span> <span class="txt-hi">LITHUANIAN</span></span>
@@ -1043,7 +1042,6 @@ async function renderEnrolledCourses() {
       <div class="dash-main course-path">
         <header class="dash-head">
           <div>
-            <span class="mono-tag eyebrow-tag">[ LEARNING PATH // COURSES ]</span>
             <h1 class="dash-title">MY COURSES</h1>
             <p class="dash-sub muted">${myCourses.length ? "Pick a course to continue learning" : "Start your language journey"}</p>
           </div>
@@ -1740,7 +1738,6 @@ async function renderReview() {
     $app.innerHTML = `
       <div class="review-empty-stage">
         <div class="review-empty-header">
-          <span class="mono-tag eyebrow-tag">[ SPACED REPETITION // FLASHCARDS ]</span>
           <h2 class="review-empty-title">Vocabulary Review</h2>
         </div>
         <section class="card review-empty-card">
@@ -2273,7 +2270,6 @@ async function renderDiscover() {
     <div class="discover">
       <div class="discover-main">
         <section class="discover-hero">
-          <span class="mono-tag eyebrow-tag">[ COURSE CATALOG // DISCOVER ]</span>
           <h2 class="discover-title">Find your next course</h2>
           <p class="discover-subtitle">Courses curated for real fluency, by creators and learners. Follow creators or <a href="#/studio" class="link-disclaimer-underline">make your own</a>.</p>
           <form class="discover-search" id="d-form" role="search">
@@ -2658,7 +2654,6 @@ async function renderStudioHome() {
   $app.innerHTML = `
     <div class="toolbar studio-toolbar">
       <div class="page-head">
-        <span class="mono-tag eyebrow-tag">[ COURSE CREATOR // STUDIO ]</span>
         <h1 class="studio-title">STUDIO</h1>
         <p class="muted studio-desc">Make your own course: decks, lessons and words. Learners get the same lessons, review and duels as official courses.</p>
       </div>
@@ -3281,7 +3276,6 @@ async function renderAdmin() {
   $app.innerHTML = `
     <div class="toolbar admin-toolbar">
       <div class="page-head">
-        <span class="mono-tag eyebrow-tag">[ PLATFORM MANAGEMENT // ADMIN CONSOLE ]</span>
         <h1 class="admin-title">ADMIN CONSOLE</h1>
         <p class="muted admin-desc">Platform-wide overview and course moderation. Hidden courses remain accessible only to creators.</p>
       </div>
