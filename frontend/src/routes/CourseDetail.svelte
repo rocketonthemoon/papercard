@@ -1,4 +1,5 @@
 <script>
+  import { courseFlag as flag } from '../lib/format.js';
   import { onMount } from 'svelte';
   import { api } from '../lib/api.js';
   import { appState } from '../lib/state.svelte.js';
@@ -54,36 +55,27 @@
     }
   }
 
-  function flag(course) {
-    const code = (course?.toCode || course?.toLang || '').toLowerCase();
-    if (code === 'lt' || code === 'lithuanian') return 'LT';
-    if (code === 'en' || code === 'english') return 'EN';
-    if (code === 'es' || code === 'spanish') return 'ES';
-    if (code === 'fr' || code === 'french') return 'FR';
-    if (code === 'de' || code === 'german') return 'DE';
-    return (code.slice(0, 2) || 'LT').toUpperCase();
-  }
 </script>
 
 <div>
   {#if loading}
-    <p class="muted loading" style="text-align:center;padding:60px 0;">Loading course…</p>
+    <p class="page-loading" role="status">Loading course…</p>
   {:else if errorMsg || !c}
-    <section class="card picker" style="max-width:540px;margin:20px auto;">
+    <section class="card picker page-error">
       <header class="picker-head">
         <h2>Course not found</h2>
         <p class="muted">{errorMsg || 'Could not find the requested course.'}</p>
       </header>
-      <div class="row" style="justify-content:center;margin-top:16px;">
+      <div class="row picker-actions">
         <a class="btn btn-gate-pill" href="#/discover">Back to Courses</a>
       </div>
     </section>
   {:else}
     <div class="toolbar course-breadcrumb-bar">
       <div class="breadcrumb-trail">
-        <a class="back mono-tag" href="#/discover">← Courses</a>
+        <a class="back" href="#/discover">← Courses</a>
         <span class="breadcrumb-sep">/</span>
-        <span class="breadcrumb-current mono-tag">{c.title}</span>
+        <span class="breadcrumb-current">{c.title}</span>
       </div>
       <div class="toolbar-actions">
         {#if canEdit}
@@ -153,7 +145,7 @@
         </section>
 
         {#if c.enrolled}
-          <div class="course-leave-row" style="margin-top:16px;">
+          <div class="course-leave-row">
             <button class="link-disclaimer-underline" onclick={handleLeave}>Leave course</button>
           </div>
         {/if}
@@ -162,12 +154,12 @@
       <aside class="card side-card">
         {#if creator}
           <h3>Made by</h3>
-          <div class="profile-mini" style="margin-top:12px;">
+          <div class="profile-mini">
             <a class="who-pill profile-pill" href="#/u/{creator.username}">
               <span>{creator.name || creator.username}</span>
             </a>
             {#if creator.bio}
-              <p class="muted small" style="margin-top:8px;">{creator.bio}</p>
+              <p class="muted small creator-bio">{creator.bio}</p>
             {/if}
           </div>
         {/if}
@@ -175,3 +167,17 @@
     </div>
   {/if}
 </div>
+
+<style>
+  .course-leave-row {
+    margin-top: 16px;
+  }
+
+  .profile-mini {
+    margin-top: 12px;
+  }
+
+  .creator-bio {
+    margin: 8px 0 0;
+  }
+</style>

@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { appState } from './lib/state.svelte.js';
-  import { authDev } from './lib/api.js';
+  import { resolveRoute, isFocusRoute } from './lib/routes.js';
 
   import Header from './lib/layout/Header.svelte';
   import Sidebar from './lib/layout/Sidebar.svelte';
@@ -32,29 +32,20 @@
   let hash = $derived(appState.hash);
   let user = $derived(appState.user);
   let isLoading = $derived(appState.isLoading);
+  let route = $derived(resolveRoute(hash, !!user));
 
-  // Sync body classes strictly according to design.css
+  // Body classes drive the shell layout in design.css
   $effect(() => {
     if (typeof document === 'undefined') return;
-    const isLanding = !user || hash === '#/landing' || hash === '#/about';
-    const isFocus = hash.startsWith('#/learn/lesson');
-
+    const isLanding = route.name === 'landing';
     document.body.classList.toggle('shell', !isLanding);
     document.body.classList.toggle('landing', isLanding);
-    document.body.classList.toggle('focus', isFocus);
+    document.body.classList.toggle('focus', !isLanding && isFocusRoute(hash));
   });
-
-  // Route matchers
-  let duelCode = $derived(/^#\/duel\/([A-Za-z0-9]{6})$/i.exec(hash)?.[1]?.toUpperCase() ?? null);
-  let learnCourseId = $derived(/^#\/learn\/course\/(\d+)$/.exec(hash)?.[1] ?? null);
-  let lessonId = $derived(/^#\/learn\/lesson\/(\d+)$/.exec(hash)?.[1] ?? null);
-  let courseDetailId = $derived(/^#\/course\/(\d+)$/.exec(hash)?.[1] ?? null);
-  let studioCourseId = $derived(/^#\/studio\/(\d+)$/.exec(hash)?.[1] ?? null);
-  let profileUsername = $derived(/^#\/u\/([A-Za-z0-9_]{1,40})$/.exec(hash)?.[1] ?? null);
 </script>
 
 {#if isLoading}
-  <p class="muted loading" style="text-align:center;padding:100px 0;">Loading…</p>
+  <p class="app-loading" role="status">Loading…</p>
 {:else}
   <Header />
 
@@ -63,35 +54,33 @@
   {/if}
 
   <main id="app-main" class="app" aria-live="polite">
-    {#if !user || hash === '#/landing' || hash === '#/about'}
+    {#if route.name === 'landing'}
       <Landing />
-    {:else if hash === '#/' || hash === '#/learn'}
-      <Learn />
-    {:else if duelCode}
-      <Duel code={duelCode} />
-    {:else if learnCourseId}
-      <CoursePath id={Number(learnCourseId)} />
-    {:else if lessonId}
-      <Lesson id={Number(lessonId)} />
-    {:else if hash.startsWith('#/learn/review')}
+    {:else if route.name === 'duel'}
+      <Duel code={route.param} />
+    {:else if route.name === 'coursePath'}
+      <CoursePath id={route.param} />
+    {:else if route.name === 'lesson'}
+      <Lesson id={route.param} />
+    {:else if route.name === 'review'}
       <Review />
-    {:else if hash.startsWith('#/learn/words')}
+    {:else if route.name === 'words'}
       <Words />
-    {:else if courseDetailId}
-      <CourseDetail id={Number(courseDetailId)} />
-    {:else if studioCourseId}
-      <StudioEditor id={Number(studioCourseId)} />
-    {:else if hash.startsWith('#/studio')}
+    {:else if route.name === 'courseDetail'}
+      <CourseDetail id={route.param} />
+    {:else if route.name === 'studioEditor'}
+      <StudioEditor id={route.param} />
+    {:else if route.name === 'studio'}
       <StudioHome />
-    {:else if profileUsername}
-      <Profile username={profileUsername} />
-    {:else if hash.startsWith('#/discover')}
+    {:else if route.name === 'profile'}
+      <Profile username={route.param} />
+    {:else if route.name === 'discover'}
       <Discover />
-    {:else if hash.startsWith('#/play')}
+    {:else if route.name === 'play'}
       <Play />
-    {:else if hash.startsWith('#/leaderboard')}
+    {:else if route.name === 'leaderboard'}
       <Leaderboard />
-    {:else if hash.startsWith('#/admin')}
+    {:else if route.name === 'admin'}
       <Admin />
     {:else}
       <Learn />

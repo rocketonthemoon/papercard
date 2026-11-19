@@ -1,8 +1,18 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import { api } from '../lib/api.js';
   import { appState } from '../lib/state.svelte.js';
   import Icon from '../lib/components/Icon.svelte';
+  import {
+    inputKind,
+    instructionFor,
+    keyHint,
+    hasAnswer,
+    answerBody,
+    optionForKey,
+    tilesFor,
+    accuracy,
+  } from '../lib/lessonSession.js';
 
   let { id } = $props();
 
@@ -17,7 +27,7 @@
   let mistakes = $state(0);
   let isFinished = $state(false);
 
-  // Turn state: mode is 'check' or 'continue'
+  // Turn state: 'check' while answering, 'continue' while showing the result
   let turnMode = $state('check');
   let selectedOptionId = $state(null);
   let typedText = $state('');
@@ -27,20 +37,16 @@
   let lastResult = $state(null);
   let showHint = $state(false);
 
-  // Focus the answer box when a typing exercise appears (instead of the `autofocus` attribute).
   function focusOnMount(node) {
     node.focus();
   }
 
   onMount(async () => {
     try {
-      loading = true;
       const res = await api(`/learn/lessons/${id}`);
       lesson = res.lesson;
       course = res.course;
-
-      const challenges = res.challenges || [];
-      queue = [...challenges];
+      queue = [...(res.challenges || [])];
       totalCount = queue.length;
       setupChallenge(queue[0]);
     } catch (e) {
@@ -48,18 +54,15 @@
     } finally {
       loading = false;
     }
-
-    window.addEventListener('keydown', handleKeydown);
-  });
-
-  onDestroy(() => {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('keydown', handleKeydown);
-    }
   });
 
   let currentChallenge = $derived(queue[0] || null);
+  let kind = $derived(inputKind(currentChallenge));
+  let targetLang = $derived(course?.toLang || 'Lithuanian');
   let progressPct = $derived(totalCount ? (100 * solvedCount) / totalCount : 0);
+  let answer = $derived({ selectedOptionId, builtTiles, typedText });
+  let canCheck = $derived(!!currentChallenge && !checking && hasAnswer(currentChallenge, answer));
+  let resultState = $derived(turnMode === 'continue' ? (lastResult?.correct ? 'right' : 'wrong') : '');
 
   function setupChallenge(c) {
     turnMode = 'check';
@@ -67,95 +70,53 @@
     showHint = false;
     typedText = '';
     lastResult = null;
-    if (c?.tiles) {
-      availableTiles = c.tiles.map((t, idx) => ({ id: idx, text: t, used: false }));
-      builtTiles = [];
-    } else {
-      availableTiles = [];
-      builtTiles = [];
-    }
+    availableTiles = tilesFor(c);
+    builtTiles = [];
   }
 
   function handleKeydown(e) {
     if (loading || isFinished || !currentChallenge) return;
-    const typing = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
-
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (turnMode === 'continue') {
-        handleContinue();
-      } else if (canCheck()) {
-        handleCheck();
-      }
+      if (turnMode === 'continue') handleContinue();
+      else if (canCheck) handleCheck();
       return;
     }
-
-    if (!typing && turnMode === 'check' && currentChallenge.options && /^[1-9]$/.test(e.key)) {
-      const idx = Number(e.key) - 1;
-      if (currentChallenge.options[idx]) {
-        selectedOptionId = currentChallenge.options[idx].id;
-      }
-    }
-  }
-
-  function canCheck() {
-    if (!currentChallenge || checking) return false;
-    if (currentChallenge.options) return selectedOptionId !== null;
-    if (currentChallenge.tiles) return builtTiles.length > 0;
-    return typedText.trim().length > 0;
+    const typing = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+    if (typing || turnMode !== 'check') return;
+    const picked = optionForKey(currentChallenge, e.key);
+    if (picked !== null) selectedOptionId = picked;
   }
 
   function toggleTile(tile) {
     if (turnMode !== 'check') return;
-    if (tile.used) {
-      // Remove from built
-      builtTiles = builtTiles.filter(t => t.id !== tile.id);
-      tile.used = false;
-    } else {
-      builtTiles.push(tile);
-      tile.used = true;
-    }
+    tile.used = !tile.used;
+    builtTiles = tile.used ? [...builtTiles, tile] : builtTiles.filter((t) => t.id !== tile.id);
     availableTiles = [...availableTiles];
-    builtTiles = [...builtTiles];
+  }
+
+  function recordResult(res) {
+    lastResult = res;
+    turnMode = 'continue';
+    if (res.stats) appState.topStats = res.stats;
+    currentChallenge.retry = !res.correct;
+    if (res.correct) {
+      solvedCount++;
+      xpEarned += res.xp || 0;
+    } else {
+      mistakes++;
+    }
   }
 
   async function handleCheck() {
-    if (!canCheck() || checking) return;
+    if (!canCheck) return;
     try {
       checking = true;
-      const body = {
-        kind: currentChallenge.kind,
-        review: false,
-      };
-
-      if (currentChallenge.options) {
-        body.optionId = selectedOptionId;
-      } else if (currentChallenge.tiles) {
-        body.text = builtTiles.map(t => t.text).join(' ');
-      } else {
-        body.text = typedText.trim();
-      }
-
       const res = await api(`/learn/words/${currentChallenge.wordId}/answer`, {
         method: 'POST',
-        body,
+        body: answerBody(currentChallenge, answer),
       });
-
-      lastResult = res;
-      turnMode = 'continue';
-
-      if (res.stats) {
-        appState.topStats = res.stats;
-      }
-
-      if (res.correct) {
-        solvedCount++;
-        xpEarned += (res.xp || 0);
-        currentChallenge.retry = false;
-      } else {
-        mistakes++;
-        currentChallenge.retry = true;
-      }
+      recordResult(res);
     } catch (e) {
       appState.showToast(e.message || 'Failed to submit answer');
     } finally {
@@ -165,11 +126,8 @@
 
   function handleContinue() {
     const prev = queue.shift();
-    if (prev && prev.retry) {
-      queue.push(prev);
-    }
+    if (prev?.retry) queue.push(prev);
     queue = [...queue];
-
     if (queue.length === 0) {
       isFinished = true;
       appState.refreshTopStats();
@@ -180,135 +138,137 @@
 
   function handleExit() {
     const courseUrl = course?.id ? `#/learn/course/${course.id}` : '#/learn';
-    if (solvedCount === 0 || confirm('Quit the lesson? Finished words are saved.')) {
+    if (isFinished || solvedCount === 0 || confirm('Quit the lesson? Finished words are saved.')) {
       appState.navigate(courseUrl);
     }
   }
+
+  function optionState(opt) {
+    if (turnMode !== 'continue' || !lastResult) return '';
+    if (opt.id === lastResult.correctOptionId) return 'right';
+    if (!lastResult.correct && opt.id === selectedOptionId) return 'wrong';
+    return '';
+  }
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <div class="lesson lesson-frame">
   <header class="lesson-top">
-    <button type="button" class="icon-btn" id="quit" aria-label="Quit" onclick={handleExit}>
+    <button type="button" class="icon-btn" id="quit" aria-label="Quit lesson" onclick={handleExit}>
       <Icon name="close" size={20} />
     </button>
-    <div class="progress progress-bar lesson-bar" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax={totalCount}>
+    <div
+      class="progress progress-bar lesson-bar"
+      role="progressbar"
+      aria-label="Lesson progress"
+      aria-valuemin="0"
+      aria-valuemax={totalCount}
+      aria-valuenow={solvedCount}
+    >
       <i id="prog" style="width: {progressPct}%;"></i>
     </div>
   </header>
 
   <main class="lesson-body" id="stage">
     {#if loading}
-      <p class="muted loading" style="text-align:center;padding:40px;">Loading lesson…</p>
+      <p class="page-loading lesson-loading" role="status">Loading lesson…</p>
     {:else if errorMsg}
-      <div class="card error-card" style="text-align:center;padding:40px;">
-        <h2>Failed to load lesson</h2>
+      <section class="card finish">
+        <h2>Couldn't load this lesson</h2>
         <p class="muted">{errorMsg}</p>
-        <button class="btn btn-gate-pill" onclick={handleExit}>Go Back</button>
-      </div>
+        <button class="btn btn-gate-pill" onclick={handleExit}>Go back</button>
+      </section>
     {:else if isFinished}
-      <section class="card finish" style="text-align:center;max-width:540px;margin:40px auto;padding:40px 24px;">
-        <span class="finish-icon" style="display:inline-block;margin-bottom:16px;">
-          <Icon name="cup" size={56} />
-        </span>
-        <h1 style="font-family:var(--font-display);font-size:32px;font-weight:900;letter-spacing:-0.03em;">Lesson complete!</h1>
-        <p class="muted" style="margin:8px 0 24px;">{lesson ? `${lesson.unitTitle || ''} · ${lesson.title}` : ''}</p>
-        <div class="finish-stats" style="display:flex;justify-content:center;gap:24px;margin-bottom:32px;">
-          <div class="fstat xp" style="background:#f4ed36;border:2px solid #000;border-radius:6px;padding:12px 20px;box-shadow:0 3px 0 #000;">
-            <span class="small mono-tag" style="display:block;opacity:0.8;">Total XP</span>
-            <b style="font-size:22px;font-weight:900;">+{xpEarned}</b>
-          </div>
-          <div class="fstat acc" style="background:#f9f5f2;border:2px solid #000;border-radius:6px;padding:12px 20px;box-shadow:0 3px 0 #000;">
-            <span class="small mono-tag" style="display:block;opacity:0.8;">Accuracy</span>
-            <b style="font-size:22px;font-weight:900;">{Math.round((100 * totalCount) / (totalCount + mistakes))}%</b>
-          </div>
+      <section class="card finish">
+        <span class="finish-icon"><Icon name="cup" size={56} /></span>
+        <h1>Lesson complete!</h1>
+        {#if lesson}
+          <p class="muted">{[lesson.unitTitle, lesson.title].filter(Boolean).join(' · ')}</p>
+        {/if}
+        <div class="finish-stats">
+          <div class="fstat xp"><span>XP earned</span><b>+{xpEarned}</b></div>
+          <div class="fstat"><span>Accuracy</span><b>{accuracy(totalCount, mistakes)}%</b></div>
         </div>
-        <button class="btn big btn-gate-pill" style="min-width:200px;" onclick={handleExit}>Continue</button>
+        <button class="btn big btn-gate-pill finish-cta" onclick={handleExit}>Continue</button>
       </section>
     {:else if currentChallenge}
       <div class="challenge-stage">
-        <h2 class="prompt-text" style="font-family:var(--font-display);font-size:28px;font-weight:900;margin-bottom:12px;text-align:center;">
+        <p class="challenge-kicker mono-tag">{instructionFor(currentChallenge, targetLang)}</p>
+        <h2 class="prompt-text" lang={currentChallenge.kind === 'pick_en' ? 'lt' : 'en'}>
           {currentChallenge.prompt || 'Choose the correct answer'}
         </h2>
 
-        {#if currentChallenge.note}
-          <div class="hint-container">
+        <div class="hint-container">
+          {#if currentChallenge.note}
             {#if showHint}
               <div class="hint-card" role="note">
                 <span class="hint-label">Hint</span>
                 <span class="hint-text">{currentChallenge.note}</span>
               </div>
             {:else}
-              <button type="button" class="hint-btn" onclick={() => showHint = true}>
+              <button type="button" class="hint-btn" onclick={() => (showHint = true)}>
                 <span class="hint-bulb" aria-hidden="true">?</span>
-                Show English hint
+                Show hint
               </button>
             {/if}
-          </div>
-        {:else}
-          <div style="margin-bottom:24px;"></div>
-        {/if}
+          {/if}
+        </div>
 
-        <!-- Options (Multiple Choice) -->
-        {#if currentChallenge.options}
-          <div class="options-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:14px;max-width:600px;margin:0 auto;">
-            {#each currentChallenge.options as opt, idx}
-              {@const isSel = selectedOptionId === opt.id}
-              {@const isCorrectOpt = turnMode === 'continue' && lastResult && opt.id === lastResult.correctOptionId}
-              {@const isWrongSel = turnMode === 'continue' && lastResult && !lastResult.correct && isSel}
+        {#if kind === 'pick'}
+          <div class="options lesson-options" role="group" aria-label="Answers">
+            {#each currentChallenge.options as opt, idx (opt.id)}
+              {@const state = optionState(opt)}
               <button
                 type="button"
                 class="option option-tile"
-                class:selected={isSel && turnMode === 'check'}
-                class:right={isCorrectOpt}
-                class:wrong={isWrongSel}
+                class:selected={selectedOptionId === opt.id && turnMode === 'check'}
+                class:right={state === 'right'}
+                class:wrong={state === 'wrong'}
                 data-id={opt.id}
-                aria-pressed={isSel}
+                aria-pressed={selectedOptionId === opt.id}
                 disabled={turnMode === 'continue'}
-                onclick={() => selectedOptionId = opt.id}
-                style="display:flex;align-items:center;padding:16px 20px;background:#f9f5f2;border:2px solid #000;border-radius:6px;box-shadow:0 3px 0 #000;font-size:17px;font-weight:700;text-align:left;cursor:pointer;"
+                onclick={() => (selectedOptionId = opt.id)}
               >
-                <span class="option-key key" style="margin-right:14px;">{idx + 1}</span>
-                <span>{opt.text}</span>
+                <span class="key" aria-hidden="true">{idx + 1}</span>
+                <span class="option-text">{opt.text}</span>
               </button>
             {/each}
           </div>
-        {:else if currentChallenge.tiles}
-          <!-- Word Building Tiles -->
-          <div class="build-stage" style="max-width:600px;margin:0 auto;">
-            <div class="built-slot" style="min-height:56px;padding:12px;border-bottom:2px dashed #000;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;">
-              {#each builtTiles as t}
-                <button type="button" class="tile-chip" onclick={() => toggleTile(t)} style="padding:8px 16px;background:#ffd33d;border:2px solid #000;border-radius:6px;font-weight:700;cursor:pointer;">
-                  {t.text}
-                </button>
+        {:else if kind === 'build'}
+          <div class="build-stage">
+            <div class="built-slot" aria-label="Your answer" aria-live="polite">
+              {#each builtTiles as t (t.id)}
+                <button type="button" class="tile-chip placed" onclick={() => toggleTile(t)} disabled={turnMode === 'continue'}>{t.text}</button>
+              {:else}
+                <span class="built-placeholder">Tap the words in order</span>
               {/each}
             </div>
-            <div class="available-tiles" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
-              {#each availableTiles as t}
-                <button
-                  type="button"
-                  class="tile-chip"
-                  disabled={t.used}
-                  onclick={() => toggleTile(t)}
-                  style="padding:8px 16px;background:{t.used ? '#ddd' : '#f9f5f2'};border:2px solid #000;border-radius:6px;font-weight:700;cursor:pointer;opacity:{t.used ? 0.3 : 1};"
-                >
+            <div class="available-tiles">
+              {#each availableTiles as t (t.id)}
+                <button type="button" class="tile-chip" class:used={t.used} disabled={t.used || turnMode === 'continue'} onclick={() => toggleTile(t)}>
                   {t.text}
                 </button>
               {/each}
             </div>
           </div>
         {:else}
-          <!-- Text Typing -->
-          <div class="type-stage" style="max-width:500px;margin:0 auto;text-align:center;">
+          <div class="type-stage">
             <input
               type="text"
               id="typed"
-              class="typed-input"
-              placeholder="Type your translation in Lithuanian..."
+              class="type-box"
+              class:right={resultState === 'right'}
+              class:wrong={resultState === 'wrong'}
+              lang="lt"
+              placeholder="Type in {targetLang}…"
+              aria-label="Your answer in {targetLang}"
               bind:value={typedText}
               disabled={turnMode === 'continue'}
               autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
               use:focusOnMount
-              style="width:100%;padding:14px 18px;font-size:18px;border:2px solid #000;border-radius:6px;box-shadow:0 3px 0 #000;margin-bottom:12px;"
             />
           </div>
         {/if}
@@ -316,82 +276,97 @@
     {/if}
   </main>
 
-  <footer class="lesson-foot {turnMode === 'continue' ? (lastResult?.correct ? 'right' : 'wrong') : ''}" id="foot">
-    <div class="foot-inner">
-      <div class="feedback" id="feedback">
-        {#if turnMode === 'continue' && lastResult}
-          {#if lastResult.correct}
+  {#if !isFinished && !loading && !errorMsg}
+    <footer class="lesson-foot {resultState}" id="foot">
+      <div class="foot-inner">
+        <div class="feedback" id="feedback" aria-live="polite">
+          {#if turnMode === 'continue' && lastResult}
             <div class="fb-body">
-              <div class="fb-title" style="font-weight:900;font-size:18px;color:#000;">Nicely done!</div>
-              <div class="fb-answer" style="margin-top:4px;">
-                <b class="fb-main">{lastResult.word?.lt}</b> = <span class="fb-trans">{lastResult.word?.en}</span>
+              <div class="fb-title">{lastResult.correct ? 'Nicely done!' : 'Correct answer:'}</div>
+              <div class="fb-answer">
+                <b class="fb-main" lang="lt">{lastResult.word?.lt}</b> = <span class="fb-trans">{lastResult.word?.en}</span>
               </div>
-              {#if lastResult.xp}
-                <div class="fb-extra" style="font-weight:700;margin-top:4px;">+{lastResult.xp} XP</div>
+              {#if lastResult.correct && lastResult.xp}
+                <div class="fb-extra">+{lastResult.xp} XP</div>
+              {:else if !lastResult.correct}
+                <div class="fb-status">It'll come back at the end.</div>
               {/if}
             </div>
-          {:else}
-            <div class="fb-body">
-              <div class="fb-title" style="font-weight:900;font-size:18px;color:#c94245;">Correct answer:</div>
-              <div class="fb-answer" style="margin-top:4px;">
-                <b class="fb-main">{lastResult.word?.lt}</b> = <span class="fb-trans">{lastResult.word?.en}</span>
-              </div>
-              <div class="fb-status" style="font-size:13px;opacity:0.8;margin-top:4px;">It'll come back at the end.</div>
-            </div>
           {/if}
-        {/if}
-      </div>
+        </div>
 
-      <div class="foot-actions">
-        <span class="foot-hint mono-tag" id="foot-hint">
-          {turnMode === 'continue' ? 'Press Enter to continue' : 'Press 1-4 · Enter to check'}
-        </span>
-        <button
-          type="button"
-          class="btn big action-btn"
-          id="action"
-          disabled={turnMode === 'check' && !canCheck()}
-          onclick={turnMode === 'continue' ? handleContinue : handleCheck}
-        >
-          {turnMode === 'continue' ? 'Continue →' : 'Check'}
-        </button>
+        <div class="foot-actions">
+          <span class="foot-hint mono-tag" id="foot-hint">{keyHint(currentChallenge, turnMode)}</span>
+          <button
+            type="button"
+            class="btn big action-btn"
+            id="action"
+            disabled={turnMode === 'check' && !canCheck}
+            onclick={turnMode === 'continue' ? handleContinue : handleCheck}
+          >
+            {turnMode === 'continue' ? 'Continue →' : checking ? 'Checking…' : 'Check'}
+          </button>
+        </div>
       </div>
-    </div>
-  </footer>
+    </footer>
+  {/if}
 </div>
 
-
 <style>
+  .challenge-stage {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .challenge-kicker {
+    margin: 0 0 8px;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-black);
+  }
+
+  .prompt-text {
+    margin: 0 0 16px;
+    text-align: center;
+    font-family: var(--font-degulardisplay-bold);
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--color-ink-black);
+    overflow-wrap: anywhere;
+  }
+
   .hint-container {
     display: flex;
     justify-content: center;
-    margin-bottom: 24px;
+    min-height: 8px;
+    margin-bottom: 20px;
   }
 
   .hint-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 7px 16px 7px 8px;
+    padding: 6px 14px 6px 7px;
     background: var(--color-bone-white);
     color: var(--color-ink-black);
     border: 2px solid var(--color-ink-black);
     border-radius: var(--r-pill);
-    box-shadow: 0 3px 0 var(--color-ink-black);
     font-family: var(--font-degularvariable);
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.08s ease, box-shadow 0.08s ease;
   }
 
   .hint-btn:hover {
     background: #fff;
-  }
-
-  .hint-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 var(--color-ink-black);
   }
 
   .hint-btn:focus-visible {
@@ -422,7 +397,6 @@
     color: var(--color-ink-black);
     border: 2px solid var(--color-ink-black);
     border-radius: var(--r-card);
-    box-shadow: 0 3px 0 var(--color-ink-black);
     font-size: 15px;
     font-weight: 600;
     line-height: 1.4;
@@ -440,5 +414,111 @@
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .lesson-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 560px) {
+    .lesson-options {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .option-text {
+    overflow-wrap: anywhere;
+  }
+
+  /* Build: tap tiles into the answer line */
+  .build-stage {
+    display: grid;
+    gap: 24px;
+  }
+
+  .built-slot {
+    min-height: 60px;
+    padding: 10px 4px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 2px dashed var(--color-ink-black);
+  }
+
+  .built-placeholder {
+    font-family: var(--font-bergenmonoregular);
+    font-size: 13px;
+    color: var(--color-ink-black);
+    opacity: 0.55;
+  }
+
+  .available-tiles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .tile-chip {
+    min-height: 44px;
+    padding: 8px 16px;
+    background: var(--color-bone-white);
+    color: var(--color-ink-black);
+    border: 2px solid var(--color-ink-black);
+    border-radius: var(--r-card);
+    font-family: var(--font-degularvariable);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .tile-chip.placed {
+    background: var(--color-hi-vis-yellow);
+  }
+
+  .tile-chip.used {
+    opacity: 0.25;
+    cursor: default;
+  }
+
+  .tile-chip:focus-visible {
+    outline: 3px solid var(--color-hi-vis-yellow);
+    outline-offset: 2px;
+  }
+
+  .type-stage {
+    width: 100%;
+  }
+
+  .type-stage :global(.type-box) {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Result footer text */
+  .fb-title {
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--color-ink-black);
+  }
+
+  .wrong .fb-title {
+    color: var(--color-firecracker-red);
+  }
+
+  .fb-answer,
+  .fb-extra {
+    margin-top: 4px;
+  }
+
+  .fb-extra {
+    font-weight: 700;
+  }
+
+  .fb-status {
+    margin-top: 4px;
+    font-size: 13px;
+    opacity: 0.8;
   }
 </style>

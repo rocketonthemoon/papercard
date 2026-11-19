@@ -3,6 +3,7 @@
   import { api } from '../lib/api.js';
   import { appState } from '../lib/state.svelte.js';
   import Icon from '../lib/components/Icon.svelte';
+  import { courseFlag as flag, tintClass as tint, percent } from '../lib/format.js';
 
   let loading = $state(true);
   let errorMsg = $state('');
@@ -13,13 +14,6 @@
   let activeTab = $state('all'); // 'all', 'courses', 'people'
   let searchTimer = null;
 
-  const tint = (id) => `tint-${Math.abs(Number(id) || 0) % 6}`;
-
-  function flag(c) {
-    if (c.toCode) return c.toCode.toUpperCase();
-    if (c.toLang && c.toLang.toLowerCase().includes('lithuanian')) return 'LT';
-    return (c.toLang || 'LT').slice(0, 2).toUpperCase();
-  }
 
   async function loadData(query = '') {
     try {
@@ -55,12 +49,7 @@
     loadData('');
   });
 
-  let filteredCourses = $derived(
-    courses.filter(c => {
-      if (officialOnly && !c.creator?.official) return false;
-      return true;
-    })
-  );
+  let filteredCourses = $derived(officialOnly ? courses.filter((c) => c.creator?.official) : courses);
 
   async function handleEnroll(c) {
     try {
@@ -95,7 +84,7 @@
           <input
             type="search"
             id="d-q"
-            placeholder="Search courses, creators, languages, words…"
+            placeholder="Search courses, people or words…"
             aria-label="Search discover catalog"
             autocomplete="off"
             spellcheck="false"
@@ -111,58 +100,43 @@
         <button class="btn btn-gate-pill search-btn" type="submit">Search →</button>
       </form>
 
-      <div class="row spread" style="margin-top:14px;flex-wrap:wrap;gap:12px;align-items:center;">
-        <div class="row" style="gap:8px;">
-          <button
-            type="button"
-            class="tab-pill {activeTab === 'all' ? 'active' : ''}"
-            onclick={() => activeTab = 'all'}
-          >
-            All {people.length > 0 ? `(${filteredCourses.length + people.length})` : ''}
+      <div class="discover-filters" role="group" aria-label="Filter results">
+        <button type="button" class="tab-pill" class:active={activeTab === 'all'} aria-pressed={activeTab === 'all'} onclick={() => (activeTab = 'all')}>
+          All{people.length > 0 ? ` (${filteredCourses.length + people.length})` : ''}
+        </button>
+        <button type="button" class="tab-pill" class:active={activeTab === 'courses'} aria-pressed={activeTab === 'courses'} onclick={() => (activeTab = 'courses')}>
+          Courses ({filteredCourses.length})
+        </button>
+        {#if people.length > 0}
+          <button type="button" class="tab-pill" class:active={activeTab === 'people'} aria-pressed={activeTab === 'people'} onclick={() => (activeTab = 'people')}>
+            People ({people.length})
           </button>
-          <button
-            type="button"
-            class="tab-pill {activeTab === 'courses' ? 'active' : ''}"
-            onclick={() => activeTab = 'courses'}
-          >
-            Courses ({filteredCourses.length})
-          </button>
-          {#if people.length > 0}
-            <button
-              type="button"
-              class="tab-pill {activeTab === 'people' ? 'active' : ''}"
-              onclick={() => activeTab = 'people'}
-            >
-              People ({people.length})
-            </button>
-          {/if}
-        </div>
-
+        {/if}
         {#if activeTab !== 'people'}
-          <label class="row" style="gap:8px;cursor:pointer;">
-            <input type="checkbox" bind:checked={officialOnly} />
-            <span class="mono-tag small" style="font-weight:700;">Official courses only</span>
-          </label>
+          <button type="button" class="tab-pill toggle-pill" class:active={officialOnly} aria-pressed={officialOnly} onclick={() => (officialOnly = !officialOnly)}>
+            {#if officialOnly}<Icon name="check" size={12} />{/if}
+            Official only
+          </button>
         {/if}
       </div>
     </section>
 
     {#if loading}
-      <p class="muted loading" style="text-align:center;padding:40px 0;">Searching catalog…</p>
+      <p class="page-loading" role="status">Searching catalog…</p>
     {:else if errorMsg}
-      <section class="card picker" style="max-width:540px;margin:20px auto;">
+      <section class="card picker page-error">
         <header class="picker-head">
           <h2>Unable to load catalog</h2>
           <p class="muted">{errorMsg}</p>
         </header>
       </section>
     {:else if filteredCourses.length === 0 && (activeTab === 'courses' || people.length === 0)}
-      <section class="card picker" style="max-width:540px;margin:20px auto;">
+      <section class="card picker page-error">
         <header class="picker-head">
           <h2>No matching results</h2>
           <p class="muted">Try adjusting your search terms or create your own course in the Studio.</p>
         </header>
-        <div class="row" style="justify-content:center;margin-top:16px;">
+        <div class="row picker-actions">
           <a href="#/studio" class="btn btn-gate-pill">Create a course →</a>
         </div>
       </section>
@@ -186,7 +160,7 @@
                     {/if}
                   </div>
                   <div class="person-details">
-                    <div class="row" style="gap:6px;align-items:center;">
+                    <div class="row person-meta">
                       <span class="person-name">{p.name || p.username}</span>
                       {#if p.is_official}
                         <span class="tag-chip mono-tag official-tag">OFFICIAL</span>
@@ -229,7 +203,7 @@
           <div class="course-grid discover-grid" id="d-grid">
             {#each filteredCourses as c (c.id)}
               {@const tag = c.creator?.official ? 'OFFICIAL' : c.enrolled ? 'ENROLLED' : 'COMMUNITY'}
-              {@const pct = c.words ? Math.round((100 * (c.learned || 0)) / c.words) : 0}
+              {@const pct = percent(c.learned, c.words)}
               <article class="pcard">
                 <div class="tile-art {tint(c.id)}">
                   <div class="pcard-top-row">
@@ -280,6 +254,11 @@
 </div>
 
 <style>
+  .person-meta {
+    gap: 6px;
+    align-items: center;
+  }
+
   .tab-pill {
     padding: 6px 14px;
     font-size: 13px;
@@ -291,6 +270,40 @@
     color: var(--color-ink-black);
     cursor: pointer;
     transition: background 0.15s ease;
+  }
+
+  .discover-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .toggle-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  @media (max-width: 600px) {
+    .toggle-pill {
+      margin-left: 0;
+    }
+
+    .discover-search :global(.search-btn) {
+      display: none !important;
+    }
+
+    .discover-search :global(.search-input-wrap) {
+      flex: 1 1 100% !important;
+    }
+  }
+
+  .tab-pill:focus-visible {
+    outline: 2px solid var(--color-ink-black);
+    outline-offset: 2px;
   }
 
   .tab-pill.active {

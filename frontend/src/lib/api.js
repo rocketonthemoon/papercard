@@ -12,40 +12,50 @@ export class ApiError extends Error {
   }
 }
 
-export async function api(path, { method = 'GET', body, headers = {} } = {}) {
-  const url = path.startsWith('/api') ? path : `/api${path.startsWith('/') ? '' : '/'}${path}`;
+/** "/me", "me" and "/api/me" all become "/api/me". */
+function apiUrl(path) {
+  if (path.startsWith('/api')) return path;
+  return path.startsWith('/') ? `/api${path}` : `/api/${path}`;
+}
+
+function requestOptions(method, body, headers) {
   const opts = {
     method,
-    headers: {
-      'Accept': 'application/json',
-      ...headers,
-    },
+    headers: { Accept: 'application/json', ...headers },
     credentials: 'same-origin',
   };
-
   if (body !== undefined) {
     opts.headers['Content-Type'] = 'application/json';
     opts.body = typeof body === 'string' ? body : JSON.stringify(body);
   }
+  return opts;
+}
 
-  const res = await fetch(url, opts);
-  let data;
+/** JSON when the server says so (null if it's malformed), otherwise text. */
+async function readBody(res) {
   const ct = res.headers.get('content-type') || '';
-  if (ct.includes('application/json')) {
-    try {
-      data = await res.json();
-    } catch {
-      data = null;
-    }
-  } else {
-    data = await res.text();
+  if (!ct.includes('application/json')) return res.text();
+  try {
+    return await res.json();
+  } catch {
+    return null;
   }
+}
 
-  if (!res.ok) {
-    const errorMsg = data?.error || (typeof data === 'string' && data) || res.statusText || 'Request failed';
-    throw new ApiError(errorMsg, res.status, data);
-  }
+function errorMessage(res, data) {
+  if (data?.error) return data.error;
+  if (typeof data === 'string' && data) return data;
+  return res.statusText || 'Request failed';
+}
 
+/**
+ * @param {string} path  "/learn", "learn" or "/api/learn"
+ * @param {{ method?: string, body?: unknown, headers?: Record<string, string> }} [options]
+ */
+export async function api(path, { method = 'GET', body = undefined, headers = {} } = {}) {
+  const res = await fetch(apiUrl(path), requestOptions(method, body, headers));
+  const data = await readBody(res);
+  if (!res.ok) throw new ApiError(errorMessage(res, data), res.status, data);
   return data;
 }
 
