@@ -100,6 +100,19 @@
     <rect x="34" y="10" width="34" height="46" rx="4" fill="#f4ed36" stroke="#1a1a1a" stroke-width="2.5"/>
     <text x="51" y="40" font-size="17" font-weight="800" text-anchor="middle" fill="#1a1a1a" font-family="JetBrains Mono, monospace">A1</text>
   </svg>
+{:else if name === 'star'}
+  <svg width={size} height={size} viewBox="0 0 24 24" class={className} aria-hidden="true">
+    <path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8 6.6 19.7l1.1-6.1L3.2 9.4l6.1-.8z" fill="currentColor"/>
+  </svg>
+{:else if name === 'grip'}
+  <svg width={size} height={size} viewBox="0 0 20 20" class={className} aria-hidden="true">
+    <circle cx="7" cy="5" r="1.5" fill="currentColor"/>
+    <circle cx="13" cy="5" r="1.5" fill="currentColor"/>
+    <circle cx="7" cy="10" r="1.5" fill="currentColor"/>
+    <circle cx="13" cy="10" r="1.5" fill="currentColor"/>
+    <circle cx="7" cy="15" r="1.5" fill="currentColor"/>
+    <circle cx="13" cy="15" r="1.5" fill="currentColor"/>
+  </svg>
 {:else if name === 'copy'}
   <svg width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" class={className} aria-hidden="true">
     <rect x="7" y="7" width="10" height="10" rx="2"/>

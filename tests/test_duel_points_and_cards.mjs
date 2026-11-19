@@ -153,7 +153,11 @@ const resultsInfo = await evaluate(`({
   pointsValue: document.querySelector('.score b')?.textContent,
   maxPoints: document.querySelector('.score span')?.textContent,
   rightCount: document.querySelector('.good')?.textContent,
-  scoreboardPts: document.querySelector('.pts b')?.textContent
+  scoreboardPts: document.querySelector('.pts b')?.textContent,
+  answersCount: document.querySelectorAll('li.answer').length,
+  rightAnswers: document.querySelectorAll('li.answer .tag.ok').length,
+  wrongAnswers: document.querySelectorAll('li.answer .tag.miss').length,
+  firstAnswer: document.querySelector('li.answer')?.innerText.replace(/\\n/g, ' ')
 })`);
 console.log('Duel Results Info:', resultsInfo);
 await snap('verified_duel_results_points');

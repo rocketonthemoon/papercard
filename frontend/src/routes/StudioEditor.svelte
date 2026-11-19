@@ -9,11 +9,20 @@
   let loading = $state(true);
   let errorMsg = $state('');
   let content = $state(null);
-  let activeView = $state('content'); // 'content' | 'arrange' | 'settings'
+  let activeView = $state('content'); // 'content' | 'arrange' | 'feedback' | 'settings'
 
   let selectedLessonId = $state(null);
   let editingWord = $state(null); // null or { id?, lt, en, pos, gender, also, note }
   let closedUnits = $state(new Set());
+
+  // Suggestions state
+  let feedbackFilter = $state('new');
+  let feedbackData = $state({ items: [], newCount: 0 });
+  let loadingFeedback = $state(false);
+
+  // Arrange drag & drop state
+  let draggedDeckIndex = $state(null);
+  let draggedLesson = $state(null); // { id, unitId, index }
 
   // Settings form state
   let settingsTitle = $state('');
@@ -317,9 +326,104 @@
     }
   }
 
+  async function handleQuickAddUnit(e) {
+    e.preventDefault();
+    const input = e.target.querySelector('input');
+    const title = input?.value.trim();
+    if (!title) return;
+    if (await cmsDo('POST', '/units', { title, level: '', description: '' })) {
+      input.value = '';
+      appState.showToast('Deck added!');
+    }
+  }
+
+  async function handleQuickAddLesson(e, uId) {
+    e.preventDefault();
+    const input = e.target.querySelector('input');
+    const title = input?.value.trim();
+    if (!title) return;
+    if (await cmsDo('POST', '/lessons', { unitId: uId, title })) {
+      input.value = '';
+      appState.showToast('Lesson added!');
+    }
+  }
+
+  function onDragStartDeck(e, index) {
+    draggedDeckIndex = index;
+    try { e.dataTransfer.setData('text/plain', String(index)); } catch {}
+  }
+
+  async function onDropDeck(e, targetIndex) {
+    e.preventDefault();
+    if (draggedDeckIndex === null || draggedDeckIndex === targetIndex) return;
+    const u = units[draggedDeckIndex];
+    if (!u) return;
+    await cmsDo('POST', '/arrange', { kind: 'unit', id: u.id, index: targetIndex });
+    draggedDeckIndex = null;
+  }
+
+  function onDragStartLesson(e, lessonId, unitId, index) {
+    draggedLesson = { id: lessonId, unitId, index };
+    e.stopPropagation();
+    try { e.dataTransfer.setData('text/plain', String(lessonId)); } catch {}
+  }
+
+  async function onDropLesson(e, targetUnitId, targetIndex) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!draggedLesson) return;
+    await cmsDo('POST', '/arrange', {
+      kind: 'lesson',
+      id: draggedLesson.id,
+      unitId: targetUnitId,
+      index: targetIndex
+    });
+    draggedLesson = null;
+  }
+
+  async function loadFeedback(filter = 'new') {
+    try {
+      loadingFeedback = true;
+      feedbackFilter = filter;
+      const res = await api(`/studio/${id}/feedback?status=${filter}`);
+      feedbackData = res;
+    } catch (e) {
+      feedbackData = { items: [], newCount: 0 };
+    } finally {
+      loadingFeedback = false;
+    }
+  }
+
+  async function handleMarkFeedback(fbId, currentStatus) {
+    const nextStatus = currentStatus === 'new' ? 'done' : 'new';
+    try {
+      await api(`/studio/${id}/feedback/${fbId}`, {
+        method: 'PUT',
+        body: { status: nextStatus },
+      });
+      await loadFeedback(feedbackFilter);
+      appState.showToast('Feedback updated');
+    } catch (e) {
+      appState.showToast(e.message || 'Failed to update feedback');
+    }
+  }
+
+  async function handleDeleteFeedback(fbId) {
+    if (!confirm('Delete this suggestion?')) return;
+    try {
+      await api(`/studio/${id}/feedback/${fbId}`, { method: 'DELETE' });
+      await loadFeedback(feedbackFilter);
+      appState.showToast('Feedback deleted');
+    } catch (e) {
+      appState.showToast(e.message || 'Failed to delete feedback');
+    }
+  }
+
   $effect(() => {
     if (activeView === 'settings') {
       loadTokens();
+    } else if (activeView === 'feedback') {
+      loadFeedback(feedbackFilter);
     }
   });
 </script>
@@ -339,8 +443,8 @@
     </section>
   {:else}
     <!-- Studio Top Toolbar (1:1 with web/game.js:2986) -->
-    <div class="toolbar" style="margin-bottom:20px;">
-      <div class="page-head">
+    <div class="toolbar" style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+      <div class="page-head" style="flex:1 1 auto;min-width:240px;">
         <a class="back mono-tag" href="#/studio">← Studio</a>
         <h1 style="margin:4px 0 2px;">{course.title}</h1>
         <p class="muted small mono-tag" style="margin:0;">
@@ -348,7 +452,7 @@
         </p>
       </div>
 
-      <div class="toolbar-actions" style="display:flex;align-items:center;gap:12px;">
+      <div class="toolbar-actions" style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
         <div class="segmented" role="tablist">
           <button
             type="button"
@@ -369,6 +473,14 @@
           <button
             type="button"
             role="tab"
+            class:selected={activeView === 'feedback'}
+            onclick={() => activeView = 'feedback'}
+          >
+            Suggestions
+          </button>
+          <button
+            type="button"
+            role="tab"
             class:selected={activeView === 'settings'}
             onclick={() => activeView = 'settings'}
           >
@@ -377,9 +489,7 @@
         </div>
 
         <a class="btn outline small" href="#/course/{course.id}">View</a>
-        {#if activeView === 'content'}
-          <button class="btn btn-gate-pill small" onclick={handleAddUnit}>+ New deck</button>
-        {/if}
+        <button class="btn btn-gate-pill small" onclick={handleAddUnit}>+ New deck</button>
       </div>
     </div>
 
@@ -624,68 +734,229 @@
 
     <!-- VIEW 2: ARRANGE (1:1 with web/game.js:3273) -->
     {#if activeView === 'arrange'}
-      <p class="muted small" style="margin-bottom:14px;">
-        Arrange decks and lessons. Click names to rename in place. Use up/down controls in Content view or add lessons directly.
+      <p class="muted arrange-help" style="margin-bottom:14px;font-size:13px;">
+        Drag lessons to reorder them or move them between decks. Use ← and → or drag a deck to reorder decks. Click a name to rename.
       </p>
 
-      <div class="board" style="display:flex;gap:16px;overflow-x:auto;padding-bottom:16px;">
+      <div class="board" id="board" style="display:flex;gap:16px;overflow-x:auto;padding-bottom:16px;align-items:flex-start;">
         {#each units as u, ui (u.id)}
-          <section class="board-col card" style="min-width:260px;max-width:300px;padding:16px;display:flex;flex-direction:column;gap:12px;">
+          <section
+            class="board-col card"
+            data-unit={u.id}
+            draggable="true"
+            ondragstart={(e) => onDragStartDeck(e, ui)}
+            ondragover={(e) => e.preventDefault()}
+            ondrop={(e) => onDropDeck(e, ui)}
+            style="min-width:280px;max-width:320px;padding:16px;display:flex;flex-direction:column;gap:12px;background:#ffffff;box-sizing:border-box;border:2px solid var(--color-ink-black);"
+          >
             <header class="board-col-head row spread" style="align-items:center;">
               <div class="row" style="gap:6px;align-items:center;">
+                <span class="drag-handle deck-handle" title="Drag to reorder decks" style="cursor:grab;display:inline-flex;align-items:center;">
+                  <Icon name="grip" size={14} />
+                </span>
                 <span class="module-no mono-tag" style="font-weight:700;">{ui + 1}</span>
-                <button class="rename linkbtn" onclick={() => handleEditUnit(u)} style="font-weight:700;text-align:left;">
+                <button
+                  type="button"
+                  class="rename linkbtn"
+                  onclick={() => handleEditUnit(u)}
+                  style="font-weight:700;text-align:left;font-size:15px;color:var(--color-ink-black);"
+                >
                   {u.title}
                 </button>
               </div>
-              <div class="row" style="gap:4px;">
+              <div class="row" style="gap:4px;align-items:center;">
+                <button
+                  type="button"
+                  class="icon-btn sm"
+                  title="Move deck left"
+                  disabled={ui === 0}
+                  onclick={() => handleMove('unit', u.id, -1)}
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn sm"
+                  title="Move deck right"
+                  disabled={ui === units.length - 1}
+                  onclick={() => handleMove('unit', u.id, 1)}
+                >
+                  →
+                </button>
                 {#if u.level}<span class="pill bone sm">{u.level}</span>{/if}
-                <button class="icon-btn sm danger" onclick={() => handleDeleteUnit(u.id)} title="Delete deck">🗑</button>
+                <button type="button" class="icon-btn sm danger" onclick={() => handleDeleteUnit(u.id)} title="Delete deck">🗑</button>
               </div>
             </header>
 
-            <ul class="board-cards" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;">
-              {#each (u.lessons || []) as l (l.id)}
-                <li class="board-card card" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;background:#fff;">
-                  <div>
-                    <button class="rename linkbtn" onclick={() => handleEditLesson(l)} style="font-weight:600;font-size:14px;text-align:left;">
-                      {l.title}
-                    </button>
-                    <div class="muted small mono-tag">{(l.words || []).length} words</div>
+            <ul
+              class="board-cards"
+              data-unit={u.id}
+              ondragover={(e) => e.preventDefault()}
+              ondrop={(e) => onDropLesson(e, u.id, (u.lessons || []).length)}
+              style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;min-height:40px;"
+            >
+              {#each (u.lessons || []) as l, li (l.id)}
+                <li
+                  class="board-card card"
+                  data-lesson={l.id}
+                  draggable="true"
+                  ondragstart={(e) => onDragStartLesson(e, l.id, u.id, li)}
+                  ondragover={(e) => e.preventDefault()}
+                  ondrop={(e) => onDropLesson(e, u.id, li)}
+                  style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;background:#fff;border:1.5px solid var(--color-ink-black);cursor:grab;"
+                >
+                  <div style="flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px;">
+                    <span class="drag-handle" style="opacity:0.5;display:inline-flex;">
+                      <Icon name="grip" size={12} />
+                    </span>
+                    <div>
+                      <button
+                        type="button"
+                        class="rename linkbtn"
+                        onclick={() => handleEditLesson(l)}
+                        style="font-weight:600;font-size:14px;text-align:left;display:block;"
+                      >
+                        {l.title}
+                      </button>
+                      <div class="muted small mono-tag">{(l.words || []).length} words</div>
+                    </div>
                   </div>
-                  <button
-                    class="icon-btn sm"
-                    title="Edit words in Content"
-                    onclick={() => { selectedLessonId = l.id; activeView = 'content'; }}
-                  >
-                    →
-                  </button>
+                  <div class="row" style="gap:4px;flex-shrink:0;">
+                    <button
+                      type="button"
+                      class="icon-btn sm"
+                      title="Move lesson up"
+                      disabled={li === 0}
+                      onclick={() => handleMove('lesson', l.id, -1)}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn sm"
+                      title="Move lesson down"
+                      disabled={li === (u.lessons || []).length - 1}
+                      onclick={() => handleMove('lesson', l.id, 1)}
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-btn sm"
+                      title="Edit its words in Content"
+                      onclick={() => { selectedLessonId = l.id; editingWord = null; activeView = 'content'; }}
+                    >
+                      →
+                    </button>
+                  </div>
                 </li>
               {/each}
             </ul>
 
-            <button
-              class="linkbtn small"
-              style="margin-top:auto;padding-top:8px;"
-              onclick={() => handleAddLesson(u.id)}
-            >
-              + Add a lesson
-            </button>
+            <!-- Inline Quick Add Lesson Form -->
+            <form class="board-add" onsubmit={(e) => handleQuickAddLesson(e, u.id)} style="margin-top:auto;">
+              <input
+                type="text"
+                maxlength="80"
+                placeholder="+ Add a lesson (Enter to save)"
+                aria-label="New lesson in {u.title}"
+                style="width:100%;padding:8px 10px;font-size:13px;border:1.5px dashed var(--color-ink-black);border-radius:4px;box-sizing:border-box;background:#fff;"
+              />
+            </form>
           </section>
         {/each}
 
-        <!-- New Deck column -->
-        <button
+        <!-- Quick Add New Deck column -->
+        <form
           class="board-col board-new card"
-          style="min-width:220px;border:2px dashed #000;display:flex;align-items:center;justify-content:center;padding:24px;background:none;cursor:pointer;"
-          onclick={handleAddUnit}
+          id="board-new-deck"
+          onsubmit={handleQuickAddUnit}
+          style="min-width:240px;max-width:260px;border:2px dashed var(--color-ink-black);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:none;box-sizing:border-box;gap:10px;"
         >
-          <b>+ New deck</b>
-        </button>
+          <input
+            type="text"
+            maxlength="80"
+            placeholder="+ New deck (Enter)"
+            aria-label="New deck"
+            style="width:100%;padding:10px 12px;font-size:14px;border:1.5px solid var(--color-ink-black);border-radius:4px;box-sizing:border-box;background:#fff;"
+          />
+          <button type="submit" class="btn btn-gate-pill small" style="width:100%;">Create deck</button>
+        </form>
       </div>
     {/if}
 
-    <!-- VIEW 3: SETTINGS (1:1 with web/game.js:3163) -->
+    <!-- VIEW 3: SUGGESTIONS / FEEDBACK (1:1 with web/game.js:3406) -->
+    {#if activeView === 'feedback'}
+      <section class="card cms-main" style="max-width:960px;margin:0 auto;padding:24px;">
+        <div class="list-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div class="segmented" role="tablist" aria-label="Filter suggestions">
+            {#each ['new', 'done', 'all'] as f}
+              <button
+                type="button"
+                role="tab"
+                class:selected={feedbackFilter === f}
+                onclick={() => loadFeedback(f)}
+              >
+                {{ new: 'New', done: 'Done', all: 'All' }[f]}
+              </button>
+            {/each}
+          </div>
+          <span class="muted small mono-tag">{feedbackData.newCount || 0} new suggestions</span>
+        </div>
+
+        {#if loadingFeedback}
+          <p class="muted loading" style="text-align:center;padding:30px;">Loading suggestions…</p>
+        {:else}
+          <ul class="rows" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px;">
+            {#each (feedbackData.items || []) as f (f.id)}
+              <li class="fb-row card {f.status}" style="padding:14px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;background:#fff;border:1.5px solid var(--color-ink-black);">
+                <div style="flex:1 1 auto;min-width:0;">
+                  <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;">
+                    <a href="#/u/{f.username}" style="font-weight:700;color:var(--color-ink-black);"><b>{f.user}</b></a>
+                    <span class="muted small">on <b>{f.unitTitle}</b></span>
+                    {#if f.rating}
+                      <span class="mini-stars" aria-label="{f.rating} of 5 stars" style="color:#f4ed36;letter-spacing:1px;font-size:16px;">
+                        {'★'.repeat(f.rating)}<span style="color:#ccc;">{'★'.repeat(Math.max(0, 5 - f.rating))}</span>
+                      </span>
+                    {/if}
+                    {#if f.category}
+                      <span class="pill bone small mono-tag">{f.category}</span>
+                    {/if}
+                  </div>
+                  <p style="margin:0;font-size:14px;line-height:1.4;">{f.text}</p>
+                </div>
+
+                <div class="tools" style="display:flex;gap:6px;flex-shrink:0;">
+                  <button
+                    type="button"
+                    class="btn outline small"
+                    onclick={() => handleMarkFeedback(f.id, f.status)}
+                  >
+                    {f.status === 'new' ? '✓ Mark done' : 'Reopen'}
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn sm danger"
+                    title="Delete suggestion"
+                    onclick={() => handleDeleteFeedback(f.id)}
+                  >
+                    🗑
+                  </button>
+                </div>
+              </li>
+            {:else}
+              <li class="empty-row card" style="padding:32px;text-align:center;">
+                <span class="muted small">
+                  {feedbackFilter === 'new' ? 'No new suggestions. Learners can send one from any deck on their Course page.' : 'Nothing here.'}
+                </span>
+              </li>
+            {/each}
+          </ul>
+        {/if}
+      </section>
+    {/if}
+
+    <!-- VIEW 4: SETTINGS (1:1 with web/game.js:3163) -->
     {#if activeView === 'settings'}
       <div class="settings-grid" style="display:grid;grid-template-columns:1fr 340px;gap:24px;">
         <form class="card form" onsubmit={handleSaveSettings} style="padding:24px;">

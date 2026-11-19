@@ -253,20 +253,25 @@
 
       <!-- Answer key card -->
       <section class="card list-card">
-        <div class="list-head" style="margin-bottom:14px;">
+        <div class="list-head">
           <h3>Answer key · {results.title || 'Duel'}</h3>
           <span class="muted small">{results.you?.correct ?? 0} of {results.count} right</span>
         </div>
-        <ul class="rows" style="list-style:none;padding:0;margin:0;">
+        <ul class="rows">
           {#each (results.key || []) as k}
-            <li class="row spread key-row" style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.06);align-items:center;">
+            <li class="answer">
+              {#if k.right}
+                <Icon name="ok" class="mark-ok" />
+              {:else}
+                <Icon name="miss" class="mark-miss" />
+              {/if}
               <div>
-                <span class="prompt-word" style="font-weight:700;font-size:16px;">{k.prompt}</span>
-                <span class="mono-tag muted small" style="margin-left:8px;">{k.answer}</span>
+                <span class="found">{k.prompt}</span> → <b>{k.answer}</b>
+                {#if !k.right}
+                  <p class="muted small">You said: {k.yours != null ? k.yours : "(no answer)"}</p>
+                {/if}
               </div>
-              <span class="mono-tag {k.correct ? 'good' : 'bad'}" style="font-weight:700;color:{k.correct ? 'var(--color-green, #179354)' : '#d32f2f'};">
-                {k.correct ? '✓ Right' : '✗ Wrong'}
-              </span>
+              <span class="tag {k.right ? 'ok' : 'miss'}">{k.right ? 'right' : 'wrong'}</span>
             </li>
           {/each}
         </ul>

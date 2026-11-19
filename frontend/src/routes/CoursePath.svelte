@@ -92,6 +92,44 @@
   let todayXP = $derived(stats?.today || 0);
   let quests = $derived([100, 250, 500]);
 
+  let feedbackUnit = $state(null);
+  let feedbackRating = $state(5);
+  let feedbackCategory = $state(null);
+  let feedbackText = $state('');
+  let feedbackError = $state('');
+  let sendingFeedback = $state(false);
+
+  function openFeedback(u, rating = 5) {
+    feedbackUnit = u;
+    feedbackRating = rating;
+    feedbackCategory = null;
+    feedbackText = '';
+    feedbackError = '';
+  }
+
+  async function submitFeedback(e) {
+    e.preventDefault();
+    if (!feedbackUnit) return;
+    try {
+      sendingFeedback = true;
+      await api(`/learn/units/${feedbackUnit.id}/feedback`, {
+        method: 'POST',
+        body: {
+          rating: feedbackRating,
+          category: feedbackCategory,
+          text: feedbackText.trim()
+        }
+      });
+      feedbackUnit.feedbackSent = true;
+      feedbackUnit = null;
+      appState.showToast('Thanks for the suggestion!');
+    } catch (err) {
+      feedbackError = err.message || 'Failed to submit feedback';
+    } finally {
+      sendingFeedback = false;
+    }
+  }
+
   function ringSvg(done, total) {
     if (total && done >= total) {
       return `<svg class="ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="var(--green)"/><path d="M6 10.3l2.6 2.6L14 7.6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -290,6 +328,29 @@
                 {/each}
               </ul>
 
+              <!-- Unit Feedback Stars (Deck complete!) -->
+              {#if done && !u.feedbackSent}
+                <div class="unit-done compact" style="display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:var(--color-bone-white,#f9f5f2);border-top:1.5px solid rgba(26,26,26,0.15);box-sizing:border-box;">
+                  <div>
+                    <b>Deck complete! How was it?</b>
+                    <p class="muted small mono-tag" style="margin:2px 0 0;">Tell the creator what to improve.</p>
+                  </div>
+                  <div class="stars" role="group" aria-label="Rate this deck" style="display:flex;gap:4px;">
+                    {#each [1, 2, 3, 4, 5] as n}
+                      <button
+                        type="button"
+                        class="star icon-btn sm"
+                        onclick={() => openFeedback(u, n)}
+                        aria-label="{n} star{n > 1 ? 's' : ''}"
+                        style="background:none;border:none;cursor:pointer;color:#f4ed36;font-size:22px;padding:2px;line-height:1;"
+                      >
+                        <Icon name="star" size={20} />
+                      </button>
+                    {/each}
+                  </div>
+                </div>
+              {/if}
+
               <!-- Footer -->
               <div class="module-foot mono-tag">
                 <span class="muted small">{(u.lessons || []).length} lessons · {words} words</span>
@@ -370,5 +431,67 @@
         </div>
       </aside>
     </div>
+
+    <!-- Suggestion / Feedback Modal -->
+    {#if feedbackUnit}
+      <div class="modal-back">
+        <form class="modal modal-box card feedback-modal" role="dialog" aria-modal="true" onsubmit={submitFeedback} style="position:relative;text-align:center;">
+          <button type="button" class="icon-btn modal-close" aria-label="Close" style="position:absolute;top:16px;right:16px;" onclick={() => feedbackUnit = null}>
+            <Icon name="close" size={16} />
+          </button>
+          <h2 id="fb-title">Suggest an improvement</h2>
+          <p class="muted small">Deck: <b>{feedbackUnit.title}</b></p>
+
+          <div class="stars big" role="group" aria-label="How was this deck?" style="display:flex;gap:8px;justify-content:center;margin:10px 0;">
+            {#each [1, 2, 3, 4, 5] as n}
+              <button
+                type="button"
+                class="star"
+                onclick={() => feedbackRating = n}
+                aria-label="{n} star{n > 1 ? 's' : ''}"
+                style="background:none;border:none;cursor:pointer;color:{n <= feedbackRating ? '#f4ed36' : 'rgba(0,0,0,0.15)'};font-size:32px;line-height:1;padding:0;"
+              >
+                <Icon name="star" size={30} />
+              </button>
+            {/each}
+          </div>
+
+          <div class="fb-cats" role="group" aria-label="What kind of suggestion?" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:8px 0;">
+            {#each [['typo', 'Typo or mistake'], ['accepted', 'Missing answer'], ['confusing', 'Confusing'], ['other', 'Other']] as [k, label]}
+              <button
+                type="button"
+                class="pill {feedbackCategory === k ? 'yellow' : 'bone'} mono-tag small"
+                onclick={() => feedbackCategory = (feedbackCategory === k ? null : k)}
+                style="cursor:pointer;"
+              >
+                {label}
+              </button>
+            {/each}
+          </div>
+
+          <label class="field" style="width:100%;text-align:left;margin-top:12px;">
+            <span style="font-weight:700;font-size:13px;">What should change?</span>
+            <textarea
+              bind:value={feedbackText}
+              maxlength="1000"
+              required
+              placeholder="For example: “stotelė” should also accept “autobusų stotelė”…"
+              style="width:100%;min-height:90px;margin-top:6px;padding:10px;border:1.5px solid #000;border-radius:4px;box-sizing:border-box;font-family:inherit;font-size:14px;"
+            ></textarea>
+          </label>
+
+          {#if feedbackError}
+            <p class="error" style="color:#b71c1c;font-size:13px;margin:6px 0;">{feedbackError}</p>
+          {/if}
+
+          <div class="row" style="justify-content:flex-end;gap:12px;width:100%;margin-top:16px;">
+            <button type="button" class="btn outline small" onclick={() => feedbackUnit = null}>Cancel</button>
+            <button type="submit" class="btn btn-gate-pill small" disabled={sendingFeedback}>
+              {sendingFeedback ? 'Sending…' : 'Send suggestion'}
+            </button>
+          </div>
+        </form>
+      </div>
+    {/if}
   {/if}
 </div>
