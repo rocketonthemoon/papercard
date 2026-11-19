@@ -33,42 +33,14 @@
   let user = $derived(appState.user);
   let isLoading = $derived(appState.isLoading);
 
-  // Auto-authenticate in dev mode for app routes
-  $effect(() => {
-    const h = appState.hash;
-    const u = appState.user;
-    const cfg = appState.config;
-    const loading = appState.isLoading;
-
-    if (!loading && !u && cfg?.devLogin) {
-      const isAppRoute =
-        h.startsWith('#/learn') ||
-        h.startsWith('#/course') ||
-        h.startsWith('#/discover') ||
-        h.startsWith('#/play') ||
-        h.startsWith('#/leaderboard') ||
-        h.startsWith('#/studio') ||
-        h.startsWith('#/duel');
-
-      if (isAppRoute) {
-        authDev('Learner', 'learner')
-          .then(async (usr) => {
-            appState.user = usr;
-            await appState.refreshTopStats();
-          })
-          .catch(() => {});
-      }
-    }
-  });
-
   // Sync body classes strictly according to design.css
   $effect(() => {
     if (typeof document === 'undefined') return;
-    const isSignedOut = !user || hash === '#/' || hash === '#/landing';
+    const isLanding = !user || hash === '#/landing' || hash === '#/about';
     const isFocus = hash.startsWith('#/learn/lesson') || hash.startsWith('#/learn/review');
 
-    document.body.classList.toggle('shell', !isSignedOut);
-    document.body.classList.toggle('landing', isSignedOut);
+    document.body.classList.toggle('shell', !isLanding);
+    document.body.classList.toggle('landing', isLanding);
     document.body.classList.toggle('focus', isFocus);
   });
 
@@ -91,12 +63,10 @@
   {/if}
 
   <main id="app-main" class="app" aria-live="polite">
-    {#if !user || hash === '#/' || hash === '#/landing'}
-      {#if !user}
-        <Landing />
-      {:else}
-        <Learn />
-      {/if}
+    {#if !user || hash === '#/landing' || hash === '#/about'}
+      <Landing />
+    {:else if hash === '#/' || hash === '#/learn'}
+      <Learn />
     {:else if duelCode}
       <Duel code={duelCode} />
     {:else if learnCourseId}

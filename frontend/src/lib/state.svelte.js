@@ -68,9 +68,15 @@ class AppState {
     } catch {
       // ignore logout failure
     }
+    if (typeof window !== 'undefined') {
+      window.google?.accounts?.id?.disableAutoSelect?.();
+    }
     this.user = null;
     this.topStats = null;
-    this.navigate('#/');
+    this.hash = '#/landing';
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#/landing';
+    }
   }
 }
 

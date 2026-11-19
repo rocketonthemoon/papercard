@@ -6,15 +6,11 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-body.shell:not(.focus) #app {
-  display: flex;
-  flex-direction: column;
-  padding-left: 240px;
-  min-height: 100vh;
-}
-
+/* Sidebar & Nav in Svelte component tree */
 body.shell:not(.focus) .sidebar {
   display: flex !important;
   position: fixed !important;
@@ -38,12 +34,10 @@ body.shell:not(.focus) .app {
   margin: 0 auto;
   padding: 28px 32px 64px;
   flex: 1;
+  box-sizing: border-box;
 }
 
 @media (max-width: 900px) {
-  body.shell:not(.focus) #app {
-    padding-left: 0 !important;
-  }
   body.shell:not(.focus) .sidebar {
     display: none !important;
   }
