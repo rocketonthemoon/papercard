@@ -891,8 +891,8 @@
 
     <!-- VIEW 3: SUGGESTIONS / FEEDBACK (1:1 with web/game.js:3406) -->
     {#if activeView === 'feedback'}
-      <section class="card cms-main" style="max-width:960px;margin:0 auto;padding:24px;">
-        <div class="list-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <section class="card cms-main fb-panel">
+        <div class="fb-head">
           <div class="segmented" role="tablist" aria-label="Filter suggestions">
             {#each ['new', 'done', 'all'] as f}
               <button
@@ -906,13 +906,15 @@
               </button>
             {/each}
           </div>
-          <span class="muted small mono-tag">{feedbackData.newCount || 0} new suggestions</span>
+          <div class="fb-count" class:has-new={(feedbackData.newCount || 0) > 0}>
+            <b>{feedbackData.newCount || 0}</b> new
+          </div>
         </div>
 
         {#if loadingFeedback}
           <p class="muted loading" style="text-align:center;padding:30px;">Loading suggestions…</p>
         {:else}
-          <ul class="rows" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px;">
+          <ul class="fb-list">
             {#each (feedbackData.items || []) as f (f.id)}
               <li class="fb-row card {f.status}" style="padding:14px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;background:#fff;border:1.5px solid var(--color-ink-black);">
                 <div style="flex:1 1 auto;min-width:0;">
@@ -950,10 +952,10 @@
                 </div>
               </li>
             {:else}
-              <li class="empty-row card" style="padding:32px;text-align:center;">
-                <span class="muted small">
-                  {feedbackFilter === 'new' ? 'No new suggestions. Learners can send one from any deck on their Course page.' : 'Nothing here.'}
-                </span>
+              <li class="fb-empty">
+                <span class="fb-empty-icon"><Icon name="chat" size={28} /></span>
+                <strong>{feedbackFilter === 'new' ? 'All caught up' : feedbackFilter === 'done' ? 'Nothing marked done yet' : 'No suggestions yet'}</strong>
+                <div class="fb-empty-text">Learners can suggest fixes from any deck on their Course page.</div>
               </li>
             {/each}
           </ul>
@@ -1059,3 +1061,92 @@
     {/if}
   {/if}
 </div>
+
+
+<style>
+  .fb-panel {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .fb-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    border-bottom: 1.5px solid var(--line-card);
+  }
+
+  .fb-count {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 5px 12px;
+    border: 1.5px solid var(--line-card);
+    border-radius: var(--r-pill);
+    font-family: var(--font-bergenmonoregular);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-60);
+  }
+
+  .fb-count b {
+    font-size: 13px;
+    color: var(--color-ink-black);
+  }
+
+  .fb-count.has-new {
+    background: var(--color-hi-vis-yellow);
+    border-color: var(--color-ink-black);
+    color: var(--color-ink-black);
+  }
+
+  .fb-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .fb-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 40px 24px;
+    text-align: center;
+    border: 1.5px dashed rgba(26, 26, 26, 0.25);
+    border-radius: var(--r-card);
+  }
+
+  .fb-empty-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    background: var(--color-matcha-cream);
+    border: 2px solid var(--color-ink-black);
+    color: var(--color-ink-black);
+  }
+
+  .fb-empty strong {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--color-ink-black);
+  }
+
+  .fb-empty-text {
+    max-width: 44ch;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--ink-60);
+  }
+</style>
