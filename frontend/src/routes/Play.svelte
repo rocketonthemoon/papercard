@@ -12,6 +12,7 @@
   let currentCourse = $state(null);
   let units = $state([]);
   let pickedUnits = $state(new Set());
+  let questionCount = $state(10);
   let creating = $state(false);
 
   let joinCode = $state('');
@@ -106,6 +107,8 @@
         body: {
           courseId: currentCourse.id,
           unitIds: Array.from(pickedUnits),
+          count: questionCount,
+          questionCount: questionCount,
         },
       });
 
@@ -236,8 +239,43 @@
           <p id="create-error" class="error">{errorMsg}</p>
         {/if}
 
+        <div class="question-count-picker" style="margin:20px 0 14px;padding:16px;background:var(--color-bone-white);border:2px solid var(--color-ink-black);border-radius:var(--radius-buttons, 6px);">
+          <div class="row spread" style="align-items:baseline;margin-bottom:10px;">
+            <label for="q-count-input" style="font-weight:700;font-family:var(--font-degulardisplay-bold, sans-serif);font-size:15px;margin:0;">
+              Number of questions
+            </label>
+            <span class="muted small mono-tag" id="q-count-tag">
+              {questionCount} questions
+            </span>
+          </div>
+          <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center;">
+            {#each [5, 10, 15, 20] as cnt}
+              <button
+                type="button"
+                class="btn btn-outlined-display small"
+                class:active-count={questionCount === cnt}
+                style="min-width:54px;font-weight:700;{questionCount === cnt ? 'background:var(--color-hi-vis-yellow, #f4ed36);color:#000;border-color:#000;' : ''}"
+                onclick={() => questionCount = cnt}
+              >
+                {cnt} Qs
+              </button>
+            {/each}
+            <div class="row" style="align-items:center;gap:6px;margin-left:auto;">
+              <span class="muted small mono-tag">Custom:</span>
+              <input
+                type="number"
+                id="q-count-input"
+                min="4"
+                max="50"
+                bind:value={questionCount}
+                style="width:70px;padding:6px 8px;font-family:var(--font-bergenmonoregular, monospace);font-weight:700;border:2px solid #000;border-radius:4px;background:#fff;"
+              />
+            </div>
+          </div>
+        </div>
+
         <div class="pane-actions" style="margin-top:20px;padding-top:16px;border-top:1.5px solid rgba(22,21,29,0.1);">
-          <span class="muted small mono-tag">10 RANDOM WORDS · YOU PLAY FIRST</span>
+          <span class="muted small mono-tag">{questionCount} RANDOM WORDS · YOU PLAY FIRST</span>
           <button
             class="btn btn-gate-pill"
             id="create"

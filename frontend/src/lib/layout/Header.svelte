@@ -61,10 +61,6 @@
           <Icon name="fire" size={16} />
           <b>{topStats.streak || 0}d</b>
         </span>
-        <span class="top-chip stat-chip mono-tag" title="Hearts">
-          <Icon name="heart" size={16} />
-          <b>{topStats.hearts ?? 5}</b>
-        </span>
       {/if}
     </div>
 

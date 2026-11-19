@@ -157,9 +157,6 @@
             <span class="chip" title="Total XP" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fff;border:1.5px solid #000;border-radius:100px;font-size:12px;font-weight:700;">
               <Icon name="bolt" size={14} /><b>{stats?.xp ?? 0}</b>
             </span>
-            <span class="chip" title="Hearts" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fff;border:1.5px solid #000;border-radius:100px;font-size:12px;font-weight:700;color:var(--color-firecracker-red, #ff4b62);">
-              <Icon name="heart" size={14} /><b>{stats?.hearts ?? 5}</b>
-            </span>
           </div>
           <div class="stat-row">
             <div class="stat-box"><span class="mono-tag">Learned</span><b class="mono-tag">{stats?.learned ?? 0}</b></div>

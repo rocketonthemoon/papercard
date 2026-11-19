@@ -16,8 +16,6 @@
   let xpEarned = $state(0);
   let mistakes = $state(0);
   let isFinished = $state(false);
-  let hearts = $state(5);
-  let showOutOfHearts = $state(false);
 
   // Turn state: mode is 'check' or 'continue'
   let turnMode = $state('check');
@@ -141,7 +139,6 @@
 
       if (res.stats) {
         appState.topStats = res.stats;
-        if (res.stats.hearts !== undefined) hearts = res.stats.hearts;
       }
 
       if (res.correct) {
@@ -151,18 +148,9 @@
       } else {
         mistakes++;
         currentChallenge.retry = true;
-        hearts = Math.max(0, hearts - 1);
-        if (hearts <= 0) {
-          showOutOfHearts = true;
-        }
       }
     } catch (e) {
-      if (e.status === 403) {
-        hearts = 0;
-        showOutOfHearts = true;
-      } else {
-        appState.showToast(e.message || 'Failed to submit answer');
-      }
+      appState.showToast(e.message || 'Failed to submit answer');
     } finally {
       checking = false;
     }
@@ -199,25 +187,10 @@
     <div class="progress progress-bar lesson-bar" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax={totalCount}>
       <i id="prog" style="width: {progressPct}%;"></i>
     </div>
-    <span class="hearts" title="Hearts" style="display:inline-flex;align-items:center;gap:4px;color:var(--color-firecracker-red, #ff4b62);font-weight:700;">
-      <Icon name="heart" size={18} />
-      <b id="hearts">{hearts}</b>
-    </span>
   </header>
 
   <main class="lesson-body" id="stage">
-    {#if showOutOfHearts}
-      <div class="modal-back">
-        <div class="modal modal-box card" role="dialog" aria-modal="true">
-          <span class="modal-icon"><Icon name="heart" size={48} /></span>
-          <h2>You ran out of hearts</h2>
-          <p class="muted">Practise a lesson you've finished to earn hearts back, or wait for a heart to come back.</p>
-          <div class="row" style="justify-content:center;margin-top:12px;">
-            <button class="btn btn-gate-pill" onclick={handleExit}>Back to course</button>
-          </div>
-        </div>
-      </div>
-    {:else if loading}
+    {#if loading}
       <p class="muted loading" style="text-align:center;padding:40px;">Loading lesson…</p>
     {:else if errorMsg}
       <div class="card error-card" style="text-align:center;padding:40px;">
@@ -240,10 +213,6 @@
           <div class="fstat acc" style="background:#f9f5f2;border:2px solid #000;border-radius:6px;padding:12px 20px;box-shadow:0 3px 0 #000;">
             <span class="small mono-tag" style="display:block;opacity:0.8;">Accuracy</span>
             <b style="font-size:22px;font-weight:900;">{Math.round((100 * totalCount) / (totalCount + mistakes))}%</b>
-          </div>
-          <div class="fstat hp" style="background:#ffcdd2;border:2px solid #000;border-radius:6px;padding:12px 20px;box-shadow:0 3px 0 #000;">
-            <span class="small mono-tag" style="display:block;opacity:0.8;">Hearts</span>
-            <b style="font-size:22px;font-weight:900;color:#b71c1c;">{hearts}</b>
           </div>
         </div>
         <button class="btn big btn-gate-pill" style="min-width:200px;" onclick={handleExit}>Continue</button>

@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <!-- Back Card: Bone White tilted -10deg -->
-  <rect x="8" y="13" width="35" height="43" rx="5" fill="#f9f5f2" stroke="#16151d" stroke-width="3" transform="rotate(-11 25.5 34.5)"/>
-  <!-- Front Card: Hi-Vis Yellow -->
-  <rect x="21" y="9" width="35" height="43" rx="5" fill="#f4ed36" stroke="#16151d" stroke-width="3"/>
-  <!-- Bold Geometric Letter P -->
-  <path fill-rule="evenodd" clip-rule="evenodd" d="M 30 18 H 39 C 43.4 18 46.5 21 46.5 25 C 46.5 29 43.4 32 39 32 H 35 V 42 H 30 V 18 Z M 35 22.5 V 27.5 H 39 C 40.8 27.5 42 26.5 42 25 C 42 23.5 40.8 22.5 39 22.5 H 35 Z" fill="#16151d"/>
-</svg>

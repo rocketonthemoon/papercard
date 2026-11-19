@@ -11,6 +11,11 @@
 }
 
 /* Sidebar & Nav in Svelte component tree */
+body.landing .nav,
+body.landing > .nav {
+  display: none !important;
+}
+
 body.shell:not(.focus) .sidebar {
   display: flex !important;
   position: fixed !important;

@@ -355,8 +355,8 @@
   .poster-display-title {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: clamp(28px, 4.5vw, 64px);
-    line-height: 0.95;
+    font-size: clamp(34px, 5.5vw, 76px);
+    line-height: 0.92;
     letter-spacing: 0.02em;
     text-transform: uppercase;
     margin: 0;
@@ -373,7 +373,8 @@
 
   @media (max-width: 600px) {
     .poster-display-title {
-      font-size: clamp(22px, 6.5vw, 28px);
+      font-size: clamp(24px, 7.5vw, 36px);
+      line-height: 0.96;
     }
     .poster-title-line {
       white-space: normal;
@@ -386,6 +387,8 @@
     line-height: 1.45;
     color: var(--color-bone-white);
     margin: 0 auto;
+    font-weight: 500;
+    opacity: 0.95;
   }
 
   .poster-actions {
@@ -436,35 +439,50 @@
     white-space: nowrap;
     background: var(--color-bone-white);
     color: var(--color-pure-black);
-    border: 2px solid var(--color-pure-black);
+    border: 2.5px solid var(--color-pure-black);
     border-radius: var(--radius-pill);
-    box-shadow: none;
+    box-shadow: 0 4px 0 var(--color-pure-black);
     padding: 0 24px;
     height: 48px;
     font-family: var(--font-body);
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
     cursor: pointer;
     text-decoration: none;
-    transition: transform 0.1s ease, filter 0.15s ease;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
     width: 100%;
     max-width: 280px;
   }
 
   .btn-gate-pill:hover:not(:disabled) {
-    filter: brightness(0.96);
+    background: var(--color-hi-vis-yellow);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--color-pure-black);
   }
 
   .btn-gate-pill:active:not(:disabled) {
-    transform: translateY(1px);
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--color-pure-black);
   }
 
   .btn-gate-pill.big {
-    height: 52px;
-    padding: 0 32px;
+    height: 54px;
+    padding: 0 36px;
+    font-size: 18px;
     max-width: none;
     width: auto;
+    box-shadow: 0 5px 0 var(--color-pure-black);
+  }
+
+  .btn-gate-pill.big:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 0 var(--color-pure-black);
+  }
+
+  .btn-gate-pill.big:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--color-pure-black);
   }
 
   .btn-gate-pill:disabled {
@@ -490,7 +508,7 @@
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 16px;
   }
 
   .paper {
@@ -498,19 +516,22 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
-    min-width: 128px;
-    padding: 14px 18px 12px;
+    min-width: 130px;
+    padding: 14px 20px 12px;
     background: var(--color-bone-white);
     color: var(--color-ink-black);
     border: 2.5px solid var(--color-ink-black);
-    border-radius: var(--radius-card);
+    border-radius: 8px;
+    box-shadow: 0 4px 0 var(--color-ink-black);
     transform: rotate(var(--tilt, 0deg));
-    transition: transform 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
     user-select: none;
+    cursor: default;
   }
 
   .paper:hover {
-    transform: rotate(0deg) translateY(-6px);
+    transform: rotate(0deg) translateY(-8px) scale(1.04);
+    box-shadow: 0 8px 0 var(--color-ink-black);
   }
 
   .paper b {
@@ -607,7 +628,9 @@
 
   .demo-stage {
     background: var(--color-lilac-shadow);
-    border-radius: var(--radius-card);
+    border: 2.5px solid var(--color-ink-black);
+    border-radius: 8px;
+    box-shadow: 0 4px 0 var(--color-ink-black);
     padding: 32px 22px 24px;
     height: 260px;
     box-sizing: border-box;
@@ -623,9 +646,17 @@
   }
 
   .demo-block figcaption {
-    font-size: 17px;
+    font-size: 16px;
     color: var(--color-bone-white);
     text-align: center;
+    letter-spacing: 0.02em;
+  }
+
+  .demo-block figcaption b {
+    color: var(--color-hi-vis-yellow);
+    font-family: var(--font-display);
+    font-size: 18px;
+    text-transform: uppercase;
   }
 
   .demo-block figcaption b {
@@ -908,18 +939,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
-    margin: 80px auto 48px;
+    gap: 24px;
+    margin: 90px auto 60px;
     text-align: center;
   }
 
   .landing-cta h2 {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: clamp(48px, 9vw, 112px);
-    line-height: 0.9;
+    font-size: clamp(56px, 11vw, 130px);
+    line-height: 0.85;
     color: var(--color-hi-vis-yellow);
     margin: 0;
+    letter-spacing: -0.02em;
+    text-shadow: 0 4px 0 var(--color-ink-black);
   }
 
   @media (prefers-reduced-motion: reduce) {

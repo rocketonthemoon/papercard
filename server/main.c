@@ -472,10 +472,14 @@ static void create_duel(struct mg_connection *c, struct mg_http_message *hm, lon
     free(units);
     return reply_error(c, 400, "Pick decks with at least 4 words between them");
   }
+  long long count = mg_json_get_long(hm->body, "$.count", 0);
+  if (count <= 0) count = mg_json_get_long(hm->body, "$.questionCount", 0);
+  if (count < 4) count = (long long) DUEL_WORDS;
+  if (count > 50) count = 50;
   char *targets = db_text("SELECT json_group_array(json(x)) FROM (SELECT json_object('id', w.id, 'lt', w.lt, 'en', w.en, 'pos', w.pos, 'gender', w.gender,"
                           " 'unitId', l.unit_id) AS x FROM words w JOIN lessons l ON l.id = w.lesson_id WHERE l.unit_id" IN_UNITS
                           " ORDER BY random() LIMIT ?2)",
-                          "sii", units, (long long) DUEL_WORDS, cid);
+                          "sii", units, count, cid);
   char *title = db_text("SELECT CASE WHEN COUNT(*) = 1 THEN MAX(CASE WHEN level <> '' THEN level || ' · ' ELSE '' END || title)"
                         " ELSE COUNT(*) || ' decks' || COALESCE(' · ' || (SELECT group_concat(level, ', ') FROM (SELECT DISTINCT level FROM units"
                         "   WHERE id" IN_UNITS " AND level <> '' ORDER BY level)), '') END FROM units WHERE ?2 = ?2 AND id" IN_UNITS,
