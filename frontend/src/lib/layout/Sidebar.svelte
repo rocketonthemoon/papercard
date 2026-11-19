@@ -42,7 +42,7 @@
 
     <a href="#/discover" class="side-pill" data-nav="discover" aria-current={isCurrent('discover') ? 'page' : undefined}>
       <Icon name="courses" size={20} />
-      <span>Courses</span>
+      <span>Discover</span>
     </a>
 
     <a href="#/play" class="side-pill" data-nav="play" aria-current={isCurrent('play') ? 'page' : undefined}>

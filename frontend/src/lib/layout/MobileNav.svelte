@@ -30,7 +30,7 @@
 
   <a href="#/discover" class="mobile-tab-item" class:active={isCurrent('discover')} aria-current={isCurrent('discover') ? 'page' : undefined}>
     <Icon name="courses" size={20} />
-    <span>Courses</span>
+    <span>Discover</span>
   </a>
 
   <a href="#/play" class="mobile-tab-item" class:active={isCurrent('play')} aria-current={isCurrent('play') ? 'page' : undefined}>

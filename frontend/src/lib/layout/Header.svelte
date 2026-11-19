@@ -9,7 +9,7 @@
   const TITLES = {
     learn: 'Home',
     review: 'Review',
-    discover: 'Courses',
+    discover: 'Discover',
     play: 'Play',
     leaderboard: 'Leaderboard',
     studio: 'Studio',
@@ -25,7 +25,7 @@
     if (hash.startsWith('#/learn')) return 'Home';
     if (hash.startsWith('#/play') || hash.startsWith('#/duel')) return 'Play';
     if (hash.startsWith('#/leaderboard')) return 'Leaderboard';
-    if (hash.startsWith('#/discover')) return 'Courses';
+    if (hash.startsWith('#/discover')) return 'Discover';
     if (hash.startsWith('#/studio')) return 'Studio';
     if (hash.startsWith('#/admin')) return 'Admin';
     if (hash.startsWith('#/u/')) return 'Profile';
