@@ -24,6 +24,8 @@ pub struct Word {
     pub unit_id: i64,
     #[serde(default)]
     pub completed: bool,
+    #[serde(default)]
+    pub note: String,
 }
 
 impl Word {
@@ -300,7 +302,15 @@ fn tiles(w: &Word, pool: &[Word], rng: &mut Rng) -> Value {
 
 fn challenge(kind: &str, w: &Word, pool: &[Word], mode: Mode, rng: &mut Rng) -> Value {
     let prompt = if kind == "pick_en" { &w.lt } else { &w.en };
-    let mut c = json!({ "kind": kind, "wordId": w.id, "prompt": prompt, "pos": w.pos, "gender": w.gender, "completed": w.completed });
+    let mut c = json!({
+        "kind": kind,
+        "wordId": w.id,
+        "prompt": prompt,
+        "pos": w.pos,
+        "gender": w.gender,
+        "completed": w.completed,
+        "note": w.note
+    });
     let o = c.as_object_mut().unwrap();
     match kind {
         "pick_en" | "pick_lt" => {
@@ -350,7 +360,7 @@ mod tests {
     use super::*;
 
     fn w(id: i64, lt: &str, en: &str, pos: &str, unit: i64) -> Word {
-        Word { id, lt: lt.into(), en: en.into(), pos: pos.into(), gender: String::new(), unit_id: unit, completed: false }
+        Word { id, lt: lt.into(), en: en.into(), pos: pos.into(), gender: String::new(), unit_id: unit, completed: false, note: String::new() }
     }
 
     fn s(v: &[&str]) -> Vec<String> {

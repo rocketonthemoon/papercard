@@ -3,3 +3,6 @@ engine/target/
 .env
 frontend/node_modules/
 frontend/dist/
+scripts/
+labas/
+tests

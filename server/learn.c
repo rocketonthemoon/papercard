@@ -103,7 +103,7 @@ static char s_admins[1024]; /* comma-separated, lowercase: emails, or dev:<name>
 
 /* The words of course `?1`... as the engine wants them. `?2` must be bound to the user id (for "completed"). */
 #define WORD_JSON                                                                                                                                  \
-  "json_object('id', w.id, 'lt', w.lt, 'en', w.en, 'pos', w.pos, 'gender', w.gender, 'unitId', l.unit_id, 'completed',"                       \
+  "json_object('id', w.id, 'lt', w.lt, 'en', w.en, 'pos', w.pos, 'gender', w.gender, 'note', w.note, 'unitId', l.unit_id, 'completed',"                       \
   " " JBOOL("EXISTS (SELECT 1 FROM word_progress p WHERE p.word_id = w.id AND p.user_id = ?2)") ")"
 
 /* Whether user ?1 may learn from course `id` (row alias `r`): it isn't locked, they made it, they were enrolled

@@ -25,6 +25,7 @@
   let availableTiles = $state([]);
   let checking = $state(false);
   let lastResult = $state(null);
+  let showHint = $state(false);
 
   onMount(async () => {
     try {
@@ -58,6 +59,7 @@
   function setupChallenge(c) {
     turnMode = 'check';
     selectedOptionId = null;
+    showHint = false;
     typedText = '';
     lastResult = null;
     if (c?.tiles) {
@@ -219,9 +221,31 @@
       </section>
     {:else if currentChallenge}
       <div class="challenge-stage">
-        <h2 class="prompt-text" style="font-family:var(--font-display);font-size:28px;font-weight:900;margin-bottom:24px;text-align:center;">
+        <h2 class="prompt-text" style="font-family:var(--font-display);font-size:28px;font-weight:900;margin-bottom:12px;text-align:center;">
           {currentChallenge.prompt || 'Choose the correct answer'}
         </h2>
+
+        {#if currentChallenge.note}
+          <div class="hint-container" style="text-align:center;margin-bottom:24px;">
+            {#if showHint}
+              <div class="hint-card card" style="display:inline-block;padding:8px 16px;background:var(--color-creamy-yellow, #fff9db);border:2px solid #000;border-radius:6px;box-shadow:0 2px 0 #000;font-size:15px;font-weight:600;max-width:560px;">
+                <span class="mono-tag" style="font-size:11px;font-weight:900;margin-right:6px;opacity:0.8;">HINT / EN:</span>
+                <span>{currentChallenge.note}</span>
+              </div>
+            {:else}
+              <button
+                type="button"
+                class="btn outline sm hint-toggle-btn"
+                onclick={() => showHint = true}
+                style="padding:4px 12px;font-size:13px;border-radius:20px;font-weight:700;"
+              >
+                💡 Show English hint
+              </button>
+            {/if}
+          </div>
+        {:else}
+          <div style="margin-bottom:24px;"></div>
+        {/if}
 
         <!-- Options (Multiple Choice) -->
         {#if currentChallenge.options}
