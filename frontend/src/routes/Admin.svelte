@@ -52,6 +52,20 @@
       appState.showToast(e.message || 'Action failed');
     }
   }
+
+  async function makeOfficial(c) {
+    if (!confirm(`Move “${c.title}” to the official account? Its creator will no longer be able to edit it.`)) return;
+    try {
+      const updated = await api(`/admin/courses/${c.id}`, {
+        method: 'PUT',
+        body: { official: true }
+      });
+      data = { ...data, courses: courses.map((x) => (x.id === c.id ? { ...x, ...(updated.course || updated) } : x)) };
+      appState.showToast('Course moved to the official account');
+    } catch (e) {
+      appState.showToast(e.message || 'Action failed');
+    }
+  }
 </script>
 
 {#if !appState.user?.isAdmin}
@@ -125,6 +139,7 @@
               </a>
             {:else}
               <a class="btn btn-gate-pill small" href="#/course/{c.id}">View →</a>
+              <button class="btn btn-outlined-display small" onclick={() => makeOfficial(c)}>Make official</button>
             {/if}
             <button
               class="btn btn-outlined-display small {c.hidden ? 'btn-unhide' : 'btn-hide'}"

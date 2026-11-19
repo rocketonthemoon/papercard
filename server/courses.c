@@ -483,15 +483,25 @@ static int handle_courses(struct mg_connection *c, struct mg_http_message *hm, l
     redeem(c, hm, uid);
     return 1;
   }
+  /* Admins: {"hidden": bool} hides or shows a course; {"official": true} hands it to the official account
+   * (its previous creator keeps their enrollment and progress, but no longer edits it). */
   if (is_put && mg_match(hm->uri, mg_str("/api/admin/courses/*"), caps)) {
     long long cid = strtoll(caps[0].buf, NULL, 10);
-    bool hidden = false;
+    bool hidden = false, official = false;
+    int has_hidden = mg_json_get_bool(hm->body, "$.hidden", &hidden);
+    int has_official = mg_json_get_bool(hm->body, "$.official", &official);
     if (!is_admin(uid)) reply_error(c, 403, "Admins only");
     else if (!course_exists(cid)) reply_error(c, 404, "No such course");
     else if (!require_json(c, hm)) return 1;
-    else if (!mg_json_get_bool(hm->body, "$.hidden", &hidden)) reply_error(c, 400, "Say whether the course is hidden");
+    else if (!has_hidden && !has_official) reply_error(c, 400, "Say whether the course is hidden, or make it official");
+    else if (has_official && !official) reply_error(c, 400, "To give a course back, ask its creator to import it again");
     else {
-      db_exec("UPDATE courses SET hidden = ? WHERE id = ?", "ii", (long long) hidden, cid);
+      if (has_hidden) db_exec("UPDATE courses SET hidden = ? WHERE id = ?", "ii", (long long) hidden, cid);
+      if (has_official) {
+        long long owner = official_user();
+        db_exec("UPDATE courses SET creator_id = ? WHERE id = ?", "ii", owner, cid);
+        MG_INFO(("admin %lld made course %lld official", uid, cid));
+      }
       pool_reset();
       reply_course(c, uid, cid);
     }
