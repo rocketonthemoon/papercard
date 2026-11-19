@@ -346,7 +346,7 @@
 
       <!-- Stable Question Arena Sheet -->
       <div class="sheet-wrap">
-        <div class="sheet duel-sheet duel-arena" style="min-height:640px;height:640px;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;">
+        <div class="sheet duel-sheet duel-arena">
           <div>
             <div class="sheet-head row spread" style="margin-bottom:12px;font-size:14px;border-bottom:1px solid rgba(0,0,0,0.08);padding-bottom:10px;">
               <span><b>Name :</b> {user?.name || 'Learner'}</span>

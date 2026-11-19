@@ -262,9 +262,10 @@
     width: 72px;
     height: 72px;
     border-radius: 50%;
-    border: var(--border-thick);
-    background: var(--color-bone-white);
-    box-shadow: 0 3px 0 var(--color-ink-black);
+    border: 2.5px solid var(--color-ink-black);
+    background: var(--color-hi-vis-yellow, #f4ed36);
+    color: var(--color-ink-black);
+    box-shadow: 2px 2px 0px var(--color-ink-black);
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -279,9 +280,11 @@
   }
 
   .avatar-txt {
-    font-family: var(--font-display);
-    font-size: 30px;
+    font-family: var(--font-display, sans-serif);
+    font-size: 32px;
     font-weight: 900;
+    line-height: 1;
+    text-transform: uppercase;
   }
 
   .profile-info {

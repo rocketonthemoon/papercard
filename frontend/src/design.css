@@ -148,7 +148,7 @@
 html,
 body {
   background-color: var(--color-dusk-violet) !important;
-  color: var(--color-bone-white);
+  color: var(--color-ink-black);
   font-family: var(--font-degularvariable);
   font-size: 16px;
   line-height: 1.2;
@@ -320,9 +320,9 @@ a:hover {
   justify-content: center;
   gap: 8px;
   white-space: nowrap !important;
-  background: transparent !important;
-  color: var(--color-hi-vis-yellow) !important;
-  border: 2px solid var(--color-hi-vis-yellow) !important;
+  background: var(--color-bone-white) !important;
+  color: var(--color-ink-black) !important;
+  border: 2px solid var(--color-ink-black) !important;
   border-radius: var(--radius-buttons) !important;
   box-shadow: none !important;
   padding: 0 24px !important;
@@ -338,7 +338,9 @@ a:hover {
 
 .btn-outlined-display:hover,
 .btn.outline:hover {
-  background: rgba(244, 237, 54, 0.12) !important;
+  background: #ffffff !important;
+  border-color: var(--color-ink-black) !important;
+  color: var(--color-ink-black) !important;
   text-decoration: none;
 }
 
@@ -3462,7 +3464,7 @@ body.shell.focus #app {
   font-size: clamp(22px, 3vw, 32px);
   line-height: 1.1;
   letter-spacing: -0.01em;
-  color: var(--color-hi-vis-yellow) !important;
+  color: var(--color-ink-black) !important;
   margin: 0 0 16px 0;
   text-transform: uppercase;
 }
@@ -4718,10 +4720,21 @@ svg.check-icon {
   border: 2.5px solid var(--color-ink-black) !important;
   border-radius: 6px !important;
   box-shadow: none !important;
-  padding: 28px !important;
+  padding: 24px !important;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  min-height: auto !important;
+  height: auto !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 600px) {
+  .duel-sheet,
+  .duel-arena {
+    padding: 16px 14px !important;
+    gap: 14px !important;
+  }
 }
 
 .sheet-head {
@@ -4737,36 +4750,39 @@ svg.check-icon {
 .qdots {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .qdot {
-  width: 34px;
-  height: 34px;
-  border-radius: 100px !important;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px !important;
   border: 2px solid var(--color-ink-black) !important;
   background: #ffffff !important;
   color: var(--color-ink-black) !important;
   font-family: var(--font-bergenmonoregular);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: none !important;
+  box-shadow: 1px 1px 0 var(--color-ink-black) !important;
+  flex-shrink: 0;
 }
 
 .qdot.at {
   background: #f4ed36 !important;
   color: #000000 !important;
   border: 2px solid #000000 !important;
+  box-shadow: 1px 1px 0 #000 !important;
 }
 
 .qdot.done {
   background: #a8c59c !important;
   color: #16151d !important;
+  box-shadow: 1px 1px 0 var(--color-ink-black) !important;
 }
 
 .duel-q {
