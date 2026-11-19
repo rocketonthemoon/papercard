@@ -3,7 +3,12 @@
   import { appState } from './lib/state.svelte.js';
   import { authDev } from './lib/api.js';
 
-  import AppShell from './lib/layout/AppShell.svelte';
+  import Header from './lib/layout/Header.svelte';
+  import Sidebar from './lib/layout/Sidebar.svelte';
+  import MobileNav from './lib/layout/MobileNav.svelte';
+  import Footer from './lib/layout/Footer.svelte';
+  import Toast from './lib/components/Toast.svelte';
+
   import Landing from './routes/Landing.svelte';
   import Learn from './routes/Learn.svelte';
   import CoursePath from './routes/CoursePath.svelte';
@@ -24,7 +29,11 @@
     await appState.init();
   });
 
-  // Whenever hash changes and user is null, auto-authenticate if in dev mode
+  let hash = $derived(appState.hash);
+  let user = $derived(appState.user);
+  let isLoading = $derived(appState.isLoading);
+
+  // Auto-authenticate in dev mode for app routes
   $effect(() => {
     const h = appState.hash;
     const u = appState.user;
@@ -43,8 +52,8 @@
 
       if (isAppRoute) {
         authDev('Learner', 'learner')
-          .then(async (user) => {
-            appState.user = user;
+          .then(async (usr) => {
+            appState.user = usr;
             await appState.refreshTopStats();
           })
           .catch(() => {});
@@ -52,9 +61,16 @@
     }
   });
 
-  let hash = $derived(appState.hash);
-  let user = $derived(appState.user);
-  let isLoading = $derived(appState.isLoading);
+  // Sync body classes strictly according to design.css
+  $effect(() => {
+    if (typeof document === 'undefined') return;
+    const isSignedOut = !user || hash === '#/' || hash === '#/landing';
+    const isFocus = hash.startsWith('#/learn/lesson') || hash.startsWith('#/learn/review');
+
+    document.body.classList.toggle('shell', !isSignedOut);
+    document.body.classList.toggle('landing', isSignedOut);
+    document.body.classList.toggle('focus', isFocus);
+  });
 
   // Route matchers
   let duelCode = $derived(/^#\/duel\/([A-Za-z0-9]{6})$/i.exec(hash)?.[1]?.toUpperCase() ?? null);
@@ -66,11 +82,15 @@
 </script>
 
 {#if isLoading}
-  <div class="app-loading">
-    <div class="loading-brand">PAPERCARD</div>
-  </div>
+  <p class="muted loading" style="text-align:center;padding:100px 0;">Loading…</p>
 {:else}
-  <AppShell>
+  <Header />
+
+  {#if user}
+    <Sidebar />
+  {/if}
+
+  <main id="app-main" class="app" aria-live="polite">
     {#if !user || hash === '#/' || hash === '#/landing'}
       {#if !user}
         <Landing />
@@ -106,29 +126,12 @@
     {:else}
       <Learn />
     {/if}
-  </AppShell>
+  </main>
+
+  {#if user}
+    <MobileNav />
+  {/if}
+
+  <Footer />
+  <Toast />
 {/if}
-
-<style>
-  .app-loading {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--color-dusk-violet);
-  }
-
-  .loading-brand {
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 32px;
-    letter-spacing: -0.04em;
-    color: var(--color-hi-vis-yellow);
-    animation: pulse 1s infinite alternate;
-  }
-
-  @keyframes pulse {
-    from { opacity: 0.6; transform: scale(0.98); }
-    to { opacity: 1; transform: scale(1.02); }
-  }
-</style>

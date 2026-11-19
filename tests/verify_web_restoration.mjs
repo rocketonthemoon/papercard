@@ -3,9 +3,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const port = 9398;
+const port = 9399;
 const chrome = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
-const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'debug-web-'));
+const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'debug-web2-'));
 const artifactDir = 'C:/Users/Vartotojas/.gemini/antigravity/brain/0748c949-de18-49a8-bdf5-fafc30996d56';
 
 const proc = spawn(chrome, [
@@ -88,9 +88,23 @@ const landingInfo = await evaluate(`({
 console.log('Landing state:', landingInfo);
 await snap('verified_restored_landing');
 
-console.log('--- 2. Signing In via Dev Sign In ---');
+console.log('--- 2. Signing In via Dev Sign In & Testing Home Dashboard ---');
 await evaluate(`document.getElementById('dev-signin-btn')?.click()`);
-await sleep(2000);
+await sleep(2500);
+
+const homeInfo = await evaluate(`({
+  bodyClasses: document.body.className,
+  hasSidebar: !!document.querySelector('.sidebar'),
+  hasNav: !!document.querySelector('.nav'),
+  sidebarVisible: window.getComputedStyle(document.querySelector('.sidebar')).display,
+  sidePillsCount: document.querySelectorAll('.side-pill').length,
+  hasDash: !!document.querySelector('.dash'),
+  hasEnrolledCards: document.querySelectorAll('.enrolled-card').length,
+  hasTodayWidget: !!document.querySelector('.dash-today-card'),
+  hasBoardWidget: !!document.querySelector('.dash-board-widget')
+})`);
+console.log('Home dashboard & Navigation info:', homeInfo);
+await snap('verified_restored_home');
 
 console.log('--- 3. Testing Play Hub (Duels) ---');
 await send('Page.navigate', { url: 'http://127.0.0.1:8080/#/play' });
@@ -114,7 +128,7 @@ console.log('--- 4. Testing Course Path & Answering Lessons ---');
 await send('Page.navigate', { url: 'http://127.0.0.1:8080/#/learn/course/1' });
 await sleep(2000);
 const coursePathInfo = await evaluate(`({
-  title: document.querySelector('.course-head h2')?.textContent || '',
+  title: document.querySelector('.course-head h2, .course-banner')?.textContent || '',
   lessonsCount: document.querySelectorAll('.lesson-node').length,
   firstLessonText: document.querySelector('.lesson-node')?.textContent?.trim() || ''
 })`);

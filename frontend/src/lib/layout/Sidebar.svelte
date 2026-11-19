@@ -4,158 +4,73 @@
 
   let user = $derived(appState.user);
   let hash = $derived(appState.hash);
-  let dueCount = $derived(appState.topStats?.due || 0);
+  let topStats = $derived(appState.topStats);
+  let dueCount = $derived(topStats?.due || 0);
 
-  function isActive(prefix) {
-    if (prefix === '#/learn') {
+  function isCurrent(key) {
+    if (key === 'learn') {
       return hash === '#/' || hash === '#/learn' || hash.startsWith('#/learn/course') || hash.startsWith('#/learn/lesson');
     }
-    return hash.startsWith(prefix);
+    if (key === 'review') return hash.startsWith('#/learn/review');
+    if (key === 'discover') return hash.startsWith('#/discover');
+    if (key === 'play') return hash.startsWith('#/play') || hash.startsWith('#/duel');
+    if (key === 'leaderboard') return hash.startsWith('#/leaderboard');
+    if (key === 'studio') return hash.startsWith('#/studio');
+    if (key === 'admin') return hash.startsWith('#/admin');
+    return false;
   }
 </script>
 
-<aside class="sidebar">
-  <nav class="nav-links">
-    <a href="#/learn" class="nav-item" class:active={isActive('#/learn')}>
-      <Icon name="home" size={19} />
+<aside class="sidebar" id="sidebar">
+  <a class="side-brand" href="#/learn" aria-label="Papercard home">
+    <span class="brand-wordmark side">PAPERCARD</span>
+  </a>
+
+  <nav class="side-links" id="side-links" aria-label="Main">
+    <a href="#/learn" class="side-pill" data-nav="learn" aria-current={isCurrent('learn') ? 'page' : undefined}>
+      <Icon name="home" size={20} />
       <span>Home</span>
     </a>
 
-    <a href="#/learn/review" class="nav-item" class:active={isActive('#/learn/review')}>
-      <Icon name="review" size={19} />
+    <a href="#/learn/review" class="side-pill" data-nav="review" aria-current={isCurrent('review') ? 'page' : undefined}>
+      <Icon name="review" size={20} />
       <span>Review</span>
       {#if dueCount > 0}
         <span class="badge" title="{dueCount} cards due">{dueCount > 99 ? '99+' : dueCount}</span>
       {/if}
     </a>
 
-    <a href="#/learn/words" class="nav-item" class:active={isActive('#/learn/words')}>
-      <Icon name="list" size={19} />
-      <span>Words</span>
-    </a>
-
-    <a href="#/discover" class="nav-item" class:active={isActive('#/discover')}>
-      <Icon name="courses" size={19} />
+    <a href="#/discover" class="side-pill" data-nav="discover" aria-current={isCurrent('discover') ? 'page' : undefined}>
+      <Icon name="courses" size={20} />
       <span>Courses</span>
     </a>
 
-    <a href="#/play" class="nav-item" class:active={isActive('#/play') || hash.startsWith('#/duel')}>
-      <Icon name="play" size={19} />
+    <a href="#/play" class="side-pill" data-nav="play" aria-current={isCurrent('play') ? 'page' : undefined}>
+      <Icon name="play" size={20} />
       <span>Play</span>
     </a>
 
-    <a href="#/leaderboard" class="nav-item" class:active={isActive('#/leaderboard')}>
-      <Icon name="trophy" size={19} />
+    <a href="#/leaderboard" class="side-pill" data-nav="leaderboard" aria-current={isCurrent('leaderboard') ? 'page' : undefined}>
+      <Icon name="trophy" size={20} />
       <span>Leaders</span>
     </a>
 
-    <a href="#/studio" class="nav-item" class:active={isActive('#/studio')}>
-      <Icon name="studio" size={19} />
+    <a href="#/studio" class="side-pill" data-nav="studio" aria-current={isCurrent('studio') ? 'page' : undefined}>
+      <Icon name="studio" size={20} />
       <span>Studio</span>
     </a>
 
     {#if user?.isAdmin}
-      <a href="#/admin" class="nav-item" class:active={isActive('#/admin')}>
-        <Icon name="admin" size={19} />
+      <a href="#/admin" class="side-pill" data-nav="admin" aria-current={isCurrent('admin') ? 'page' : undefined}>
+        <Icon name="admin" size={20} />
         <span>Admin</span>
       </a>
     {/if}
   </nav>
 
-  <div class="sidebar-footer">
-    <button class="sign-out-btn" onclick={() => appState.logout()}>
-      <Icon name="logout" size={17} />
-      <span>Sign out</span>
+  <div class="side-bottom" id="side-bottom">
+    <button class="btn-gate-pill small" id="logout" title="Sign out" aria-label="Sign out" onclick={() => appState.logout()}>
+      Sign out
     </button>
   </div>
 </aside>
-
-<style>
-  .sidebar {
-    width: 210px;
-    min-width: 210px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 24px 16px;
-    background: transparent;
-  }
-
-  .nav-links {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 16px;
-    border-radius: var(--radius-pill);
-    color: var(--color-bone-white);
-    font-weight: 700;
-    font-size: 14px;
-    transition: transform 0.1s ease, background-color 0.1s ease, color 0.1s ease;
-    border: 2px solid transparent;
-  }
-
-  .nav-item:hover {
-    background: rgba(249, 245, 242, 0.18);
-    color: var(--color-hi-vis-yellow);
-    transform: translateX(3px);
-  }
-
-  .nav-item.active {
-    background: var(--color-bone-white);
-    color: var(--color-ink-black);
-    border: var(--border-thick);
-    box-shadow: 0 3px 0 var(--color-ink-black);
-  }
-
-  .nav-item.active:hover {
-    color: var(--color-ink-black);
-    transform: none;
-  }
-
-  .badge {
-    margin-left: auto;
-    background: var(--color-hi-vis-yellow);
-    color: var(--color-ink-black);
-    border: 1.5px solid var(--color-ink-black);
-    border-radius: var(--radius-pill);
-    padding: 1px 8px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 800;
-  }
-
-  .sidebar-footer {
-    padding-top: 16px;
-    border-top: 1px solid rgba(249, 245, 242, 0.2);
-  }
-
-  .sign-out-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 10px 16px;
-    border-radius: var(--radius-pill);
-    color: rgba(249, 245, 242, 0.75);
-    font-size: 13.5px;
-    font-weight: 700;
-    transition: color 0.1s ease, background-color 0.1s ease;
-  }
-
-  .sign-out-btn:hover {
-    color: var(--color-bone-white);
-    background: rgba(249, 245, 242, 0.12);
-  }
-
-  @media (max-width: 768px) {
-    .sidebar {
-      display: none;
-    }
-  }
-</style>

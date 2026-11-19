@@ -4,6 +4,33 @@
 
   let user = $derived(appState.user);
   let topStats = $derived(appState.topStats);
+  let hash = $derived(appState.hash);
+
+  const TITLES = {
+    learn: 'Home',
+    review: 'Review',
+    discover: 'Courses',
+    play: 'Play',
+    leaderboard: 'Leaderboard',
+    studio: 'Studio',
+    admin: 'Admin',
+    words: 'Your Words'
+  };
+
+  let pageTitle = $derived(() => {
+    if (hash.startsWith('#/learn/course')) return 'Course Path';
+    if (hash.startsWith('#/learn/lesson')) return 'Lesson';
+    if (hash.startsWith('#/learn/review')) return 'Review';
+    if (hash.startsWith('#/learn/words')) return 'Your Words';
+    if (hash.startsWith('#/learn')) return 'Home';
+    if (hash.startsWith('#/play') || hash.startsWith('#/duel')) return 'Play';
+    if (hash.startsWith('#/leaderboard')) return 'Leaderboard';
+    if (hash.startsWith('#/discover')) return 'Courses';
+    if (hash.startsWith('#/studio')) return 'Studio';
+    if (hash.startsWith('#/admin')) return 'Admin';
+    if (hash.startsWith('#/u/')) return 'Profile';
+    return '';
+  });
 
   function getAvatarLetter(u) {
     if (!u) return '?';
@@ -11,145 +38,50 @@
   }
 </script>
 
-<header class="topbar">
-  <div class="topbar-inner">
-    <div class="left-group">
-      <a href="#/learn" class="brand">PAPERCARD</a>
-    </div>
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#/" aria-label="Papercard home">
+      <span class="brand-wordmark">PAPERCARD</span>
+    </a>
 
     {#if user}
-      <div class="right-group">
-        {#if topStats}
-          <div class="stat-chips">
-            <span class="chip streak" title="Day streak">
-              <Icon name="fire" size={16} />
-              <b>{topStats.streak || 0}d</b>
-            </span>
-            {#if topStats.hearts !== undefined}
-              <span class="chip hearts" title="Hearts">
-                <Icon name="heart" size={16} />
-                <b>{topStats.hearts}</b>
-              </span>
-            {/if}
-          </div>
-        {/if}
+      <h1 class="page-title" id="page-title">{pageTitle()}</h1>
+    {/if}
 
+    <nav class="links" aria-label="Main">
+      {#if !user}
+        <a href="#/about" class="link-item">About</a>
+        <a href="https://github.com/rocketonthemoon/papercard" target="_blank" rel="noopener noreferrer" class="link-item">GitHub</a>
+      {/if}
+    </nav>
+
+    <div id="top-chips" class="top-chips">
+      {#if user && topStats}
+        <span class="chip streak" title="Day streak">
+          <Icon name="fire" size={16} />
+          <b>{topStats.streak || 0}d</b>
+        </span>
+        {#if topStats.hearts !== undefined}
+          <span class="chip hearts" title="Hearts">
+            <Icon name="heart" size={16} />
+            <b>{topStats.hearts}</b>
+          </span>
+        {/if}
+      {/if}
+    </div>
+
+    <div id="account" class="account">
+      {#if user}
         <a href="#/u/{user.handle || user.name}" class="avatar-link" title="Profile">
           {#if user.picture}
             <img src={user.picture} alt={user.name} class="avatar-img" referrerpolicy="no-referrer" />
           {:else}
-            <span class="avatar-fallback">{getAvatarLetter(user)}</span>
+            <span class="avatar-ph">{getAvatarLetter(user)}</span>
           {/if}
         </a>
-      </div>
-    {:else if appState.hash !== '#/' && appState.hash !== '#/landing' && appState.hash !== ''}
-      <div class="right-group">
-        <a href="#/" class="btn sm primary">Sign In</a>
-      </div>
-    {/if}
+      {:else if hash !== '#/' && hash !== '#/landing' && hash !== ''}
+        <a href="#/" class="btn btn-gate-pill small">Sign In</a>
+      {/if}
+    </div>
   </div>
 </header>
-
-<style>
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    height: 60px;
-    background: var(--color-dusk-violet);
-    border-bottom: var(--border-thick);
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-  }
-
-  .topbar-inner {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .brand {
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 22px;
-    letter-spacing: -0.04em;
-    color: var(--color-bone-white);
-    text-transform: uppercase;
-    text-shadow: 2px 2px 0 var(--color-ink-black);
-    transition: color 0.1s ease;
-  }
-
-  .brand:hover {
-    color: var(--color-hi-vis-yellow);
-  }
-
-  .right-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .stat-chips {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    background: var(--color-bone-white);
-    border: var(--border-thick);
-    border-radius: var(--radius-pill);
-    box-shadow: 0 2px 0 var(--color-ink-black);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--color-ink-black);
-  }
-
-  .chip.streak {
-    background: var(--color-hi-vis-yellow);
-  }
-
-  .chip b {
-    font-weight: 800;
-  }
-
-  .avatar-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: var(--border-thick);
-    box-shadow: 0 2px 0 var(--color-ink-black);
-    overflow: hidden;
-    background: var(--color-bone-white);
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-  }
-
-  .avatar-link:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 0 var(--color-ink-black);
-  }
-
-  .avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .avatar-fallback {
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 15px;
-    color: var(--color-ink-black);
-  }
-</style>
