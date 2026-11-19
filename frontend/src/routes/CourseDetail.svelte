@@ -10,19 +10,27 @@
   let errorMsg = $state('');
   let data = $state(null);
 
-  onMount(async () => {
+  async function loadCourse(courseId) {
     try {
       loading = true;
-      data = await api(`/courses/${id}`);
+      errorMsg = '';
+      data = await api(`/courses/${courseId}`);
     } catch (e) {
       errorMsg = e.message || 'Failed to load course';
     } finally {
       loading = false;
     }
+  }
+
+  $effect(() => {
+    if (id) {
+      loadCourse(id);
+    }
   });
 
   let c = $derived(data?.course || null);
   let units = $derived(data?.units || []);
+  let creator = $derived(data?.creator || null);
   let canEdit = $derived(data?.canEdit || false);
 
   async function handleEnroll() {
@@ -34,11 +42,32 @@
       appState.showToast(e.message || 'Failed to enroll');
     }
   }
+
+  async function handleLeave() {
+    if (!confirm('Leave this course? Your progress is kept if you come back.')) return;
+    try {
+      await api(`/courses/${c.id}/enroll`, { method: 'DELETE' });
+      await loadCourse(c.id);
+      appState.showToast('Course removed from your learning list');
+    } catch (e) {
+      appState.showToast(e.message || 'Failed to leave course');
+    }
+  }
+
+  function flag(course) {
+    const code = (course?.toCode || course?.toLang || '').toLowerCase();
+    if (code === 'lt' || code === 'lithuanian') return 'LT';
+    if (code === 'en' || code === 'english') return 'EN';
+    if (code === 'es' || code === 'spanish') return 'ES';
+    if (code === 'fr' || code === 'french') return 'FR';
+    if (code === 'de' || code === 'german') return 'DE';
+    return (code.slice(0, 2) || 'LT').toUpperCase();
+  }
 </script>
 
 <div>
   {#if loading}
-    <p class="muted loading" style="text-align:center;padding:40px 0;">Loading course…</p>
+    <p class="muted loading" style="text-align:center;padding:60px 0;">Loading course…</p>
   {:else if errorMsg || !c}
     <section class="card picker" style="max-width:540px;margin:20px auto;">
       <header class="picker-head">
@@ -50,13 +79,11 @@
       </div>
     </section>
   {:else}
-    <div class="toolbar course-breadcrumb-bar" style="margin-bottom:16px;">
+    <div class="toolbar course-breadcrumb-bar">
       <div class="breadcrumb-trail">
-        <a class="back mono-tag" href="#/discover" style="text-decoration:none;color:inherit;font-weight:700;">
-          ← Courses
-        </a>
-        <span class="breadcrumb-sep" style="margin:0 8px;">/</span>
-        <span class="breadcrumb-current mono-tag" style="opacity:0.8;">{c.title}</span>
+        <a class="back mono-tag" href="#/discover">← Courses</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current mono-tag">{c.title}</span>
       </div>
       <div class="toolbar-actions">
         {#if canEdit}
@@ -65,54 +92,85 @@
       </div>
     </div>
 
-    <div class="course-page" style="display:grid;grid-template-columns:1fr 300px;gap:24px;">
+    <div class="course-page">
       <div class="course-page-main">
-        <section class="card course-overview" style="margin-bottom:24px;">
-          <div class="row" style="gap:8px;margin-bottom:12px;">
-            <span class="pill yellow">{c.creator?.official ? 'OFFICIAL' : 'COMMUNITY'}</span>
-            <span class="mono-tag muted">{c.fromLang} → {c.toLang}</span>
+        <section class="card course-hero">
+          <div class="course-hero-top">
+            <div class="hero-badges">
+              <span class="tag-chip mono-tag">{c.creator?.official ? 'OFFICIAL' : 'COURSE'}</span>
+              <span class="meta-lang mono-tag">{c.fromLang} → {c.toLang}</span>
+            </div>
+            <span class="course-flag big">{flag(c)}</span>
           </div>
-          <h1 style="font-family:var(--font-display);font-size:32px;font-weight:900;letter-spacing:-0.03em;">{c.title}</h1>
-          <p class="muted" style="margin:12px 0 20px;font-size:16px;line-height:1.5;">{c.description || 'Step-by-step vocabulary and phrases.'}</p>
 
-          <div class="course-stats mono-tag muted small" style="display:flex;gap:16px;border-top:1.5px solid rgba(0,0,0,0.1);padding-top:14px;">
-            <span>{units.length} decks</span>
-            <span>{c.words} words</span>
-            <span>{c.learners || 0} learners</span>
+          <h1>
+            {c.title}
+            {#if c.hidden}<span class="pill due">hidden</span>{/if}
+            {#if c.locked}<span class="pill">locked</span>{/if}
+          </h1>
+
+          <p class="muted course-stats-row">
+            {units.length} {units.length === 1 ? 'deck' : 'decks'} · 
+            {c.words} {c.words === 1 ? 'word' : 'words'} · 
+            {c.learners || 0} {c.learners === 1 ? 'learner' : 'learners'}
+          </p>
+
+          {#if c.description}
+            <p class="course-description-text">{c.description}</p>
+          {/if}
+
+          <div class="course-hero-actions">
+            {#if c.enrolled}
+              <a class="btn btn-hero-primary" href="#/learn/course/{c.id}">Continue →</a>
+            {:else}
+              <button class="btn btn-hero-primary" onclick={handleEnroll}>Start course →</button>
+            {/if}
           </div>
         </section>
 
-        <!-- Syllabus -->
-        <h2 style="font-family:var(--font-display);font-size:24px;font-weight:900;margin-bottom:14px;">Course Decks</h2>
-        <div class="syllabus-list" style="display:flex;flex-direction:column;gap:12px;">
-          {#each units as u, ui}
-            <div class="card unit-preview-card" style="padding:18px 24px;">
-              <div class="row spread" style="margin-bottom:8px;">
-                <b style="font-size:18px;">Deck {ui + 1}: {u.title}</b>
-                <span class="pill bone sm">{u.level || 'A1'}</span>
-              </div>
-              {#if u.description}
-                <p class="muted small" style="margin-bottom:10px;">{u.description}</p>
-              {/if}
-              <div class="mono-tag small muted">
-                {(u.lessons || []).length} lessons · {(u.lessons || []).reduce((n, l) => n + (l.total || 0), 0)} words
-              </div>
-            </div>
-          {/each}
-        </div>
+        <section class="card list-card">
+          <div class="list-head">
+            <h3>Decks ({units.length})</h3>
+          </div>
+          <ul class="rows">
+            {#each units as u, i}
+              <li class="deck-row">
+                <span class="level-chip-badge">{u.level ? u.level : String(i + 1).padStart(2, '0')}</span>
+                <div class="deck-info">
+                  <b>Deck {i + 1}: {u.title}</b>
+                  {#if u.description}
+                    <p class="muted small">{u.description}</p>
+                  {/if}
+                </div>
+                <span class="deck-meta mono-tag muted small">
+                  {u.learned ? `${u.learned}/` : ''}{u.words || 0} {u.words === 1 ? 'word' : 'words'}
+                </span>
+              </li>
+            {:else}
+              <li class="empty-row">No decks yet.</li>
+            {/each}
+          </ul>
+        </section>
+
+        {#if c.enrolled}
+          <div class="course-leave-row" style="margin-top:16px;">
+            <button class="link-disclaimer-underline" onclick={handleLeave}>Leave course</button>
+          </div>
+        {/if}
       </div>
 
-      <!-- Side Card -->
-      <aside class="course-page-side">
-        <div class="card enroll-card" style="position:sticky;top:80px;text-align:center;">
-          <h3 style="font-family:var(--font-display);font-size:22px;margin-bottom:8px;">Ready to learn?</h3>
-          <p class="muted small" style="margin-bottom:20px;">Master this course with bite-sized lessons and flashcards.</p>
-          {#if c.enrolled}
-            <a href="#/learn/course/{c.id}" class="btn btn-gate-pill" style="width:100%;justify-content:center;">Continue learning →</a>
-          {:else}
-            <button class="btn btn-gate-pill" style="width:100%;justify-content:center;" onclick={handleEnroll}>Start course →</button>
-          {/if}
-        </div>
+      <aside class="card side-card">
+        {#if creator}
+          <h3>Made by</h3>
+          <div class="profile-mini" style="margin-top:12px;">
+            <a class="who-pill profile-pill" href="#/u/{creator.username}">
+              <span>{creator.name || creator.username}</span>
+            </a>
+            {#if creator.bio}
+              <p class="muted small" style="margin-top:8px;">{creator.bio}</p>
+            {/if}
+          </div>
+        {/if}
       </aside>
     </div>
   {/if}

@@ -17,10 +17,17 @@
   let results = $state(null);
 
   function fmtTime(ms) {
+    if (!ms && ms !== 0) return '0:00';
     const s = Math.max(0, Math.round(ms / 1000));
     const m = Math.floor(s / 60);
     const sec = s % 60;
     return `${m}:${String(sec).padStart(2, '0')}`;
+  }
+
+  function fmtDate(ms) {
+    if (!ms) return '';
+    const d = new Date(ms);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   onMount(async () => {
@@ -33,9 +40,8 @@
         results = res;
       } else {
         answers = Array(res.count).fill(null);
-        // Load local draft if exists
         try {
-          const saved = JSON.parse(localStorage.getItem(`duel-${code}`) || 'null');
+          const saved = JSON.parse(localStorage.getItem(`labas-duel-${code}`) || 'null');
           if (Array.isArray(saved) && saved.length === res.count) {
             answers = saved;
           }
@@ -83,13 +89,12 @@
     answers[at] = optId;
     answers = [...answers];
     try {
-      localStorage.setItem(`duel-${code}`, JSON.stringify(answers));
+      localStorage.setItem(`labas-duel-${code}`, JSON.stringify(answers));
     } catch {}
 
-    // Auto-advance to next unanswered
     const next = answers.indexOf(null, at + 1) >= 0 ? answers.indexOf(null, at + 1) : answers.indexOf(null);
     if (next >= 0) {
-      setTimeout(() => { at = next; }, 200);
+      setTimeout(() => { at = next; }, 260);
     }
   }
 
@@ -118,7 +123,7 @@
         body: { answers },
       });
       try {
-        localStorage.removeItem(`duel-${code}`);
+        localStorage.removeItem(`labas-duel-${code}`);
       } catch {}
       if (timerInterval) clearInterval(timerInterval);
       results = res;
@@ -128,571 +133,289 @@
       submitting = false;
     }
   }
+
+  let toLangName = $derived(duel?.course?.toLang || 'Lithuanian');
+
+  function promptHeading(q) {
+    if (!q) return '';
+    switch (q.kind) {
+      case 'pick_en':
+        return 'What does this mean?';
+      case 'pick_lt':
+        return `How do you say this in ${toLangName}?`;
+      case 'type_lt':
+        return `Write this in ${toLangName}`;
+      case 'build':
+        return `Translate this into ${toLangName}`;
+      default:
+        return 'What does this mean?';
+    }
+  }
+
+  let user = $derived(appState.user);
 </script>
 
-<div class="duel-view">
+<div>
   {#if loading}
-    <div class="card loading-box">
-      <p class="muted">Loading duel {code}…</p>
-    </div>
+    <p class="muted loading" style="text-align:center;padding:60px 0;">Loading duel {code}…</p>
   {:else if errorMsg}
-    <div class="card error-box">
-      <h2>Something went wrong</h2>
-      <p class="muted">{errorMsg}</p>
-      <a href="#/play" class="btn primary">Back to Play</a>
-    </div>
+    <section class="card picker" style="max-width:540px;margin:20px auto;">
+      <header class="picker-head">
+        <h2>Something went wrong</h2>
+        <p class="muted">{errorMsg}</p>
+      </header>
+      <div class="row" style="justify-content:center;margin-top:16px;">
+        <a class="btn btn-gate-pill" href="#/play">Back to Play</a>
+      </div>
+    </section>
   {:else if results}
-    <!-- Results Screen -->
-    <div class="card results-card">
-      <div class="results-head">
-        <span class="pill yellow mono-tag">DUEL RESULTS</span>
-        <h2>{duel.title || 'Duel Complete!'}</h2>
-        <p class="muted small">Code: <b>{code}</b> · Course: {duel.course?.title || 'Lithuanian'}</p>
-      </div>
+    <!-- Results Screen (1:1 with web/game.js:374) -->
+    {@const others = (results.players || []).filter(p => !p.isYou)}
+    {@const youWon = results.winner && results.players?.[0]?.isYou}
 
-      <!-- Leaderboard / Scores Table -->
-      <div class="scores-table-wrap">
-        <h3>Players & Scores</h3>
-        <table class="scores-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Player</th>
-              <th>Score</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each (results.players || []) as p, i}
-              <tr class:you={p.isYou}>
-                <td><b>#{i + 1}</b></td>
-                <td>
-                  <div class="player-cell">
-                    <span class="player-avatar">{p.name ? p.name.charAt(0).toUpperCase() : '?'}</span>
-                    <span>{p.name} {p.isYou ? '(You)' : ''}</span>
+    <div class="toolbar">
+      <a class="back mono-tag" href="#/play">← Play</a>
+      <div class="toolbar-actions">
+        <button class="btn outline small" onclick={copyShareLink}>Invite link</button>
+        <a class="btn btn-gate-pill small" href="#/play">New room →</a>
+      </div>
+    </div>
+
+    <div class="workspace two" style="margin-top:16px;">
+      <aside class="card side">
+        <section>
+          <h3>Your result</h3>
+          <p class="score" style="margin:8px 0;">
+            <b style="font-size:32px;font-weight:900;">{results.you?.points ?? 0}</b>
+            <span class="muted" style="margin-left:6px;">/ {results.maxPoints ?? (results.count * 10)} points</span>
+          </p>
+        </section>
+
+        <section style="margin-top:14px;border-top:1px solid rgba(0,0,0,0.08);padding-top:12px;">
+          <ul class="kv" style="list-style:none;padding:0;margin:0;">
+            <li class="row spread" style="padding:4px 0;">
+              <span>Right</span>
+              <b class="good" style="color:var(--color-green, #179354);">{results.you?.correct ?? 0}/{results.count}</b>
+            </li>
+            <li class="row spread" style="padding:4px 0;">
+              <span>Wrong</span>
+              <b class="{results.count - (results.you?.correct ?? 0) ? 'bad' : ''}">
+                {results.count - (results.you?.correct ?? 0)}
+              </b>
+            </li>
+            <li class="row spread" style="padding:4px 0;">
+              <span>Time</span>
+              <b>{fmtTime(results.you?.elapsedMs)}</b>
+            </li>
+          </ul>
+        </section>
+
+        <section style="margin-top:14px;border-top:1px solid rgba(0,0,0,0.08);padding-top:12px;">
+          <h3>Scoreboard</h3>
+          {#if !results.winner}
+            <p class="muted small" style="margin:8px 0;">Waiting for a friend to play. Send them the invite link!</p>
+          {:else if results.tie}
+            <div class="winner tie" style="margin:8px 0;font-weight:700;">It's a tie!</div>
+          {:else}
+            <div class="winner" style="margin:8px 0;font-weight:700;">
+              {youWon ? 'You win!' : `${results.winner} wins!`}
+            </div>
+          {/if}
+
+          <ul class="people" style="list-style:none;padding:0;margin:12px 0 0;">
+            {#each (results.players || []) as p}
+              <li class="row spread {p.isYou ? 'you' : ''}" style="padding:8px 0;align-items:center;border-bottom:1px solid rgba(0,0,0,0.05);">
+                <div class="row" style="gap:10px;align-items:center;">
+                  <span class="muted small mono-tag">#{p.rank ?? 1}</span>
+                  <span class="avatar-ph" style="width:28px;height:28px;line-height:28px;font-size:13px;">
+                    {p.name ? p.name.charAt(0).toUpperCase() : '?'}
+                  </span>
+                  <div>
+                    <b style="font-size:14px;">{p.name}{p.isYou ? ' (you)' : ''}</b>
+                    <br />
+                    <span class="muted small mono-tag">{p.correct ?? 0}/{results.count} right · {fmtTime(p.elapsedMs)}</span>
                   </div>
-                </td>
-                <td><b class="score-val">{p.score ?? 0} pts</b></td>
-                <td><span class="mono-tag small muted">{p.timeFormatted || '0:00'}</span></td>
-              </tr>
+                </div>
+                <span class="pts mono-tag" style="font-weight:900;">
+                  <b>{p.points ?? 0}</b> <small>pts</small>
+                </span>
+              </li>
             {/each}
-          </tbody>
-        </table>
-      </div>
+          </ul>
 
-      <div class="results-actions">
-        <button class="btn outline" onclick={copyShareLink}>
-          <Icon name="copy" size={16} />
-          <span>Copy invite link</span>
-        </button>
-        <a href="#/play" class="btn primary">Play another duel →</a>
-      </div>
+          {#if !others.length}
+            <button class="btn dashed block" style="width:100%;margin-top:14px;" onclick={copyShareLink}>
+              Copy invite link
+            </button>
+          {/if}
+        </section>
+      </aside>
+
+      <!-- Answer key card -->
+      <section class="card list-card">
+        <div class="list-head" style="margin-bottom:14px;">
+          <h3>Answer key · {results.title || 'Duel'}</h3>
+          <span class="muted small">{results.you?.correct ?? 0} of {results.count} right</span>
+        </div>
+        <ul class="rows" style="list-style:none;padding:0;margin:0;">
+          {#each (results.key || []) as k}
+            <li class="row spread key-row" style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.06);align-items:center;">
+              <div>
+                <span class="prompt-word" style="font-weight:700;font-size:16px;">{k.prompt}</span>
+                <span class="mono-tag muted small" style="margin-left:8px;">{k.answer}</span>
+              </div>
+              <span class="mono-tag {k.correct ? 'good' : 'bad'}" style="font-weight:700;color:{k.correct ? 'var(--color-green, #179354)' : '#d32f2f'};">
+                {k.correct ? '✓ Right' : '✗ Wrong'}
+              </span>
+            </li>
+          {/each}
+        </ul>
+      </section>
     </div>
   {:else if duel}
-    <!-- Active Duel Arena -->
-    <div class="duel-toolbar">
-      <a href="#/play" class="back-link">
-        <Icon name="back" size={16} />
-        <span>Exit duel</span>
-      </a>
-
-      <div class="toolbar-right">
-        <button class="btn outline sm" onclick={copyShareLink}>
-          <Icon name="copy" size={14} />
-          <span>Invite link</span>
-        </button>
-        <button
-          class="btn primary sm"
-          onclick={submitDuel}
-          disabled={submitting}
-        >
-          <Icon name="send" size={14} />
-          <span>{submitting ? 'Submitting...' : 'Submit answers'}</span>
+    <!-- Active Duel Arena (1:1 with web/game.js:280) -->
+    <div class="toolbar">
+      <a class="back mono-tag" href="#/play">← Play</a>
+      <div class="toolbar-actions">
+        <button class="btn outline small" onclick={copyShareLink}>Invite link</button>
+        <button class="btn btn-gate-pill small" id="submit" onclick={submitDuel} disabled={submitting}>
+          {submitting ? 'Submitting…' : 'Submit answers'}
         </button>
       </div>
     </div>
 
-    <div class="workspace-two">
-      <!-- Left 300px Sidebar -->
-      <aside class="card side-panel">
-        <section class="panel-section">
-          <span class="mono-tag muted small">DUEL CODE</span>
-          <div class="code-badge">
-            <span class="pill yellow mono-tag code-pill">{duel.code}</span>
+    <div class="workspace two" style="margin-top:16px;">
+      <!-- Left sidebar -->
+      <aside class="card side">
+        <section>
+          <h3>Duel</h3>
+          <div class="row" style="margin:6px 0;">
+            <span class="code-chip pill yellow mono-tag" style="font-size:16px;font-weight:900;letter-spacing:0.08em;">
+              {duel.code}
+            </span>
           </div>
           <p class="muted small">{duel.title} · set by {duel.creator?.name || 'Player'}</p>
         </section>
 
-        <section class="panel-section">
-          <div class="sec-row">
-            <span class="mono-tag muted small">ANSWERED</span>
-            <b class="big-stat">{answeredCount} <small>/ {duel.count}</small></b>
-          </div>
-          <div class="track-bar">
-            <div class="fill-bar" style="width: {answeredPct}%;"></div>
-          </div>
+        <section style="margin-top:14px;border-top:1px solid rgba(0,0,0,0.08);padding-top:12px;">
+          <h3>Answered</h3>
+          <p class="big-num mono-tag" style="font-size:22px;margin:4px 0;">
+            <b>{answeredCount}</b> <small>of {duel.count}</small>
+          </p>
+          <div class="bar"><i style="width:{answeredPct}%;"></i></div>
         </section>
 
-        <section class="panel-section">
-          <span class="mono-tag muted small">ELAPSED TIME</span>
-          <p class="timer-stat mono-tag">{timerText}</p>
+        <section style="margin-top:14px;border-top:1px solid rgba(0,0,0,0.08);padding-top:12px;">
+          <h3>Time</h3>
+          <p class="timer mono-tag" style="font-size:22px;font-weight:800;margin:4px 0;">{timerText}</p>
         </section>
 
-        <section class="panel-section scoring-section">
-          <span class="mono-tag muted small">SCORING</span>
-          <ul class="rule-list">
-            <li>
-              <Icon name="check" size={16} class="rule-icon" />
-              <span>+10 pts per right answer</span>
-            </li>
-            <li>
-              <Icon name="check" size={16} class="rule-icon" />
-              <span>One try; revealed at end</span>
-            </li>
-            <li>
-              <Icon name="check" size={16} class="rule-icon" />
-              <span>Ties go to the faster player</span>
-            </li>
+        <section style="margin-top:14px;border-top:1px solid rgba(0,0,0,0.08);padding-top:12px;">
+          <h3>Scoring</h3>
+          <ul class="checks" style="list-style:none;padding:0;margin:6px 0;display:flex;flex-direction:column;gap:6px;font-size:13px;">
+            <li>✓ +10 per right answer</li>
+            <li>✓ One try; answers revealed at end</li>
+            <li>✓ Ties go to the faster player</li>
           </ul>
+        </section>
+
+        <section style="margin-top:14px;border-top:1px solid rgba(0,0,0,0.08);padding-top:12px;">
+          <h3>Players ({duel.players?.length || 0})</h3>
+          {#if duel.players?.length}
+            <ul class="people" style="list-style:none;padding:0;margin:6px 0;">
+              {#each duel.players as p}
+                <li class="row" style="gap:8px;padding:4px 0;align-items:center;">
+                  <span class="avatar-ph" style="width:24px;height:24px;line-height:24px;font-size:11px;">
+                    {p.name ? p.name.charAt(0).toUpperCase() : '?'}
+                  </span>
+                  <span>{p.name}</span>
+                  <span class="played pill small" style="margin-left:auto;font-size:11px;">played</span>
+                </li>
+              {/each}
+            </ul>
+          {:else}
+            <p class="muted small">Nobody has played yet. Be the first, then send the link.</p>
+          {/if}
         </section>
       </aside>
 
-      <!-- Main Duel Sheet -->
-      <div class="sheet duel-sheet">
-        <div class="sheet-head">
-          <span class="mono-tag"><b>PLAYER:</b> {appState.user?.name || 'Learner'}</span>
-          <span class="mono-tag"><b>ROUND:</b> {at + 1} / {duel.count}</span>
-        </div>
-
-        <!-- Question Dots Navigator -->
-        <nav class="qdots" aria-label="Questions list">
-          {#each Array(duel.count) as _, i}
-            <button
-              type="button"
-              class="qdot"
-              class:done={answers[i] !== null}
-              class:current={i === at}
-              onclick={() => at = i}
-              aria-label="Question {i + 1}"
-            >
-              {i + 1}
-            </button>
-          {/each}
-        </nav>
-
-        {#if currentQ}
-          <div class="question-box">
-            <span class="mono-tag muted small">Question {at + 1} of {duel.count}</span>
-
-            <div class="prompt-card">
-              <h1 class="prompt-title">
-                {currentQ.kind === 'pick_en' ? 'What does this mean?' : 'How do you say this in Lithuanian?'}
-              </h1>
-              <div class="prompt-word-wrap">
-                <b class="prompt-word">{currentQ.prompt}</b>
-                {#if currentQ.pos}
-                  <span class="pill sm">{currentQ.pos}</span>
-                {/if}
-              </div>
+      <!-- Stable Question Arena Sheet -->
+      <div class="sheet-wrap">
+        <div class="sheet duel-sheet duel-arena" style="min-height:640px;height:640px;display:flex;flex-direction:column;justify-content:space-between;box-sizing:border-box;">
+          <div>
+            <div class="sheet-head row spread" style="margin-bottom:12px;font-size:14px;border-bottom:1px solid rgba(0,0,0,0.08);padding-bottom:10px;">
+              <span><b>Name :</b> {user?.name || 'Learner'}</span>
+              <span><b>Date :</b> {fmtDate(duel.createdAt)}</span>
             </div>
 
-            <!-- Options Grid -->
-            <div class="options-grid">
-              {#each (currentQ.options || []) as opt, i}
-                {@const isPicked = answers[at] === opt.id}
+            <!-- Question Number Dots -->
+            <nav class="qdots" aria-label="Questions" style="margin-bottom:16px;">
+              {#each (duel.questions || []) as _, i}
                 <button
                   type="button"
-                  class="option-btn"
-                  class:picked={isPicked}
-                  onclick={() => selectOption(opt.id)}
+                  class="qdot {answers[i] !== null ? 'done' : ''} {i === at ? 'at' : ''}"
+                  onclick={() => at = i}
+                  aria-label="Question {i + 1}"
                 >
-                  <span class="opt-num mono-tag">{i + 1}</span>
-                  <span class="opt-label">{opt.text}</span>
+                  {i + 1}
                 </button>
               {/each}
-            </div>
-          </div>
-        {/if}
+            </nav>
 
-        <div class="sheet-footer">
-          <button
-            class="btn outline sm"
-            onclick={() => at = Math.max(0, at - 1)}
-            disabled={at === 0}
-          >
-            ← Previous
-          </button>
-          <button
-            class="btn outline sm"
-            onclick={() => at = Math.min(duel.count - 1, at + 1)}
-            disabled={at === duel.count - 1}
-          >
-            Next →
-          </button>
+            <!-- Fixed-Size Question Box -->
+            {#if currentQ}
+              <div class="duel-q" id="qcard" style="display:flex;flex-direction:column;gap:14px;">
+                <p class="muted small mono-tag" style="margin:0;">Question {at + 1} of {duel.count}</p>
+
+                <h1 class="q" style="min-height:56px;display:flex;align-items:center;margin:0;font-size:26px;line-height:1.15;">
+                  {promptHeading(currentQ)}
+                </h1>
+
+                <div class="prompt-card challenge-card" style="min-height:84px;height:84px;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;">
+                  <span class="prompt-word" style="font-size:24px;font-weight:900;">{currentQ.prompt}</span>
+                  {#if currentQ.pos && currentQ.pos !== 'phrase'}
+                    <span class="tag-chip mono-tag">{currentQ.pos}</span>
+                  {/if}
+                </div>
+
+                <!-- 4 Options in Standard Fixed-Height Tiles -->
+                <div class="options">
+                  {#each (currentQ.options || []) as o, i (o.id)}
+                    <button
+                      type="button"
+                      class="option option-tile"
+                      aria-pressed={answers[at] === o.id}
+                      onclick={() => selectOption(o.id)}
+                      style="min-height:56px;box-sizing:border-box;"
+                    >
+                      <span class="key option-key">{i + 1}</span>
+                      <span>{o.text}</span>
+                    </button>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          </div>
+
+          <!-- Bottom Prev / Next Nav -->
+          <div class="row spread" style="margin-top:20px;border-top:1px solid rgba(0,0,0,0.08);padding-top:14px;">
+            <button
+              class="btn outline small"
+              onclick={() => at = Math.max(0, at - 1)}
+              disabled={at === 0}
+            >
+              ← Previous
+            </button>
+            <button
+              class="btn btn-gate-pill small"
+              onclick={() => at = Math.min(duel.count - 1, at + 1)}
+              disabled={at === duel.count - 1}
+            >
+              Next →
+            </button>
+          </div>
         </div>
       </div>
     </div>
   {/if}
 </div>
-
-<style>
-  .duel-view {
-    max-width: 1040px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .duel-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 4px;
-  }
-
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 700;
-    color: var(--color-bone-white);
-  }
-
-  .back-link:hover {
-    color: var(--color-hi-vis-yellow);
-  }
-
-  .toolbar-right {
-    display: flex;
-    gap: 10px;
-  }
-
-  /* Two Column Workspace */
-  .workspace-two {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 20px;
-    align-items: start;
-  }
-
-  @media (max-width: 820px) {
-    .workspace-two {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  /* Left 300px Side Panel */
-  .side-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 20px;
-  }
-
-  .panel-section {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(26, 26, 26, 0.1);
-  }
-
-  .code-pill {
-    font-size: 16px;
-    font-weight: 900;
-    letter-spacing: 0.1em;
-    padding: 4px 12px;
-  }
-
-  .sec-row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-  }
-
-  .big-stat {
-    font-family: var(--font-mono);
-    font-size: 20px;
-  }
-
-  .track-bar {
-    height: 8px;
-    background: rgba(26, 26, 26, 0.1);
-    border: 1.5px solid var(--color-ink-black);
-    border-radius: var(--radius-pill);
-    overflow: hidden;
-  }
-
-  .fill-bar {
-    height: 100%;
-    background: var(--color-hi-vis-yellow);
-    border-radius: var(--radius-pill);
-    transition: width 0.2s ease;
-  }
-
-  .timer-stat {
-    font-size: 24px;
-    font-weight: 800;
-    color: var(--color-ink-black);
-  }
-
-  .rule-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 0;
-  }
-
-  .rule-list li {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-  }
-
-  :global(.rule-icon) {
-    width: 16px !important;
-    height: 16px !important;
-    min-width: 16px !important;
-    flex-shrink: 0;
-  }
-
-  /* Main Sheet */
-  .duel-sheet {
-    background: var(--color-bone-white);
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    padding: 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    box-shadow: 0 6px 0 var(--color-ink-black);
-  }
-
-  .sheet-head {
-    display: flex;
-    justify-content: space-between;
-    padding-bottom: 12px;
-    border-bottom: 2px dashed rgba(26, 26, 26, 0.2);
-    font-size: 12px;
-  }
-
-  .qdots {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .qdot {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: var(--border-thick);
-    background: var(--color-bone-white);
-    box-shadow: 0 2px 0 var(--color-ink-black);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.1s ease;
-  }
-
-  .qdot:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 3px 0 var(--color-ink-black);
-  }
-
-  .qdot.done {
-    background: var(--color-matcha-cream);
-  }
-
-  .qdot.current {
-    background: var(--color-hi-vis-yellow);
-    box-shadow: 0 3px 0 var(--color-ink-black);
-    transform: translateY(-2px);
-  }
-
-  .question-box {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .prompt-card {
-    background: rgba(26, 26, 26, 0.04);
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    box-shadow: 0 3px 0 var(--color-ink-black);
-    padding: 24px;
-    text-align: center;
-  }
-
-  .prompt-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--ink-60);
-    margin-bottom: 8px;
-  }
-
-  .prompt-word-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  .prompt-word {
-    font-family: var(--font-display);
-    font-size: clamp(28px, 5vw, 42px);
-    font-weight: 900;
-    letter-spacing: -0.01em;
-  }
-
-  .options-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
-
-  @media (max-width: 600px) {
-    .options-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .option-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 20px;
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    background: var(--color-bone-white);
-    box-shadow: 0 3px 0 var(--color-ink-black);
-    font-size: 15px;
-    font-weight: 700;
-    text-align: left;
-    cursor: pointer;
-    transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.1s ease;
-  }
-
-  .option-btn:hover {
-    background: var(--color-buttery-yellow);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 0 var(--color-ink-black);
-  }
-
-  .option-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 var(--color-ink-black);
-  }
-
-  .option-btn.picked {
-    background: var(--color-hi-vis-yellow);
-    box-shadow: 0 3px 0 var(--color-ink-black);
-  }
-
-  .opt-num {
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
-    border: var(--border-thick);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 800;
-    background: var(--color-bone-white);
-    box-shadow: 0 1px 0 var(--color-ink-black);
-  }
-
-  .sheet-footer {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 14px;
-    border-top: 1px solid rgba(26, 26, 26, 0.1);
-  }
-
-  /* Results Card */
-  .results-card {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    text-align: center;
-    padding: 36px 24px;
-  }
-
-  .results-head h2 {
-    font-family: var(--font-display);
-    font-size: 32px;
-    font-weight: 800;
-    margin: 8px 0 4px;
-  }
-
-  .scores-table-wrap {
-    text-align: left;
-  }
-
-  .scores-table-wrap h3 {
-    font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 12px;
-  }
-
-  .scores-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    overflow: hidden;
-  }
-
-  .scores-table th, .scores-table td {
-    padding: 12px 16px;
-    border-bottom: 1px solid rgba(26, 26, 26, 0.15);
-  }
-
-  .scores-table th {
-    background: rgba(26, 26, 26, 0.05);
-    font-family: var(--font-mono);
-    font-size: 12px;
-  }
-
-  .scores-table tr.you {
-    background: rgba(244, 237, 54, 0.35);
-  }
-
-  .player-cell {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-  }
-
-  .player-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 1.5px solid var(--color-ink-black);
-    background: var(--color-bone-white);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 800;
-  }
-
-  .score-val {
-    font-family: var(--font-mono);
-    color: var(--color-magenta-punch);
-  }
-
-  .results-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-  }
-</style>

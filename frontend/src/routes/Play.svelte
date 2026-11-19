@@ -279,12 +279,18 @@
         {:else}
           {#each myDuels as d}
             <li class="room-row">
-              <a href="#/duel/{d.code}" class="row spread" style="width:100%;text-decoration:none;color:inherit;align-items:center;">
-                <div class="room-info">
-                  <span class="mono-tag" style="background:#f4ed36;border:1.5px solid #000;border-radius:100px;padding:2px 8px;font-weight:700;">{d.code}</span>
-                  <span class="small" style="margin-left:8px;">{d.title || 'Duel'}</span>
+              <a href="#/duel/{d.code}" class="row spread duel-row" style="width:100%;text-decoration:none;color:inherit;align-items:center;">
+                <div class="room-info" style="display:flex;align-items:center;gap:10px;">
+                  <span class="code-chip pill yellow mono-tag" style="font-size:12px;font-weight:900;padding:2px 8px;">{d.code}</span>
+                  <div>
+                    <span style="font-weight:600;font-size:14px;">{d.title || 'Duel'}</span>
+                    <br />
+                    <span class="muted small mono-tag">by {d.creator || 'Player'} · {d.players || 1} played</span>
+                  </div>
                 </div>
-                <span class="btn small outline">{d.submitted ? 'Results' : 'Play →'}</span>
+                <span class="btn small outline" style="font-weight:700;">
+                  {d.myPoints != null ? `${d.myPoints} pts` : 'Play →'}
+                </span>
               </a>
             </li>
           {/each}
