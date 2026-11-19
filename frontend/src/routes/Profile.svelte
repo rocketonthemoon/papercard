@@ -43,16 +43,12 @@
   async function handleFollowToggle() {
     if (!u) return;
     try {
-      if (u.following) {
-        await api(`/users/${encodeURIComponent(u.username)}/follow`, { method: 'DELETE' });
-        u.following = false;
-        u.followers = Math.max(0, (u.followers || 0) - 1);
-      } else {
-        await api(`/users/${encodeURIComponent(u.username)}/follow`, { method: 'POST' });
-        u.following = true;
-        u.followers = (u.followers || 0) + 1;
-      }
-      data = { ...data };
+      // The server replies with the updated profile card: youFollow (bool), followers/following (counts).
+      const fresh = await api(`/users/${encodeURIComponent(u.username)}/follow`, {
+        method: u.youFollow ? 'DELETE' : 'POST',
+        body: {}
+      });
+      data = { ...data, user: { ...u, ...fresh } };
     } catch (e) {
       appState.showToast(e.message || 'Action failed');
     }
@@ -63,15 +59,19 @@
     try {
       saving = true;
       editErr = '';
+      // PUT /api/me replies with the profile card itself (not wrapped in {user}).
       const updated = await api('/me', {
-        method: 'POST',
+        method: 'PUT',
         body: { username: editHandle.trim(), bio: editBio.trim() }
       });
-      u.username = updated.user.username;
-      u.bio = updated.user.bio;
-      appState.user = updated.user;
+      const renamed = updated.username !== u.username;
+      u.username = updated.username;
+      u.bio = updated.bio;
+      data = { ...data };
+      if (appState.user) appState.user = { ...appState.user, username: updated.username, bio: updated.bio };
       isEditing = false;
       appState.showToast('Profile updated!');
+      if (renamed) appState.navigate(`#/u/${encodeURIComponent(updated.username)}`);
     } catch (e) {
       editErr = e.message || 'Failed to update profile';
     } finally {
@@ -118,7 +118,7 @@
 
           <div class="follow-counts mono-tag small">
             <span><b>{u.followers || 0}</b> followers</span>
-            <span><b>{u.followingCount || 0}</b> following</span>
+            <span><b>{u.following || 0}</b> following</span>
           </div>
         </div>
 
@@ -137,11 +137,11 @@
           {:else}
             <button
               class="btn sm"
-              class:primary={!u.following}
-              class:outline={u.following}
+              class:primary={!u.youFollow}
+              class:outline={u.youFollow}
               onclick={handleFollowToggle}
             >
-              {u.following ? 'Following' : 'Follow +'}
+              {u.youFollow ? 'Following' : 'Follow +'}
             </button>
           {/if}
         </div>

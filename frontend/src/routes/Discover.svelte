@@ -49,7 +49,7 @@
 
   async function handleEnroll(c) {
     try {
-      await api('/learn', { method: 'POST', body: { courseId: c.id } });
+      await api(`/courses/${c.id}/enroll`, { method: 'POST', body: {} });
       appState.showToast(`Enrolled in ${c.title}!`);
       appState.navigate(`#/learn/course/${c.id}`);
     } catch (e) {
