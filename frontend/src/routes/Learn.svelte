@@ -43,6 +43,10 @@
     if (c.toLang && c.toLang.toLowerCase().includes('lithuanian')) return 'LT';
     return (c.toLang || 'LT').slice(0, 2).toUpperCase();
   }
+  const myRank = $derived.by(() => {
+    const myRow = board?.rows?.find((r) => r.isYou);
+    return myRow ? myRow.rank : (board?.me?.rank || 1);
+  });
 </script>
 
 <div class="dash">
@@ -85,14 +89,12 @@
               {/if}
 
               <!-- Progress bar -->
-              <div class="progress-wrap">
-                <div class="progress-labels mono-tag">
+              <div class="enrolled-progress">
+                <div class="row spread small mono-tag">
                   <span><b>{pct}%</b> COMPLETED</span>
-                  <span>{c.learned || 0}/{c.words} WORDS</span>
+                  <span class="muted">{c.learned || 0}/{c.words} WORDS</span>
                 </div>
-                <div class="progress-track">
-                  <div class="progress-bar" style="width: {pct}%"></div>
-                </div>
+                <div class="bar"><i style="width: {pct}%"></i></div>
               </div>
 
               <div class="enrolled-foot">
@@ -135,50 +137,59 @@
             <span class="dash-collapsible-chev" aria-hidden="true">▾</span>
             <h3>Today</h3>
           </div>
+          <div class="dash-progress-summary-meta">
+            {#if stats?.due}
+              <span class="pill due mono-tag">{stats.due} DUE</span>
+            {/if}
+            {#if todayXP}
+              <span class="pill ok mono-tag">+{todayXP} XP</span>
+            {:else}
+              <span class="pill mono-tag">0 XP</span>
+            {/if}
+            <span class="dash-progress-quick-stats mono-tag">{stats?.streak ?? 0}d · {stats?.learned ?? 0} learned</span>
+          </div>
         </summary>
-        <div class="today-xp-row" style="padding:14px 0;">
-          <span class="mono-tag" style="font-size:24px;font-weight:900;color:#000;">+{todayXP} XP</span>
-          <span class="muted small" style="margin-left:8px;">earned today</span>
+        <div class="dash-collapsible-body dash-progress-body">
+          <div class="stat-row">
+            <div class="stat-box"><span class="mono-tag">Learned</span><b class="mono-tag">{stats?.learned ?? 0}</b></div>
+            <div class="stat-box"><span class="mono-tag">Due</span><b class="mono-tag">{stats?.due ?? 0}</b></div>
+          </div>
+          {#if stats?.due}
+            <a class="btn btn-gate-pill block" href="#/learn/review">Review {stats.due} words now</a>
+          {:else if stats?.learned}
+            <p class="stat-note">All caught up! Next review soon.</p>
+          {/if}
+          {#if quests.length > 0}
+            <div class="dash-today-quests">
+              <div class="dash-activity-head"><span class="muted small mono-tag">Active quests</span></div>
+              <ul class="quests">
+                {#each quests as q}
+                  <li>
+                    <div class="row spread mono-tag">
+                      <span>Earn {q} XP</span>
+                      <span class="muted small">{stats?.xp ?? 0}/{q}</span>
+                    </div>
+                    <div class="bar"><i style="width: {Math.min(100, Math.round((100 * (stats?.xp ?? 0)) / q))}%"></i></div>
+                  </li>
+                {/each}
+              </ul>
+            </div>
+          {/if}
+          <div class="dash-side-links">
+            <a class="small mono-tag" href="#/learn/words">All your words</a>
+            {#if stats?.learned}
+              <a class="small mono-tag" href="#/learn/review">Shuffled flashcards</a>
+            {/if}
+          </div>
         </div>
-        {#if quests.length > 0}
-          <ul class="quest-list" style="list-style:none;padding:0;margin-top:12px;">
-            {#each quests as q}
-              <li style="margin-bottom:10px;">
-                <div class="row spread mono-tag small" style="margin-bottom:4px;">
-                  <span>Earn {q} XP</span>
-                  <span class="muted small">{stats?.xp || 0}/{q}</span>
-                </div>
-                <div class="progress-track" style="height:6px;">
-                  <div class="progress-bar" style="width:{Math.min(100, Math.round((100 * (stats?.xp || 0)) / q))}%"></div>
-                </div>
-              </li>
-            {/each}
-          </ul>
-        {/if}
       </details>
 
-      <!-- Mini Leaderboard Widget -->
-      <section class="card widget dash-board-widget" style="margin-top:16px;">
-        <div class="row spread" style="margin-bottom:12px;">
-          <h3>Weekly Board</h3>
-          <a href="#/leaderboard" class="small mono-tag" style="font-weight:700;color:inherit;text-decoration:none;">View all →</a>
-        </div>
-        {#if board?.rows?.length}
-          <ol class="rank-list compact" style="list-style:none;padding:0;margin:0;">
-            {#each board.rows.slice(0, 5) as r}
-              <li class="row spread {r.isYou ? 'you' : ''}" style="padding:6px 0;align-items:center;border-bottom:1px solid rgba(0,0,0,0.05);">
-                <div class="row" style="gap:8px;">
-                  <span class="mono-tag" style="font-weight:700;width:18px;">{r.rank}</span>
-                  <span class="small" style="font-weight:600;">{r.name}{r.isYou ? ' (you)' : ''}</span>
-                </div>
-                <span class="mono-tag small" style="font-weight:700;">{r.xp} XP</span>
-              </li>
-            {/each}
-          </ol>
-        {:else}
-          <p class="muted small">Finish a lesson to get on the board!</p>
-        {/if}
-      </section>
+      <div class="card widget dash-rank-card">
+        <a href="#/leaderboard" class="dash-rank-line">
+          <span class="dash-rank-title">Leaderboard</span>
+          <span class="dash-rank-val mono-tag">#{myRank} this week →</span>
+        </a>
+      </div>
     </aside>
   {/if}
 </div>

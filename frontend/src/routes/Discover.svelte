@@ -10,16 +10,28 @@
   let searchQuery = $state('');
   let officialOnly = $state(false);
 
-  onMount(async () => {
+  const tint = (id) => `tint-${Math.abs(Number(id) || 0) % 6}`;
+
+  function flag(c) {
+    if (c.toCode) return c.toCode.toUpperCase();
+    if (c.toLang && c.toLang.toLowerCase().includes('lithuanian')) return 'LT';
+    return (c.toLang || 'LT').slice(0, 2).toUpperCase();
+  }
+
+  async function loadCatalog() {
     try {
       loading = true;
-      const res = await api('/courses');
+      const res = await api('/courses?tab=popular');
       courses = res.courses || [];
     } catch (e) {
       errorMsg = e.message || 'Failed to load courses';
     } finally {
       loading = false;
     }
+  }
+
+  onMount(() => {
+    loadCatalog();
   });
 
   let filteredCourses = $derived(
@@ -46,216 +58,104 @@
   }
 </script>
 
-<div class="discover-view">
-  <header class="discover-hero">
-    <h1 class="discover-title">Discover Courses</h1>
-    <p class="discover-subtitle">Learn Lithuanian and other languages through courses made by us and learners.</p>
+<div class="discover">
+  <div class="discover-main">
+    <section class="discover-hero">
+      <form class="discover-search" id="d-form" role="search" onsubmit={(e) => e.preventDefault()}>
+        <div class="search-input-wrap">
+          <input
+            type="search"
+            id="d-q"
+            placeholder="Search courses, languages, topics…"
+            aria-label="Search courses"
+            autocomplete="off"
+            spellcheck="false"
+            bind:value={searchQuery}
+          />
+          {#if searchQuery}
+            <button type="button" class="search-clear-btn" aria-label="Clear search" onclick={() => searchQuery = ''}>
+              <Icon name="close" size={16} />
+            </button>
+          {/if}
+        </div>
+        <button class="btn btn-gate-pill search-btn" type="submit">Search →</button>
+      </form>
 
-    <div class="search-bar">
-      <input
-        type="search"
-        class="discover-input"
-        placeholder="Search courses, topics, or languages..."
-        bind:value={searchQuery}
-      />
-      <label class="filter-toggle">
-        <input type="checkbox" bind:checked={officialOnly} />
-        <span class="mono-tag small">Official only</span>
-      </label>
-    </div>
-  </header>
+      <div class="row" style="margin-top:14px;gap:12px;">
+        <label class="row" style="gap:8px;cursor:pointer;">
+          <input type="checkbox" bind:checked={officialOnly} />
+          <span class="mono-tag small" style="font-weight:700;">Official courses only</span>
+        </label>
+      </div>
+    </section>
 
-  {#if loading}
-    <div class="card loading-box">
-      <p class="muted">Loading courses catalog…</p>
-    </div>
-  {:else if errorMsg}
-    <div class="card error-box">
-      <h2>Unable to load catalog</h2>
-      <p class="muted">{errorMsg}</p>
-    </div>
-  {:else if filteredCourses.length === 0}
-    <div class="card empty-box">
-      <h2>No courses found</h2>
-      <p class="muted">Try adjusting your search query or create a course in the Studio.</p>
-      <a href="#/studio" class="btn primary">Create a course →</a>
-    </div>
-  {:else}
-    <div class="courses-grid">
-      {#each filteredCourses as c}
-        <article class="card course-card">
-          <div class="card-top">
-            <span class="pill yellow">{c.creator?.official ? 'OFFICIAL' : 'COMMUNITY'}</span>
-            <span class="mono-tag muted">{c.fromLang} → {c.toLang}</span>
-          </div>
+    {#if loading}
+      <p class="muted loading" style="text-align:center;padding:40px 0;">Loading courses catalog…</p>
+    {:else if errorMsg}
+      <section class="card picker" style="max-width:540px;margin:20px auto;">
+        <header class="picker-head">
+          <h2>Unable to load catalog</h2>
+          <p class="muted">{errorMsg}</p>
+        </header>
+      </section>
+    {:else if filteredCourses.length === 0}
+      <section class="card picker" style="max-width:540px;margin:20px auto;">
+        <header class="picker-head">
+          <h2>No courses found</h2>
+          <p class="muted">Try adjusting your search query or create a course in the Studio.</p>
+        </header>
+        <div class="row" style="justify-content:center;margin-top:16px;">
+          <a href="#/studio" class="btn btn-gate-pill">Create a course →</a>
+        </div>
+      </section>
+    {:else}
+      <div class="course-grid discover-grid" id="d-grid">
+        {#each filteredCourses as c (c.id)}
+          {@const tag = c.creator?.official ? 'OFFICIAL' : c.enrolled ? 'ENROLLED' : 'COMMUNITY'}
+          {@const pct = c.words ? Math.round((100 * (c.learned || 0)) / c.words) : 0}
+          <article class="pcard">
+            <div class="tile-art {tint(c.id)}">
+              <div class="pcard-top-row">
+                <span class="tag-chip mono-tag">{tag}</span>
+                <span class="lang-orb mono-tag">{flag(c)}</span>
+              </div>
+              <h3 class="pcard-title" title={c.title}>
+                <a href="#/course/{c.id}">{c.title}</a>
+              </h3>
+              <p class="pcard-desc" title={c.description || ''}>
+                {c.description || 'Comprehensive vocabulary and conversational practice.'}
+              </p>
+              <div class="meta mono-tag">
+                <span>{c.fromLang || 'en'} → {c.toLang || 'lt'}</span> · 
+                <span>{c.words} {c.words === 1 ? 'word' : 'words'}</span> · 
+                <span>{c.learners || 0} {c.learners === 1 ? 'learner' : 'learners'}</span>
+              </div>
+              {#if c.enrolled}
+                <div class="progress-line">
+                  <div class="row spread mono-tag small">
+                    <span>Progress</span>
+                    <span>{pct}%</span>
+                  </div>
+                  <div class="bar"><i style="width:{pct}%"></i></div>
+                </div>
+              {:else}
+                <div class="progress-line empty" aria-hidden="true"></div>
+              {/if}
+            </div>
 
-          <h2 class="card-title">
-            <a href="#/course/{c.id}">{c.title}</a>
-          </h2>
-
-          <p class="card-desc">
-            {c.description || 'Comprehensive vocabulary and conversational practice.'}
-          </p>
-
-          <div class="card-meta mono-tag muted small">
-            <span>{c.words || 0} words</span> · <span>{c.learners || 0} learners</span>
-          </div>
-
-          <div class="card-actions">
-            {#if c.enrolled}
-              <a href="#/learn/course/{c.id}" class="btn primary sm">Continue →</a>
-            {:else}
-              <button
-                type="button"
-                class="btn primary sm"
-                onclick={() => handleEnroll(c)}
-              >
-                Start →
-              </button>
-            {/if}
-            <a href="#/course/{c.id}" class="btn outline sm">Details</a>
-          </div>
-        </article>
-      {/each}
-    </div>
-  {/if}
+            <div class="pcard-foot">
+              <span class="creator-meta mono-tag">
+                by {c.creator?.name || 'Vokab'}
+              </span>
+              {#if c.enrolled}
+                <a class="btn btn-gate-pill small" href="#/learn/course/{c.id}">Continue →</a>
+              {:else}
+                <button class="btn btn-gate-pill small" onclick={() => handleEnroll(c)}>Start →</button>
+              {/if}
+            </div>
+          </article>
+        {/each}
+      </div>
+    {/if}
+  </div>
 </div>
-
-<style>
-  .discover-view {
-    max-width: 1040px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-  }
-
-  .discover-hero {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .discover-title {
-    font-family: var(--font-display);
-    font-size: 34px;
-    font-weight: 900;
-    color: var(--color-bone-white);
-  }
-
-  .discover-subtitle {
-    color: var(--color-bone-white);
-    font-size: 16px;
-    max-width: 580px;
-  }
-
-  .search-bar {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-  }
-
-  .discover-input {
-    flex: 1;
-    min-width: 260px;
-    border: var(--border-thick);
-    border-radius: var(--radius-pill);
-    padding: 12px 22px;
-    font-family: inherit;
-    font-size: 15px;
-    font-weight: 600;
-    background: var(--color-bone-white);
-    box-shadow: 0 3px 0 var(--color-ink-black);
-  }
-
-  .filter-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--color-bone-white);
-    font-weight: 700;
-    cursor: pointer;
-    user-select: none;
-  }
-
-  .filter-toggle input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--color-hi-vis-yellow);
-    cursor: pointer;
-  }
-
-  .courses-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-    gap: 20px;
-  }
-
-  .course-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 250px;
-    background: var(--color-bone-white);
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
-    padding: 22px;
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
-  }
-
-  .course-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 0 rgba(26, 26, 26, 0.3);
-  }
-
-  .card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-
-  .card-title {
-    font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 800;
-    line-height: 1.25;
-    margin-bottom: 8px;
-  }
-
-  .card-title a:hover {
-    color: var(--color-magenta-punch);
-  }
-
-  .card-desc {
-    font-size: 13.5px;
-    color: var(--ink-60);
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-bottom: 14px;
-  }
-
-  .card-meta {
-    margin-bottom: 16px;
-  }
-
-  .card-actions {
-    display: flex;
-    gap: 10px;
-  }
-
-  .loading-box, .error-box, .empty-box {
-    text-align: center;
-    padding: 48px 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-  }
-</style>

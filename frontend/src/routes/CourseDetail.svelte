@@ -9,15 +9,13 @@
   let loading = $state(true);
   let errorMsg = $state('');
   let data = $state(null);
-  let enrolling = $state(false);
 
   onMount(async () => {
     try {
       loading = true;
-      const res = await api(`/courses/${id}`);
-      data = res;
+      data = await api(`/courses/${id}`);
     } catch (e) {
-      errorMsg = e.message || 'Failed to load course details';
+      errorMsg = e.message || 'Failed to load course';
     } finally {
       loading = false;
     }
@@ -25,231 +23,97 @@
 
   let c = $derived(data?.course || null);
   let units = $derived(data?.units || []);
+  let canEdit = $derived(data?.canEdit || false);
 
   async function handleEnroll() {
     try {
-      enrolling = true;
-      await api('/learn', {
-        method: 'POST',
-        body: { courseId: c.id }
-      });
+      await api('/learn', { method: 'POST', body: { courseId: c.id } });
       appState.showToast(`Enrolled in ${c.title}!`);
       appState.navigate(`#/learn/course/${c.id}`);
     } catch (e) {
       appState.showToast(e.message || 'Failed to enroll');
-    } finally {
-      enrolling = false;
     }
   }
 </script>
 
-<div class="course-detail-view">
-  <div class="detail-header">
-    <a href="#/discover" class="back-link mono-tag">
-      <Icon name="back" size={16} />
-      <span>All courses</span>
-    </a>
-    {#if data?.canEdit}
-      <a href="#/studio/{c.id}" class="btn sm outline">
-        <Icon name="edit" size={14} />
-        <span>Edit course</span>
-      </a>
-    {/if}
-  </div>
-
+<div>
   {#if loading}
-    <div class="card loading-box">
-      <p class="muted">Loading course details…</p>
-    </div>
-  {:else if errorMsg}
-    <div class="card error-box">
-      <h2>Unable to load course</h2>
-      <p class="muted">{errorMsg}</p>
-      <a href="#/discover" class="btn primary">Back to Discover</a>
-    </div>
-  {:else if c}
-    <section class="card hero-card">
-      <div class="hero-top">
-        <span class="pill yellow">{c.creator?.official ? 'OFFICIAL' : 'COMMUNITY'}</span>
-        <span class="mono-tag muted">{c.fromLang} → {c.toLang}</span>
-      </div>
-
-      <h1 class="hero-title">{c.title}</h1>
-
-      <p class="stats-line mono-tag muted small">
-        {c.units || units.length} decks · {c.words || 0} words · {c.learners || 0} learners
-      </p>
-
-      <p class="hero-desc">{c.description || 'Comprehensive vocabulary and conversational practice.'}</p>
-
-      <div class="hero-actions">
-        {#if c.enrolled}
-          <a href="#/learn/course/{c.id}" class="btn primary">
-            Continue course →
-          </a>
-        {:else}
-          <button
-            type="button"
-            class="btn primary"
-            onclick={handleEnroll}
-            disabled={enrolling}
-          >
-            {enrolling ? 'Enrolling...' : 'Enroll in course →'}
-          </button>
-        {/if}
+    <p class="muted loading" style="text-align:center;padding:40px 0;">Loading course…</p>
+  {:else if errorMsg || !c}
+    <section class="card picker" style="max-width:540px;margin:20px auto;">
+      <header class="picker-head">
+        <h2>Course not found</h2>
+        <p class="muted">{errorMsg || 'Could not find the requested course.'}</p>
+      </header>
+      <div class="row" style="justify-content:center;margin-top:16px;">
+        <a class="btn btn-gate-pill" href="#/discover">Back to Courses</a>
       </div>
     </section>
-
-    <!-- Units & Syllabus Breakdown -->
-    <div class="syllabus-card card">
-      <h2 class="syllabus-title">Course Syllabus</h2>
-
-      <div class="unit-list">
-        {#each units as u, i}
-          <div class="unit-item">
-            <div class="unit-header">
-              <span class="unit-num mono-tag">DECK {i + 1}</span>
-              <h3 class="unit-title">{u.title}</h3>
-              <span class="unit-words-count mono-tag muted small">
-                {(u.lessons || []).length} lessons
-              </span>
-            </div>
-
-            {#if u.lessons && u.lessons.length}
-              <ul class="lesson-pills">
-                {#each u.lessons as l}
-                  <li class="lesson-chip mono-tag">
-                    {l.title}
-                  </li>
-                {/each}
-              </ul>
-            {/if}
-          </div>
-        {/each}
+  {:else}
+    <div class="toolbar course-breadcrumb-bar" style="margin-bottom:16px;">
+      <div class="breadcrumb-trail">
+        <a class="back mono-tag" href="#/discover" style="text-decoration:none;color:inherit;font-weight:700;">
+          ← Courses
+        </a>
+        <span class="breadcrumb-sep" style="margin:0 8px;">/</span>
+        <span class="breadcrumb-current mono-tag" style="opacity:0.8;">{c.title}</span>
       </div>
+      <div class="toolbar-actions">
+        {#if canEdit}
+          <a class="btn outline small" href="#/studio/{c.id}">Edit course</a>
+        {/if}
+      </div>
+    </div>
+
+    <div class="course-page" style="display:grid;grid-template-columns:1fr 300px;gap:24px;">
+      <div class="course-page-main">
+        <section class="card course-overview" style="margin-bottom:24px;">
+          <div class="row" style="gap:8px;margin-bottom:12px;">
+            <span class="pill yellow">{c.creator?.official ? 'OFFICIAL' : 'COMMUNITY'}</span>
+            <span class="mono-tag muted">{c.fromLang} → {c.toLang}</span>
+          </div>
+          <h1 style="font-family:var(--font-display);font-size:32px;font-weight:900;letter-spacing:-0.03em;">{c.title}</h1>
+          <p class="muted" style="margin:12px 0 20px;font-size:16px;line-height:1.5;">{c.description || 'Step-by-step vocabulary and phrases.'}</p>
+
+          <div class="course-stats mono-tag muted small" style="display:flex;gap:16px;border-top:1.5px solid rgba(0,0,0,0.1);padding-top:14px;">
+            <span>{units.length} decks</span>
+            <span>{c.words} words</span>
+            <span>{c.learners || 0} learners</span>
+          </div>
+        </section>
+
+        <!-- Syllabus -->
+        <h2 style="font-family:var(--font-display);font-size:24px;font-weight:900;margin-bottom:14px;">Course Decks</h2>
+        <div class="syllabus-list" style="display:flex;flex-direction:column;gap:12px;">
+          {#each units as u, ui}
+            <div class="card unit-preview-card" style="padding:18px 24px;">
+              <div class="row spread" style="margin-bottom:8px;">
+                <b style="font-size:18px;">Deck {ui + 1}: {u.title}</b>
+                <span class="pill bone sm">{u.level || 'A1'}</span>
+              </div>
+              {#if u.description}
+                <p class="muted small" style="margin-bottom:10px;">{u.description}</p>
+              {/if}
+              <div class="mono-tag small muted">
+                {(u.lessons || []).length} lessons · {(u.lessons || []).reduce((n, l) => n + (l.total || 0), 0)} words
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+
+      <!-- Side Card -->
+      <aside class="course-page-side">
+        <div class="card enroll-card" style="position:sticky;top:80px;text-align:center;">
+          <h3 style="font-family:var(--font-display);font-size:22px;margin-bottom:8px;">Ready to learn?</h3>
+          <p class="muted small" style="margin-bottom:20px;">Master this course with bite-sized lessons and flashcards.</p>
+          {#if c.enrolled}
+            <a href="#/learn/course/{c.id}" class="btn btn-gate-pill" style="width:100%;justify-content:center;">Continue learning →</a>
+          {:else}
+            <button class="btn btn-gate-pill" style="width:100%;justify-content:center;" onclick={handleEnroll}>Start course →</button>
+          {/if}
+        </div>
+      </aside>
     </div>
   {/if}
 </div>
-
-<style>
-  .course-detail-view {
-    max-width: 760px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .detail-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--color-bone-white);
-    font-weight: 700;
-  }
-
-  .back-link:hover {
-    color: var(--color-hi-vis-yellow);
-  }
-
-  .hero-card {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .hero-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .hero-title {
-    font-family: var(--font-display);
-    font-size: 32px;
-    font-weight: 900;
-    line-height: 1.1;
-  }
-
-  .stats-line {
-    font-size: 12px;
-  }
-
-  .hero-desc {
-    font-size: 15px;
-    line-height: 1.5;
-    color: var(--ink-60);
-  }
-
-  .hero-actions {
-    margin-top: 8px;
-  }
-
-  .syllabus-card {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .syllabus-title {
-    font-family: var(--font-display);
-    font-size: 22px;
-    font-weight: 800;
-    border-bottom: 1.5px solid rgba(26, 26, 26, 0.12);
-    padding-bottom: 10px;
-  }
-
-  .unit-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .unit-item {
-    border: 1.5px solid var(--color-ink-black);
-    border-radius: var(--radius-card);
-    padding: 14px;
-    background: var(--color-bone-white);
-  }
-
-  .unit-header {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
-  .unit-num {
-    font-size: 11px;
-    color: var(--ink-60);
-  }
-
-  .unit-title {
-    font-family: var(--font-display);
-    font-size: 17px;
-    font-weight: 800;
-    flex: 1;
-  }
-
-  .lesson-pills {
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 0;
-  }
-
-  .lesson-chip {
-    background: rgba(26, 26, 26, 0.05);
-    border: 1px solid rgba(26, 26, 26, 0.2);
-    border-radius: var(--radius-pill);
-    padding: 3px 10px;
-    font-size: 11px;
-  }
-</style>

@@ -8,12 +8,13 @@
   let errorMsg = $state('');
   let course = $state(null);
   let words = $state([]);
+  let stats = $state(null);
   let now = $state(Date.now());
 
   let deck = $state([]);
   let index = $state(0);
   let flipped = $state(false);
-  let direction = $state('lt-en'); // lt-en or en-lt
+  let direction = $state('lt-en'); // 'lt-en' or 'en-lt'
   let mastered = $state(new Set());
   let stillLearning = $state(new Set());
   let isFinished = $state(false);
@@ -27,19 +28,12 @@
     return a;
   }
 
-  function playAudio(text, lang = 'lt-LT') {
-    if (typeof window === 'undefined' || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang;
-    window.speechSynthesis.speak(u);
-  }
-
-  onMount(async () => {
+  async function loadWords() {
     try {
       loading = true;
       const res = await api('/learn/words');
       course = res.course;
+      stats = res.stats || {};
       now = res.now || Date.now();
       const allWords = (res.units || [])
         .flatMap(u => (u.lessons || []).flatMap(l => l.words || []))
@@ -48,13 +42,21 @@
       words = allWords;
       if (allWords.length > 0) {
         deck = shuffle(allWords);
+        index = 0;
+        flipped = false;
+        mastered = new Set();
+        stillLearning = new Set();
+        isFinished = false;
       }
     } catch (e) {
       errorMsg = e.message || 'Failed to load review flashcards';
     } finally {
       loading = false;
     }
+  }
 
+  onMount(() => {
+    loadWords();
     window.addEventListener('keydown', handleKeydown);
   });
 
@@ -93,70 +95,59 @@
   let currentCard = $derived(deck[index] || null);
   let progressPct = $derived(deck.length ? Math.round((index / deck.length) * 100) : 0);
 
-  let toLangName = $derived(course?.toLang || 'Lithuanian');
-  let fromLangName = $derived(course?.fromLang || 'English');
+  let toLanguageName = $derived(course?.toLang || 'Lithuanian');
+  let fromLanguageName = $derived(course?.fromLang || 'English');
+  let courseBack = $derived(course?.id ? `#/learn/course/${course.id}` : '#/learn');
 
   let isLtFront = $derived(direction === 'lt-en');
   let frontText = $derived(currentCard ? (isLtFront ? currentCard.lt : currentCard.en) : '');
   let backText = $derived(currentCard ? (isLtFront ? currentCard.en : currentCard.lt) : '');
-  let frontLang = $derived(isLtFront ? toLangName : fromLangName);
-  let backLang = $derived(isLtFront ? fromLangName : toLangName);
+  let frontLang = $derived(isLtFront ? toLanguageName : fromLanguageName);
+  let backLang = $derived(isLtFront ? fromLanguageName : toLanguageName);
 
-  function prevCard() {
-    if (index > 0) {
-      index--;
-      flipped = false;
-    }
-  }
-
-  function skipCard() {
-    if (index + 1 < deck.length) {
-      index++;
-      flipped = false;
-    } else {
-      finishReview();
-    }
+  function markMastered() {
+    if (!currentCard) return;
+    mastered.add(currentCard.id);
+    mastered = new Set(mastered);
+    api(`/learn/words/${currentCard.id}/answer`, {
+      method: 'POST',
+      body: { review: true, text: currentCard.lt, kind: 'type_lt' }
+    }).catch(() => {});
+    nextCard();
   }
 
   function markLearning() {
     if (!currentCard) return;
     stillLearning.add(currentCard.id);
-    deck.push(currentCard); // Re-queue at the end
-    advance();
+    stillLearning = new Set(stillLearning);
+    nextCard();
   }
 
-  function markMastered() {
-    if (!currentCard) return;
-    mastered.add(currentCard.id);
-    if (currentCard.dueAt && currentCard.dueAt <= now) {
-      api(`/learn/words/${currentCard.id}/answer`, {
-        method: 'POST',
-        body: { review: true, text: currentCard.lt, kind: 'type_lt' }
-      }).catch(() => {});
-    }
-    advance();
-  }
-
-  function advance() {
-    if (index + 1 < deck.length) {
-      index++;
-      flipped = false;
+  function nextCard() {
+    flipped = false;
+    if (index + 1 >= deck.length) {
+      isFinished = true;
     } else {
-      finishReview();
+      index++;
     }
   }
 
-  function finishReview() {
-    isFinished = true;
-    appState.refreshTopStats();
+  function prevCard() {
+    if (index > 0) {
+      flipped = false;
+      index--;
+    }
   }
 
-  function handleShuffle() {
+  function skipCard() {
+    nextCard();
+  }
+
+  function reshuffle() {
     deck = shuffle(words);
     index = 0;
     flipped = false;
-    isFinished = false;
-    appState.showToast('Cards shuffled!');
+    appState.showToast('Cards reshuffled!');
   }
 
   function toggleDirection() {
@@ -165,472 +156,153 @@
   }
 </script>
 
-<div class="review-page">
+<div class="fc-review">
   {#if loading}
-    <div class="card loading-state">
-      <p class="muted">Loading flashcards…</p>
-    </div>
+    <p class="muted loading" style="text-align:center;padding:40px 0;">Loading your review flashcards…</p>
   {:else if errorMsg}
-    <div class="card error-box">
-      <h2>Unable to load review</h2>
+    <div class="card error-box" style="text-align:center;padding:32px;max-width:500px;margin:40px auto;">
+      <h2>Failed to load review</h2>
       <p class="muted">{errorMsg}</p>
-      <a href="#/learn" class="btn primary">Back to Home</a>
+      <a href="#/learn" class="btn btn-gate-pill" style="margin-top:16px;">Back to Home</a>
     </div>
   {:else if words.length === 0}
-    <!-- Empty State -->
-    <div class="card empty-card">
-      <div class="empty-icon"><Icon name="cards" size={56} /></div>
-      <h2>Nothing to review yet</h2>
-      <p class="muted">Words you learn in lessons show up here so you can review them and lock them into memory.</p>
-      <div class="btn-row">
-        <a href="#/learn" class="btn primary">Start a lesson →</a>
-      </div>
+    <div class="review-empty-stage" style="text-align:center;padding:60px 20px;max-width:520px;margin:0 auto;">
+      <span class="finish-icon" style="display:inline-block;margin-bottom:16px;"><Icon name="cards" size={56} /></span>
+      <h2>{stats?.learned ? 'All caught up for now!' : 'Nothing to review yet'}</h2>
+      <p class="muted" style="margin:12px 0 24px;">
+        {stats?.learned ? 'Your words are fresh. Come back when they’re due.' : 'Words you learn in lessons show up here, right before you’d forget them.'}
+      </p>
+      <a href={courseBack} class="btn btn-gate-pill big">Start a lesson →</a>
     </div>
   {:else if isFinished}
-    <!-- Finished State -->
-    <div class="card finish-card">
-      <div class="finish-icon"><Icon name="cards" size={56} /></div>
-      <h2>Review complete!</h2>
-      <p class="muted">You reviewed all {words.length} learned words.</p>
-
-      <div class="finish-stats">
-        <div class="fstat">
-          <span class="mono-tag muted">Mastered</span>
-          <b>{mastered.size}</b>
+    <section class="card finish" style="text-align:center;max-width:540px;margin:40px auto;padding:40px 24px;">
+      <span class="finish-icon" style="display:inline-block;margin-bottom:16px;"><Icon name="cards" size={56} /></span>
+      <h1 style="font-family:var(--font-display);font-size:32px;font-weight:900;">Review complete!</h1>
+      <p class="muted" style="margin:8px 0 24px;">You reviewed all {words.length} learned words in shuffled order.</p>
+      <div class="finish-stats" style="display:flex;justify-content:center;gap:24px;margin-bottom:32px;">
+        <div class="fstat xp" style="background:#f4ed36;border:2px solid #000;border-radius:6px;padding:12px 20px;box-shadow:0 3px 0 #000;">
+          <span class="mono-tag small" style="display:block;opacity:0.8;">Mastered</span>
+          <b style="font-size:22px;font-weight:900;">{mastered.size}</b>
         </div>
-        <div class="fstat">
-          <span class="mono-tag muted">Practiced</span>
-          <b>{stillLearning.size}</b>
+        <div class="fstat acc" style="background:#f9f5f2;border:2px solid #000;border-radius:6px;padding:12px 20px;box-shadow:0 3px 0 #000;">
+          <span class="mono-tag small" style="display:block;opacity:0.8;">Practiced</span>
+          <b style="font-size:22px;font-weight:900;">{stillLearning.size}</b>
         </div>
-        <div class="fstat">
-          <span class="mono-tag muted">Total cards</span>
-          <b>{words.length}</b>
+        <div class="fstat hp" style="background:#ffd33d;border:2px solid #000;border-radius:6px;padding:12px 20px;box-shadow:0 3px 0 #000;">
+          <span class="mono-tag small" style="display:block;opacity:0.8;">Cards</span>
+          <b style="font-size:22px;font-weight:900;">{words.length}</b>
         </div>
       </div>
-
-      <div class="finish-actions">
-        <button class="btn primary" onclick={handleShuffle}>
-          <Icon name="shuffle" size={16} />
-          <span>Shuffle & Review again</span>
-        </button>
-        <a href="#/learn" class="btn outline">Done</a>
+      <div class="row" style="justify-content:center;gap:12px;margin-bottom:16px;">
+        <button class="btn big btn-gate-pill" onclick={reshuffle}>Shuffle & Review again</button>
+        <a class="btn big outline" href={courseBack}>Done</a>
       </div>
-
-      <a href="#/learn/words" class="word-list-link">
-        <Icon name="list" size={15} />
-        <span>View all learned words</span>
-      </a>
-    </div>
+      <a class="small" href="#/learn/words" style="color:inherit;font-weight:700;">All your words →</a>
+    </section>
   {:else if currentCard}
-    <!-- Active Review Stage -->
-    <div class="fc-container">
-      <header class="fc-header">
-        <div class="fc-topbar">
-          <a href="#/learn" class="icon-btn sm" title="Exit review">
-            <Icon name="close" size={16} />
-          </a>
-          <span class="fc-counter mono-tag">
-            CARD <b>{index + 1}</b> / {deck.length}
-          </span>
-          <div class="fc-tools">
-            <button class="btn sm outline" onclick={handleShuffle} title="Shuffle deck">
-              <Icon name="shuffle" size={14} />
-              <span>Shuffle</span>
-            </button>
-            <button class="btn sm outline" onclick={toggleDirection} title="Switch front/back">
-              <Icon name="flip" size={14} />
-              <span>{isLtFront ? 'LT → EN' : 'EN → LT'}</span>
-            </button>
-          </div>
+    <header class="fc-top">
+      <div class="fc-top-bar">
+        <button type="button" class="icon-btn" id="fc-quit" aria-label="Quit review" onclick={() => appState.navigate(courseBack)}>
+          <Icon name="close" size={20} />
+        </button>
+        <div class="fc-counter">Card <b>{index + 1}</b> / {deck.length}</div>
+        <div class="fc-top-actions">
+          <button type="button" class="btn outline small" id="fc-shuffle" title="Reshuffle deck" onclick={reshuffle}>
+            Shuffle
+          </button>
+          <button type="button" class="btn outline small" id="fc-dir" title="Change card direction" onclick={toggleDirection}>
+            {isLtFront ? `${toLanguageName.slice(0, 2).toUpperCase()} → ${fromLanguageName.slice(0, 2).toUpperCase()}` : `${fromLanguageName.slice(0, 2).toUpperCase()} → ${toLanguageName.slice(0, 2).toUpperCase()}`}
+          </button>
         </div>
+      </div>
+      <div class="progress progress-bar" role="progressbar" aria-valuenow={index + 1} aria-valuemin="1" aria-valuemax={deck.length}>
+        <i style="width: {progressPct}%;"></i>
+      </div>
+    </header>
 
-        <div class="fc-progress-track">
-          <div class="fc-progress-fill" style="width: {progressPct}%"></div>
-        </div>
-      </header>
-
-      <!-- 3D Flashcard with Tactile Ink Shadows -->
+    <div class="fc-stage">
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_interactive_supports_focus -->
       <div
-        class="flashcard"
-        class:flipped={flipped}
-        onclick={() => flipped = !flipped}
-        onkeydown={(e) => e.key === 'Enter' && (flipped = !flipped)}
+        class="flashcard fc-card"
+        class:flipped
+        id="fc-card"
         tabindex="0"
         role="button"
         aria-label="Flashcard: {frontText}. Click or press space to flip."
+        onclick={() => flipped = !flipped}
       >
-        <div class="flashcard-inner">
-          <!-- Front Face -->
-          <div class="card-face front-face">
-            <div class="face-top">
-              <span class="pill yellow">{currentCard.pos || 'Word'}</span>
-              {#if currentCard.dueAt && currentCard.dueAt <= now}
-                <span class="pill pink">DUE</span>
-              {:else}
-                <span class="pill matcha">LEARNED</span>
-              {/if}
-            </div>
-
-            <div class="face-body">
-              <h2 class="word-heading">{frontText}</h2>
-              <span class="lang-label mono-tag">{frontLang}</span>
-              {#if isLtFront}
-                <button
-                  type="button"
-                  class="audio-btn"
-                  title="Listen pronunciation"
-                  onclick={(e) => { e.stopPropagation(); playAudio(frontText); }}
-                >
-                  <Icon name="speaker" size={18} />
-                </button>
-              {/if}
-            </div>
-
-            <div class="face-foot mono-tag muted">
-              <span>Tap card or press <b>Space</b> to flip ⤾</span>
-            </div>
+        <!-- Front Face -->
+        <div class="flashcard-face flashcard-front">
+          <div class="fc-head">
+            <span class="tag-chip mono-tag">{currentCard.pos || 'Word'}</span>
+            {#if currentCard.gender}
+              <span class="pill bone">{currentCard.gender}</span>
+            {/if}
+            {#if currentCard.dueAt && currentCard.dueAt <= now}
+              <span class="pill due">Due for review</span>
+            {:else}
+              <span class="pill ok">Learned</span>
+            {/if}
           </div>
+          <div class="fc-body">
+            <h2 class="fc-word">{frontText}</h2>
+            <span class="fc-lang">{frontLang}</span>
+          </div>
+          <div class="fc-foot">
+            <span>Tap card or press <b>Space</b> to flip</span>
+          </div>
+        </div>
 
-          <!-- Back Face -->
-          <div class="card-face back-face">
-            <div class="face-top">
-              <span class="pill yellow">{currentCard.pos || 'Meaning'}</span>
-              <span class="pill matcha">ANSWER</span>
-            </div>
-
-            <div class="face-body">
-              <h2 class="word-heading">{backText}</h2>
-              <span class="lang-label mono-tag">{backLang}</span>
-              {#if !isLtFront}
-                <button
-                  type="button"
-                  class="audio-btn"
-                  title="Listen pronunciation"
-                  onclick={(e) => { e.stopPropagation(); playAudio(backText); }}
-                >
-                  <Icon name="speaker" size={18} />
-                </button>
-              {/if}
-              {#if currentCard.note}
-                <p class="word-note">{currentCard.note}</p>
-              {/if}
-            </div>
-
-            <div class="face-foot mono-tag muted">
-              <span>Did you recall this correctly?</span>
-            </div>
+        <!-- Back Face -->
+        <div class="flashcard-face flashcard-back">
+          <div class="fc-head">
+            <span class="tag-chip mono-tag">{currentCard.pos || 'Meaning'}</span>
+            <span class="pill ok">Answer</span>
+          </div>
+          <div class="fc-body">
+            <h2 class="fc-word">{backText}</h2>
+            <span class="fc-lang">{backLang}</span>
+            {#if currentCard.note}
+              <p class="fc-note">{currentCard.note}</p>
+            {/if}
+            {#if currentCard.also}
+              <p class="fc-also muted small">Also accepted: {currentCard.also}</p>
+            {/if}
+          </div>
+          <div class="fc-foot">
+            <span>Did you recall this correctly?</span>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Control Buttons -->
-      <div class="fc-controls">
-        {#if !flipped}
-          <div class="control-row">
-            <button class="btn outline" onclick={prevCard} disabled={index === 0}>
-              ← Previous
-            </button>
-            <button class="btn primary flip-action" onclick={() => flipped = true}>
-              <Icon name="flip" size={16} />
-              <span>Flip card (Space)</span>
-            </button>
-            <button class="btn outline" onclick={skipCard}>
-              Skip →
-            </button>
-          </div>
-        {:else}
-          <div class="control-row rate-row">
-            <button class="btn learning-btn" onclick={markLearning}>
-              Still learning (1)
-            </button>
-            <button class="btn gotit-btn" onclick={markMastered}>
-              <Icon name="check" size={16} />
-              <span>Got it! (2)</span>
-            </button>
-          </div>
-        {/if}
-
-        <p class="keyboard-hints mono-tag muted small">
-          Keyboard: <b>Space</b> flip · <b>1</b> Still learning · <b>2</b> Got it · <b>← / →</b> Prev / Skip
-        </p>
-      </div>
+    <div class="fc-controls">
+      {#if !flipped}
+        <div class="fc-actions" id="fc-actions-unflipped">
+          <button type="button" class="btn outline" id="fc-prev" disabled={index === 0} onclick={prevCard}>
+            ← Previous
+          </button>
+          <button type="button" class="btn btn-gate-pill fc-flip" id="fc-flip-btn" onclick={() => flipped = true}>
+            Flip card
+          </button>
+          <button type="button" class="btn outline" id="fc-skip" onclick={skipCard}>
+            Skip →
+          </button>
+        </div>
+      {:else}
+        <div class="fc-rate-row" id="fc-actions-flipped">
+          <button type="button" class="btn outline learning" id="fc-learning" onclick={markLearning}>
+            Still learning
+          </button>
+          <button type="button" class="btn btn-gate-pill mastered" id="fc-mastered" onclick={markMastered}>
+            Got it! ✓
+          </button>
+        </div>
+      {/if}
+      <p class="fc-keyboard-hints muted small" style="margin-top:12px;text-align:center;">
+        Keyboard: <b>Space</b> flip · <b>1</b> Still learning · <b>2</b> Got it · <b>← / →</b>
+      </p>
     </div>
   {/if}
 </div>
-
-<style>
-  .review-page {
-    max-width: 680px;
-    margin: 0 auto;
-    padding: 10px 0 40px;
-  }
-
-  .loading-state, .error-box, .empty-card, .finish-card {
-    text-align: center;
-    padding: 48px 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .empty-icon, .finish-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-  }
-
-  .btn-row, .finish-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 10px;
-  }
-
-  .finish-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin: 16px 0;
-    width: 100%;
-    max-width: 440px;
-  }
-
-  .fstat {
-    background: rgba(26, 26, 26, 0.04);
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    box-shadow: 0 2px 0 var(--color-ink-black);
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .fstat b {
-    font-family: var(--font-mono);
-    font-size: 24px;
-  }
-
-  .word-list-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    margin-top: 8px;
-    text-decoration: underline;
-    color: var(--color-bone-white);
-  }
-
-  .word-list-link:hover {
-    color: var(--color-hi-vis-yellow);
-  }
-
-  /* Flashcard Arena */
-  .fc-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .fc-header {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .fc-topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .fc-counter {
-    font-size: 12px;
-    font-weight: 800;
-    color: var(--color-bone-white);
-  }
-
-  .fc-tools {
-    display: flex;
-    gap: 8px;
-  }
-
-  .fc-progress-track {
-    height: 8px;
-    background: rgba(26, 26, 26, 0.2);
-    border: var(--border-thick);
-    border-radius: var(--radius-pill);
-    overflow: hidden;
-  }
-
-  .fc-progress-fill {
-    height: 100%;
-    background: var(--color-hi-vis-yellow);
-    border-radius: var(--radius-pill);
-    transition: width 0.2s ease;
-  }
-
-  /* 3D Flashcard */
-  .flashcard {
-    width: 100%;
-    min-height: 290px;
-    perspective: 1000px;
-    cursor: pointer;
-    user-select: none;
-    outline: none;
-  }
-
-  .flashcard-inner {
-    position: relative;
-    width: 100%;
-    min-height: 290px;
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-style: preserve-3d;
-  }
-
-  .flashcard.flipped .flashcard-inner {
-    transform: rotateY(180deg);
-  }
-
-  .card-face {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border: var(--border-thick);
-    border-radius: var(--radius-card);
-    padding: 28px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 6px 0 var(--color-ink-black);
-  }
-
-  .front-face {
-    background: var(--color-bone-white);
-  }
-
-  .back-face {
-    transform: rotateY(180deg);
-    background: var(--color-matcha-cream);
-  }
-
-  .face-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .face-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 8px;
-    margin: 20px 0;
-  }
-
-  .word-heading {
-    font-family: var(--font-display);
-    font-size: clamp(32px, 6vw, 46px);
-    font-weight: 900;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-  }
-
-  .lang-label {
-    font-size: 11px;
-    color: var(--ink-60);
-  }
-
-  .audio-btn {
-    margin-top: 4px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: var(--border-thick);
-    box-shadow: 0 2px 0 var(--color-ink-black);
-    background: var(--color-bone-white);
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-  }
-
-  .audio-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 3px 0 var(--color-ink-black);
-    background: var(--color-hi-vis-yellow);
-  }
-
-  .word-note {
-    font-size: 14px;
-    font-style: italic;
-    color: var(--ink-60);
-    margin-top: 6px;
-  }
-
-  .face-foot {
-    text-align: center;
-    font-size: 11px;
-  }
-
-  /* Controls */
-  .fc-controls {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    margin-top: 10px;
-  }
-
-  .control-row {
-    display: flex;
-    gap: 12px;
-    width: 100%;
-    justify-content: center;
-  }
-
-  .flip-action {
-    padding: 10px 36px;
-  }
-
-  .rate-row {
-    max-width: 440px;
-  }
-
-  .learning-btn {
-    flex: 1;
-    background: var(--color-bubblegum-pink);
-    border: var(--border-thick);
-    box-shadow: 0 3px 0 var(--color-ink-black);
-  }
-
-  .learning-btn:hover {
-    background: #ffffff;
-    box-shadow: 0 4px 0 var(--color-ink-black);
-  }
-
-  .gotit-btn {
-    flex: 1;
-    background: var(--color-matcha-cream);
-    border: var(--border-thick);
-    box-shadow: 0 3px 0 var(--color-ink-black);
-  }
-
-  .gotit-btn:hover {
-    background: #ffffff;
-    box-shadow: 0 4px 0 var(--color-ink-black);
-  }
-
-  .keyboard-hints {
-    font-size: 11px;
-    text-align: center;
-    color: var(--color-bone-white);
-  }
-</style>
