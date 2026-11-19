@@ -73,3 +73,13 @@ body.focus .app {
   padding: 0 !important;
   max-width: 100% !important;
 }
+
+/* Ensure segmented tabs always have distinctive active style */
+.segmented button[aria-selected="true"],
+.segmented button[aria-checked="true"],
+.segmented button.selected,
+.segmented a[aria-selected="true"],
+.segmented a.selected {
+  background: var(--color-ink-black, #1a1a1a) !important;
+  color: var(--color-bone-white, #f9f5f2) !important;
+}

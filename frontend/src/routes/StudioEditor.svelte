@@ -457,6 +457,7 @@
           <button
             type="button"
             role="tab"
+            aria-selected={activeView === 'content'}
             class:selected={activeView === 'content'}
             onclick={() => activeView = 'content'}
           >
@@ -465,6 +466,7 @@
           <button
             type="button"
             role="tab"
+            aria-selected={activeView === 'arrange'}
             class:selected={activeView === 'arrange'}
             onclick={() => activeView = 'arrange'}
           >
@@ -473,6 +475,7 @@
           <button
             type="button"
             role="tab"
+            aria-selected={activeView === 'feedback'}
             class:selected={activeView === 'feedback'}
             onclick={() => activeView = 'feedback'}
           >
@@ -481,6 +484,7 @@
           <button
             type="button"
             role="tab"
+            aria-selected={activeView === 'settings'}
             class:selected={activeView === 'settings'}
             onclick={() => activeView = 'settings'}
           >
@@ -894,6 +898,7 @@
               <button
                 type="button"
                 role="tab"
+                aria-selected={feedbackFilter === f}
                 class:selected={feedbackFilter === f}
                 onclick={() => loadFeedback(f)}
               >
