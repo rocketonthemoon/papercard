@@ -27,6 +27,11 @@
   let lastResult = $state(null);
   let showHint = $state(false);
 
+  // Focus the answer box when a typing exercise appears (instead of the `autofocus` attribute).
+  function focusOnMount(node) {
+    node.focus();
+  }
+
   onMount(async () => {
     try {
       loading = true;
@@ -226,20 +231,16 @@
         </h2>
 
         {#if currentChallenge.note}
-          <div class="hint-container" style="text-align:center;margin-bottom:24px;">
+          <div class="hint-container">
             {#if showHint}
-              <div class="hint-card card" style="display:inline-block;padding:8px 16px;background:var(--color-creamy-yellow, #fff9db);border:2px solid #000;border-radius:6px;box-shadow:0 2px 0 #000;font-size:15px;font-weight:600;max-width:560px;">
-                <span class="mono-tag" style="font-size:11px;font-weight:900;margin-right:6px;opacity:0.8;">HINT / EN:</span>
-                <span>{currentChallenge.note}</span>
+              <div class="hint-card" role="note">
+                <span class="hint-label">Hint</span>
+                <span class="hint-text">{currentChallenge.note}</span>
               </div>
             {:else}
-              <button
-                type="button"
-                class="btn outline sm hint-toggle-btn"
-                onclick={() => showHint = true}
-                style="padding:4px 12px;font-size:13px;border-radius:20px;font-weight:700;"
-              >
-                💡 Show English hint
+              <button type="button" class="hint-btn" onclick={() => showHint = true}>
+                <span class="hint-bulb" aria-hidden="true">?</span>
+                Show English hint
               </button>
             {/if}
           </div>
@@ -266,7 +267,7 @@
                 onclick={() => selectedOptionId = opt.id}
                 style="display:flex;align-items:center;padding:16px 20px;background:#f9f5f2;border:2px solid #000;border-radius:6px;box-shadow:0 3px 0 #000;font-size:17px;font-weight:700;text-align:left;cursor:pointer;"
               >
-                <span class="mono-tag" style="display:inline-block;width:24px;height:24px;line-height:20px;border-radius:4px;border:1.5px solid #000;text-align:center;font-size:12px;margin-right:12px;background:#fff;">{idx + 1}</span>
+                <span class="option-key key" style="margin-right:14px;">{idx + 1}</span>
                 <span>{opt.text}</span>
               </button>
             {/each}
@@ -306,7 +307,7 @@
               bind:value={typedText}
               disabled={turnMode === 'continue'}
               autocomplete="off"
-              autofocus
+              use:focusOnMount
               style="width:100%;padding:14px 18px;font-size:18px;border:2px solid #000;border-radius:6px;box-shadow:0 3px 0 #000;margin-bottom:12px;"
             />
           </div>
@@ -358,3 +359,86 @@
     </div>
   </footer>
 </div>
+
+
+<style>
+  .hint-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .hint-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px 7px 8px;
+    background: var(--color-bone-white);
+    color: var(--color-ink-black);
+    border: 2px solid var(--color-ink-black);
+    border-radius: var(--r-pill);
+    box-shadow: 0 3px 0 var(--color-ink-black);
+    font-family: var(--font-degularvariable);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  }
+
+  .hint-btn:hover {
+    background: #fff;
+  }
+
+  .hint-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--color-ink-black);
+  }
+
+  .hint-btn:focus-visible {
+    outline: 3px solid var(--color-hi-vis-yellow);
+    outline-offset: 2px;
+  }
+
+  .hint-bulb {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-hi-vis-yellow);
+    border: 1.5px solid var(--color-ink-black);
+    font-family: var(--font-bergenmonoregular);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .hint-card {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    max-width: 560px;
+    padding: 10px 16px;
+    background: var(--color-hi-vis-yellow);
+    color: var(--color-ink-black);
+    border: 2px solid var(--color-ink-black);
+    border-radius: var(--r-card);
+    box-shadow: 0 3px 0 var(--color-ink-black);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+    text-align: left;
+  }
+
+  .hint-label {
+    flex-shrink: 0;
+    padding: 2px 7px;
+    background: var(--color-ink-black);
+    color: var(--color-hi-vis-yellow);
+    border-radius: 4px;
+    font-family: var(--font-bergenmonoregular);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>

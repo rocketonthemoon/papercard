@@ -288,22 +288,24 @@
         </div>
       </div>
     {:else}
-      <form class="pane" id="pane-join" role="tabpanel" onsubmit={handleJoinSubmit}>
-        <label class="field">Room code
-          <span class="row" style="gap:12px;margin-top:4px;">
-            <input
-              type="text"
-              id="join-code"
-              placeholder="e.g. K7QX4M"
-              maxlength="6"
-              autocomplete="off"
-              style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:.12em"
-              bind:value={joinCode}
-            />
-            <button class="btn btn-gate-pill">Join →</button>
-          </span>
-        </label>
-      </form>
+      <div class="pane" id="pane-join" role="tabpanel">
+        <form onsubmit={handleJoinSubmit}>
+          <label class="field">Room code
+            <span class="row" style="gap:12px;margin-top:4px;">
+              <input
+                type="text"
+                id="join-code"
+                placeholder="e.g. K7QX4M"
+                maxlength="6"
+                autocomplete="off"
+                style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:.12em"
+                bind:value={joinCode}
+              />
+              <button class="btn btn-gate-pill">Join →</button>
+            </span>
+          </label>
+        </form>
+      </div>
     {/if}
   </section>
 

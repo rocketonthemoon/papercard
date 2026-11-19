@@ -742,33 +742,26 @@
         Drag lessons to reorder them or move them between decks. Use ← and → or drag a deck to reorder decks. Click a name to rename.
       </p>
 
-      <div class="board" id="board" style="display:flex;gap:16px;overflow-x:auto;padding-bottom:16px;align-items:flex-start;">
+      <div class="board" id="board" role="list" aria-label="Decks" style="display:flex;gap:16px;overflow-x:auto;padding-bottom:16px;align-items:flex-start;">
         {#each units as u, ui (u.id)}
           <section
             class="board-col card"
+            role="listitem"
+            aria-label="Deck {ui + 1}: {u.title}"
             data-unit={u.id}
             draggable="true"
             ondragstart={(e) => onDragStartDeck(e, ui)}
             ondragover={(e) => e.preventDefault()}
             ondrop={(e) => onDropDeck(e, ui)}
-            style="min-width:280px;max-width:320px;padding:16px;display:flex;flex-direction:column;gap:12px;background:#ffffff;box-sizing:border-box;border:2px solid var(--color-ink-black);"
           >
-            <header class="board-col-head row spread" style="align-items:center;">
-              <div class="row" style="gap:6px;align-items:center;">
-                <span class="drag-handle deck-handle" title="Drag to reorder decks" style="cursor:grab;display:inline-flex;align-items:center;">
+            <header class="board-col-head deck-head">
+              <div class="deck-toolbar">
+                <span class="drag-handle deck-handle" title="Drag to reorder decks">
                   <Icon name="grip" size={14} />
                 </span>
-                <span class="module-no mono-tag" style="font-weight:700;">{ui + 1}</span>
-                <button
-                  type="button"
-                  class="rename linkbtn"
-                  onclick={() => handleEditUnit(u)}
-                  style="font-weight:700;text-align:left;font-size:15px;color:var(--color-ink-black);"
-                >
-                  {u.title}
-                </button>
-              </div>
-              <div class="row" style="gap:4px;align-items:center;">
+                <span class="module-no mono-tag">{ui + 1}</span>
+                {#if u.level}<span class="pill bone sm">{u.level}</span>{/if}
+                <span class="deck-toolbar-gap"></span>
                 <button
                   type="button"
                   class="icon-btn sm"
@@ -787,9 +780,11 @@
                 >
                   →
                 </button>
-                {#if u.level}<span class="pill bone sm">{u.level}</span>{/if}
                 <button type="button" class="icon-btn sm danger" onclick={() => handleDeleteUnit(u.id)} title="Delete deck">🗑</button>
               </div>
+              <button type="button" class="rename deck-title" onclick={() => handleEditUnit(u)} title="Rename deck">
+                {u.title}
+              </button>
             </header>
 
             <ul
@@ -807,25 +802,17 @@
                   ondragstart={(e) => onDragStartLesson(e, l.id, u.id, li)}
                   ondragover={(e) => e.preventDefault()}
                   ondrop={(e) => onDropLesson(e, u.id, li)}
-                  style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;background:#fff;border:1.5px solid var(--color-ink-black);cursor:grab;"
                 >
-                  <div style="flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px;">
-                    <span class="drag-handle" style="opacity:0.5;display:inline-flex;">
-                      <Icon name="grip" size={12} />
-                    </span>
-                    <div>
-                      <button
-                        type="button"
-                        class="rename linkbtn"
-                        onclick={() => handleEditLesson(l)}
-                        style="font-weight:600;font-size:14px;text-align:left;display:block;"
-                      >
-                        {l.title}
-                      </button>
-                      <div class="muted small mono-tag">{(l.words || []).length} words</div>
-                    </div>
+                  <span class="drag-handle lesson-handle">
+                    <Icon name="grip" size={12} />
+                  </span>
+                  <div class="lesson-main">
+                    <button type="button" class="rename lesson-title" onclick={() => handleEditLesson(l)} title="Rename lesson">
+                      {l.title}
+                    </button>
+                    <div class="muted small mono-tag lesson-count">{(l.words || []).length} words</div>
                   </div>
-                  <div class="row" style="gap:4px;flex-shrink:0;">
+                  <div class="lesson-tools">
                     <button
                       type="button"
                       class="icon-btn sm"
@@ -1064,6 +1051,69 @@
 
 
 <style>
+  /* Arrange board: long deck/lesson titles wrap inside their cards instead of spilling out. */
+  .board-col {
+    min-width: 0 !important;
+  }
+
+  .deck-head {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .deck-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .deck-toolbar-gap {
+    flex: 1;
+  }
+
+  .rename.deck-title,
+  .rename.lesson-title {
+    display: block !important;
+    width: 100%;
+    min-width: 0 !important;
+    padding: 2px 4px !important;
+    margin-left: -4px;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    text-align: left !important;
+    text-decoration: none;
+    line-height: 1.3;
+  }
+
+  .rename.deck-title {
+    font-size: 16px !important;
+  }
+
+  .board-card {
+    align-items: flex-start !important;
+  }
+
+  .lesson-handle {
+    opacity: 0.5;
+    margin-top: 4px;
+  }
+
+  .lesson-main {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .lesson-count {
+    padding-left: 0;
+  }
+
+  .lesson-tools {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
   .fb-panel {
     max-width: 960px;
     margin: 0 auto;

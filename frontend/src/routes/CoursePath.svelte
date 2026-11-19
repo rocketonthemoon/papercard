@@ -434,8 +434,8 @@
 
     <!-- Suggestion / Feedback Modal -->
     {#if feedbackUnit}
-      <div class="modal-back">
-        <form class="modal modal-box card feedback-modal" role="dialog" aria-modal="true" onsubmit={submitFeedback} style="position:relative;text-align:center;">
+      <div class="modal-back" role="dialog" aria-modal="true" aria-label="Suggest a fix for {feedbackUnit.title}">
+        <form class="modal modal-box card feedback-modal" onsubmit={submitFeedback} style="position:relative;text-align:center;">
           <button type="button" class="icon-btn modal-close" aria-label="Close" style="position:absolute;top:16px;right:16px;" onclick={() => feedbackUnit = null}>
             <Icon name="close" size={16} />
           </button>
