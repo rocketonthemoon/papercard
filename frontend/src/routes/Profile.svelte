@@ -124,10 +124,16 @@
 
         <div class="action-slot">
           {#if u.isYou}
-            <button class="btn outline sm" onclick={() => isEditing = !isEditing}>
-              <Icon name="edit" size={14} />
-              <span>Edit profile</span>
-            </button>
+            <div class="owner-actions">
+              <button class="btn outline sm" onclick={() => isEditing = !isEditing}>
+                <Icon name="edit" size={14} />
+                <span>{isEditing ? 'Close' : 'Edit profile'}</span>
+              </button>
+              <button class="btn outline sm logout-btn" onclick={() => appState.logout()} title="Sign out of Papercard">
+                <Icon name="logout" size={14} />
+                <span>Sign out</span>
+              </button>
+            </div>
           {:else}
             <button
               class="btn sm"
@@ -295,6 +301,18 @@
     font-family: var(--font-display);
     font-size: 28px;
     font-weight: 900;
+  }
+
+  .owner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .owner-actions .logout-btn:hover {
+    background: var(--color-firecracker-red);
+    color: var(--color-bone-white);
   }
 
   .bio-txt {

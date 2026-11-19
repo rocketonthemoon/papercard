@@ -2,7 +2,15 @@
 
 A modern, fast, and tactile vocabulary learning platform and word duel game for any language. The official account publishes courses (starting with Lithuanian for English speakers, A1 to B1); learners take courses, follow creators, track progress with spaced repetition, and publish their own custom courses in the Studio.
 
-- **Learn:** A tactile path of units and lessons with XP, daily streaks, quests, and leaderboards. Lessons teach word recognition (multiple choice in both directions) and production (typing with diacritic-forgiving grading, or assembling phrases from word tiles). No artificial heart penalties gating your practice.
+<p align="center">
+  <img src="docs/screenshots/landing.png" alt="Papercard Landing Page" width="850" />
+</p>
+
+---
+
+## Highlights
+
+- **Learn:** A tactile path of units and lessons with XP, daily streaks, quests, and leaderboards. Lessons teach word recognition (multiple choice in both directions) and production (typing with diacritic-forgiving grading, or assembling phrases from word tiles). No artificial heart locks gating your practice.
 - **Review:** Spaced repetition (SM-2 memory model). Words come back for review at expanding intervals (1 day, 3 days, etc.). Incorrect answers reset the review cycle.
 - **Play (Duels):** Real-time or async multiplayer word duels. Choose decks and customize your question count (5, 10, 15, 20, or custom). Both players answer the same questions; most right answers wins, with ties decided by speed.
 - **Studio & Courses:** Anyone can author and publish courses for any language in the **Studio** (`#/studio`). Features drag-and-drop course arrangement (powered by SortableJS), batch token generation for private/gated access courses, and SQLite `.db` export/import.
@@ -10,6 +18,25 @@ A modern, fast, and tactile vocabulary learning platform and word duel game for 
 - **Admin:** Course moderation (hide/unhide courses) and direct editing of official curriculum courses.
 
 The server is a single, blazing-fast static binary pairing **Mongoose** (C HTTP/Web server) with a **Rust** engine (`libduelcore`) and embedded **SQLite**. The frontend is built with **Svelte 5** and **Vite**, featuring a clean, responsive Riso-print aesthetic.
+
+---
+
+## Interface Gallery
+
+| **Curriculum Path & Units** | **Spaced Repetition Flashcards** |
+|:---:|:---:|
+| <img src="docs/screenshots/course_path.png" alt="Course Path & Units" width="450" /> | <img src="docs/screenshots/review.png" alt="Spaced Repetition Review" width="450" /> |
+| *Visual learning tree with lessons, stars, and review status* | *SM-2 flashcard review with keyboard shortcuts & flip card* |
+
+| **Multiplayer Word Duels** | **Creator Studio & Custom Courses** |
+|:---:|:---:|
+| <img src="docs/screenshots/play_duel.png" alt="Word Duels & Settings" width="450" /> | <img src="docs/screenshots/studio.png" alt="Course Creator Studio" width="450" /> |
+| *Real-time battle lobby with customizable question count (5–50)* | *Author decks, import/export .db files, and manage course access* |
+
+| **Learning Dashboard** | **Discover & Search Catalog** |
+|:---:|:---:|
+| <img src="docs/screenshots/learn_dashboard.png" alt="Learner Dashboard" width="450" /> | <img src="docs/screenshots/discover.png" alt="Course Catalog & Search" width="450" /> |
+| *Enrolled courses, active streaks, daily quests, and leaderboards* | *FTS5 full-text search across titles, creators, and vocabulary* |
 
 ---
 
