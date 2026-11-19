@@ -37,7 +37,7 @@
   $effect(() => {
     if (typeof document === 'undefined') return;
     const isLanding = !user || hash === '#/landing' || hash === '#/about';
-    const isFocus = hash.startsWith('#/learn/lesson') || hash.startsWith('#/learn/review');
+    const isFocus = hash.startsWith('#/learn/lesson');
 
     document.body.classList.toggle('shell', !isLanding);
     document.body.classList.toggle('landing', isLanding);

@@ -8,11 +8,24 @@
   let errorMsg = $state('');
   let data = $state(null);
 
+  const plural = (n, word, pluralWord) => `${n} ${n === 1 ? word : (pluralWord || word + 's')}`;
+  const fmtDate = (ms) => new Date(ms || Date.now()).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+
+  function flag(c) {
+    if (c.toCode) return c.toCode.toUpperCase();
+    if (c.toLang && c.toLang.toLowerCase().includes('lithuanian')) return 'LT';
+    return (c.toLang || 'LT').slice(0, 2).toUpperCase();
+  }
+
   onMount(async () => {
     await loadAdminData();
   });
 
   async function loadAdminData() {
+    if (!appState.user?.isAdmin) {
+      loading = false;
+      return;
+    }
     try {
       loading = true;
       const res = await api('/admin/courses');
@@ -28,8 +41,8 @@
 
   async function toggleCourseHidden(c) {
     try {
-      await api(`/admin/courses/${c.id}/visibility`, {
-        method: 'POST',
+      await api(`/admin/courses/${c.id}`, {
+        method: 'PUT',
         body: { hidden: !c.hidden }
       });
       c.hidden = !c.hidden;
@@ -39,196 +52,89 @@
       appState.showToast(e.message || 'Action failed');
     }
   }
-
-  async function handleDeleteCourse(c) {
-    if (!confirm(`Permanently delete "${c.title}"?`)) return;
-    try {
-      await api(`/admin/courses/${c.id}`, { method: 'DELETE' });
-      await loadAdminData();
-      appState.showToast('Course deleted');
-    } catch (e) {
-      appState.showToast(e.message || 'Failed to delete');
-    }
-  }
 </script>
 
-<div class="admin-view">
-  <header class="admin-head">
-    <div>
-      <h1 class="admin-title">Admin Console</h1>
-      <p class="muted">Platform-wide overview and course moderation.</p>
-    </div>
-
-    {#if data}
-      <div class="stat-pills">
-        <span class="pill yellow"><b>{courses.length}</b> COURSES</span>
-        <span class="pill matcha"><b>{data.players || 0}</b> LEARNERS</span>
-        <span class="pill bone"><b>{data.xpToday || 0}</b> XP TODAY</span>
-      </div>
-    {/if}
-  </header>
-
-  {#if loading}
-    <div class="card loading-box">
-      <p class="muted">Loading administrative console…</p>
-    </div>
-  {:else if errorMsg}
-    <div class="card error-box">
-      <h2>Access Restricted</h2>
+{#if !appState.user?.isAdmin}
+  <section class="card picker">
+    <header class="picker-head">
+      <h2>Admins only</h2>
+      <p class="muted">Ask the site owner to add your email to ADMINS.</p>
+    </header>
+  </section>
+{:else if loading}
+  <p class="muted loading">Loading courses…</p>
+{:else if errorMsg}
+  <section class="card picker">
+    <header class="picker-head">
+      <h2>Something went wrong</h2>
       <p class="muted">{errorMsg}</p>
-      <a href="#/learn" class="btn primary">Back to Home</a>
+    </header>
+  </section>
+{:else if data}
+  <div class="toolbar admin-toolbar">
+    <div class="page-head">
+      <h1 class="admin-title">ADMIN CONSOLE</h1>
+      <p class="muted admin-desc">Platform-wide overview and course moderation. Hidden courses remain accessible only to creators.</p>
     </div>
-  {:else}
-    <section class="card admin-table-card">
-      <div class="table-header">
-        <span class="mono-tag">REGISTERED COURSES ({courses.length})</span>
-      </div>
+    <div class="admin-stats-pills">
+      <div class="admin-stat-pill"><span class="stat-pill-num">{courses.length}</span> <span class="stat-pill-lbl">COURSES</span></div>
+      <div class="admin-stat-pill"><span class="stat-pill-num">{data.players ?? 0}</span> <span class="stat-pill-lbl">LEARNERS</span></div>
+      <div class="admin-stat-pill"><span class="stat-pill-num">{data.xpToday ?? 0}</span> <span class="stat-pill-lbl">XP TODAY</span></div>
+    </div>
+  </div>
 
-      <ul class="admin-course-list">
-        {#each courses as c}
-          <li class="admin-course-item">
-            <div class="course-main-info">
-              <div class="title-line">
-                <a href="#/course/{c.id}" class="course-link"><b>{c.title}</b></a>
-                <span class="pill sm" class:pink={c.hidden} class:matcha={!c.hidden}>
-                  {c.hidden ? 'HIDDEN' : 'LIVE'}
-                </span>
+  <section class="card admin-list-card">
+    <div class="admin-list-head">
+      <span class="mono-tag">REGISTERED COURSES ({courses.length})</span>
+      <span class="muted small mono-tag">Moderation &amp; Discovery Controls</span>
+    </div>
+    <ul class="admin-rows">
+      {#each courses as c (c.id)}
+        <li class="admin-course-row {c.hidden ? 'is-hidden' : ''}">
+          <div class="admin-course-left">
+            <span class="course-flag">{flag(c)}</span>
+            <div class="admin-course-info">
+              <div class="admin-course-title-line">
+                <a class="admin-course-title" href="#/course/{c.id}">{c.title}</a>
+                {#if c.hidden}
+                  <span class="admin-badge badge-hidden">HIDDEN</span>
+                {:else}
+                  <span class="admin-badge badge-live">LIVE</span>
+                {/if}
                 {#if c.creator?.official}
-                  <span class="pill sm yellow">OFFICIAL</span>
+                  <span class="admin-badge badge-official">OFFICIAL</span>
                 {/if}
               </div>
-
-              <div class="meta-line mono-tag muted small">
-                <span>By {c.creator?.name || 'Creator'}</span> ·
-                <span>{c.fromLang} → {c.toLang}</span> ·
-                <span>{c.words || 0} words</span> ·
-                <span>{c.learners || 0} learners</span>
+              <div class="admin-course-meta">
+                <span>by <b>{#if c.creator?.username}<a href="#/u/{c.creator.username}">{c.creator.name}</a>{:else}{c.creator?.name || 'Creator'}{/if}</b></span>
+                <span class="meta-dot">·</span>
+                <span>{c.toLang}</span>
+                <span class="meta-dot">·</span>
+                <span>{plural(c.words || 0, 'word')}</span>
+                <span class="meta-dot">·</span>
+                <span>{plural(c.learners || 0, 'learner')}</span>
+                <span class="meta-dot">·</span>
+                <span>updated {fmtDate(c.updatedAt)}</span>
               </div>
             </div>
-
-            <div class="admin-actions">
-              <button
-                class="btn outline sm"
-                onclick={() => toggleCourseHidden(c)}
-              >
-                {c.hidden ? 'Publish (Make Live)' : 'Hide'}
-              </button>
-              <a href="#/studio/{c.id}" class="btn outline sm">
-                <Icon name="edit" size={13} />
-                <span>Edit</span>
+          </div>
+          <div class="admin-course-actions">
+            {#if c.creator?.official}
+              <a class="btn btn-gate-pill small" href="#/studio/{c.id}">
+                <Icon name="edit" size={14} /> Edit →
               </a>
-              <button
-                class="btn outline sm trash-btn"
-                onclick={() => handleDeleteCourse(c)}
-              >
-                <Icon name="trash" size={13} />
-              </button>
-            </div>
-          </li>
-        {/each}
-      </ul>
-    </section>
-  {/if}
-</div>
-
-<style>
-  .admin-view {
-    max-width: 900px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .admin-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .admin-title {
-    font-family: var(--font-display);
-    font-size: 32px;
-    font-weight: 900;
-    color: var(--color-bone-white);
-  }
-
-  .admin-head .muted {
-    color: var(--color-bone-white);
-  }
-
-  .stat-pills {
-    display: flex;
-    gap: 8px;
-  }
-
-  .admin-table-card {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .table-header {
-    border-bottom: 1.5px solid rgba(26, 26, 26, 0.1);
-    padding-bottom: 10px;
-  }
-
-  .admin-course-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 0;
-  }
-
-  .admin-course-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    border: 1.5px solid var(--color-ink-black);
-    border-radius: var(--radius-card);
-    background: var(--color-bone-white);
-    gap: 16px;
-  }
-
-  @media (max-width: 680px) {
-    .admin-course-item {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  }
-
-  .course-main-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .title-line {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .course-link {
-    font-size: 16px;
-  }
-
-  .admin-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .trash-btn:hover {
-    background: var(--color-bubblegum-pink);
-  }
-
-  .loading-box, .error-box {
-    text-align: center;
-    padding: 48px 24px;
-  }
-</style>
+            {:else}
+              <a class="btn btn-gate-pill small" href="#/course/{c.id}">View →</a>
+            {/if}
+            <button
+              class="btn btn-outlined-display small {c.hidden ? 'btn-unhide' : 'btn-hide'}"
+              onclick={() => toggleCourseHidden(c)}
+            >
+              {c.hidden ? 'Unhide' : 'Hide'}
+            </button>
+          </div>
+        </li>
+      {/each}
+    </ul>
+  </section>
+{/if}

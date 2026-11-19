@@ -113,6 +113,10 @@
     <circle cx="7" cy="15" r="1.5" fill="currentColor"/>
     <circle cx="13" cy="15" r="1.5" fill="currentColor"/>
   </svg>
+{:else if name === 'upload'}
+  <svg width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class={className} aria-hidden="true">
+    <path d="M10 13V3m-4 4 4-4 4 4M4 13v3h12v-3"/>
+  </svg>
 {:else if name === 'copy'}
   <svg width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" class={className} aria-hidden="true">
     <rect x="7" y="7" width="10" height="10" rx="2"/>

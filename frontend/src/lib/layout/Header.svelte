@@ -34,7 +34,7 @@
 
   function getAvatarLetter(u) {
     if (!u) return '?';
-    return (u.name || u.handle || '?').trim().charAt(0).toUpperCase();
+    return (u.name || u.handle || u.username || '?').trim().charAt(0).toUpperCase();
   }
 </script>
 
@@ -70,12 +70,19 @@
 
     <div id="account" class="account">
       {#if user}
-        <a href="#/u/{user.handle || user.name}" class="avatar-link" title="Profile">
-          {#if user.picture}
-            <img src={user.picture} alt={user.name} class="avatar-img" referrerpolicy="no-referrer" />
-          {:else}
-            <span class="avatar-ph">{getAvatarLetter(user)}</span>
-          {/if}
+        <a
+          class="who-pill profile-pill"
+          href="#/u/{user.username || user.handle || user.name}"
+          title="Your profile (@{user.username || user.handle || user.name})"
+        >
+          <span class="avatar" aria-hidden="true">
+            {#if user.picture}
+              <img src={user.picture} alt="" referrerpolicy="no-referrer" />
+            {:else}
+              {getAvatarLetter(user)}
+            {/if}
+          </span>
+          <span>{user.name}</span>
         </a>
       {:else if hash !== '#/' && hash !== '#/landing' && hash !== ''}
         <a href="#/" class="btn btn-gate-pill small">Sign In</a>

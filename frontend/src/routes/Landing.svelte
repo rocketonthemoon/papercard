@@ -122,7 +122,7 @@
     try {
       isLoggingIn = true;
       errorMsg = '';
-      const user = await authDev('Learner', 'learner');
+      const user = await authDev('admin', 'admin');
       appState.user = user;
       await appState.refreshTopStats();
       if (challenged) {

@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { api } from '../lib/api.js';
   import { appState } from '../lib/state.svelte.js';
   import Icon from '../lib/components/Icon.svelte';
@@ -26,6 +26,8 @@
     return (c.toLang || 'LT').slice(0, 2).toUpperCase();
   }
 
+  const plural = (n, word, pluralWord) => `${n} ${n === 1 ? word : (pluralWord || word + 's')}`;
+
   onMount(async () => {
     await loadCourses();
   });
@@ -44,6 +46,12 @@
     } finally {
       loading = false;
     }
+  }
+
+  async function openNewCourse() {
+    showNewCourse = true;
+    await tick();
+    document.getElementById('c-title')?.focus();
   }
 
   async function handleCreateCourse(e) {
@@ -69,6 +77,7 @@
       });
 
       if (res.course?.id) {
+        appState.showToast('Course created. Add your first deck!');
         appState.navigate(`#/studio/${res.course.id}`);
       } else {
         await loadCourses();
@@ -80,6 +89,28 @@
       creating = false;
     }
   }
+
+  async function handleImportDb(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const res = await fetch('/api/courses/import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/vnd.sqlite3',
+          'X-Requested-With': 'labas'
+        },
+        body: file,
+        credentials: 'same-origin'
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Import failed (${res.status})`);
+      appState.showToast('Course imported');
+      appState.navigate(`#/studio/${data.id}`);
+    } catch (x) {
+      appState.showToast(x.message || 'Import failed');
+    }
+  }
 </script>
 
 <div>
@@ -88,14 +119,18 @@
       <p class="muted studio-desc">Build your own course: decks, lessons and words.</p>
     </div>
     <div class="toolbar-actions">
-      <button class="btn btn-gate-pill small" id="new-course" onclick={() => showNewCourse = !showNewCourse}>
+      <label class="btn btn-gate-pill small" title="Upload a course file exported from Papercard" style="cursor:pointer;">
+        <Icon name="upload" size={16} /> Import .db
+        <input type="file" id="import" accept=".db,.sqlite,application/vnd.sqlite3" hidden onchange={handleImportDb}>
+      </label>
+      <button class="btn btn-gate-pill small" id="new-course" onclick={openNewCourse}>
         <Icon name="plus" size={16} /> New course →
       </button>
     </div>
   </div>
 
   {#if showNewCourse}
-    <form class="card form new-course" onsubmit={handleCreateCourse} style="margin-bottom:24px;">
+    <form class="card form new-course" id="nc" onsubmit={handleCreateCourse} style="margin-bottom:24px;">
       <h2>New course</h2>
       <div class="form-two" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px;">
         <label class="field">Title
@@ -121,11 +156,11 @@
       </label>
 
       {#if formErr}
-        <p class="error">{formErr}</p>
+        <p class="error" id="nc-err">{formErr}</p>
       {/if}
 
       <div class="row" style="justify-content:flex-end;gap:12px;">
-        <button type="button" class="btn outline" onclick={() => showNewCourse = false}>Cancel</button>
+        <button type="button" class="btn outline" id="nc-cancel" onclick={() => showNewCourse = false}>Cancel</button>
         <button class="btn btn-gate-pill" disabled={creating}>{creating ? 'Creating...' : 'Create course'}</button>
       </div>
     </form>
@@ -143,14 +178,16 @@
   {:else}
     <div class="studio-main-grid">
       {#if courses.length === 0}
-        <section class="card picker" style="max-width:540px;margin:20px auto;">
+        <section class="card picker empty-state-card">
           <header class="picker-head">
-            <span class="board-icon"><Icon name="cards" size={40} /></span>
+            <span class="board-icon empty-state-icon">
+              <Icon name="decks" size={48} />
+            </span>
             <h2>No custom courses yet</h2>
-            <p class="muted">Create one from scratch to start writing decks and lessons.</p>
+            <p class="muted">Create one from scratch, or import a course file someone shared with you.</p>
           </header>
           <div class="row" style="justify-content:center;margin-top:16px;">
-            <button class="btn btn-gate-pill" onclick={() => showNewCourse = true}>New course →</button>
+            <button class="btn btn-gate-pill" id="studio-empty-new" onclick={openNewCourse}>New course →</button>
           </div>
         </section>
       {:else}
@@ -162,7 +199,7 @@
                 <div class="course-main-info">
                   <h3>{c.title}</h3>
                   <p class="muted small mono-tag-desc">
-                    {c.toLang} · {c.units || 1} decks · {c.words || 0} words · {c.learners || 0} learners
+                    {c.toLang} · {plural(c.units || 1, 'deck')} · {plural(c.words || 0, 'word')} · {plural(c.learners || 0, 'learner')}
                   </p>
                 </div>
               </a>
@@ -170,9 +207,11 @@
                 {#if c.hidden}
                   <span class="pill due">hidden</span>
                 {:else}
-                  <a class="small mono-tag" href="#/course/{c.id}">View as learner</a>
+                  <a class="small mono-tag" href="#/course/{c.id}">View as a learner</a>
                 {/if}
-                <a class="btn btn-gate-pill small" href="#/studio/{c.id}">Edit →</a>
+                <a class="btn btn-gate-pill small" href="#/studio/{c.id}">
+                  <Icon name="edit" size={14} /> Edit →
+                </a>
               </div>
             </article>
           {/each}
@@ -194,13 +233,15 @@
                 <div class="course-main-info">
                   <h3>{c.title}</h3>
                   <p class="muted small mono-tag-desc">
-                    {c.toLang} · {c.units || 1} decks · {c.words || 0} words
+                    {c.toLang} · {plural(c.units || 1, 'deck')} · {plural(c.words || 0, 'word')}
                   </p>
                 </div>
               </a>
               <div class="course-foot">
                 <span class="creator-meta mono-tag">OFFICIAL</span>
-                <a class="btn btn-gate-pill small" href="#/studio/{c.id}">Edit →</a>
+                <a class="btn btn-gate-pill small" href="#/studio/{c.id}">
+                  <Icon name="edit" size={14} /> Edit →
+                </a>
               </div>
             </article>
           {/each}
