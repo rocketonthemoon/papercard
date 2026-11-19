@@ -239,36 +239,37 @@
           <p id="create-error" class="error">{errorMsg}</p>
         {/if}
 
-        <div class="question-count-picker" style="margin:20px 0 14px;padding:16px;background:var(--color-bone-white);border:2px solid var(--color-ink-black);border-radius:var(--radius-buttons, 6px);">
-          <div class="row spread" style="align-items:baseline;margin-bottom:10px;">
-            <label for="q-count-input" style="font-weight:700;font-family:var(--font-degulardisplay-bold, sans-serif);font-size:15px;margin:0;">
+        <div class="question-count-picker">
+          <div class="q-count-head">
+            <label for="q-count-input" class="q-count-title">
               Number of questions
             </label>
             <span class="muted small mono-tag" id="q-count-tag">
               {questionCount} questions
             </span>
           </div>
-          <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center;">
-            {#each [5, 10, 15, 20] as cnt}
-              <button
-                type="button"
-                class="btn btn-outlined-display small"
-                class:active-count={questionCount === cnt}
-                style="min-width:54px;font-weight:700;{questionCount === cnt ? 'background:var(--color-hi-vis-yellow, #f4ed36);color:#000;border-color:#000;' : ''}"
-                onclick={() => questionCount = cnt}
-              >
-                {cnt} Qs
-              </button>
-            {/each}
-            <div class="row" style="align-items:center;gap:6px;margin-left:auto;">
+          <div class="q-count-body">
+            <div class="q-presets">
+              {#each [5, 10, 15, 20] as cnt}
+                <button
+                  type="button"
+                  class="btn btn-outlined-display small count-chip-btn"
+                  class:active-count={questionCount === cnt}
+                  onclick={() => questionCount = cnt}
+                >
+                  {cnt} Qs
+                </button>
+              {/each}
+            </div>
+            <div class="q-custom-wrap">
               <span class="muted small mono-tag">Custom:</span>
               <input
                 type="number"
                 id="q-count-input"
+                class="q-custom-input"
                 min="4"
                 max="50"
                 bind:value={questionCount}
-                style="width:70px;padding:6px 8px;font-family:var(--font-bergenmonoregular, monospace);font-weight:700;border:2px solid #000;border-radius:4px;background:#fff;"
               />
             </div>
           </div>
@@ -337,3 +338,132 @@
     </aside>
   </div>
 </div>
+
+<style>
+  .question-count-picker {
+    margin: 20px 0 16px;
+    padding: 14px 16px;
+    background: var(--color-bone-white);
+    border: 2px solid var(--color-ink-black);
+    border-radius: 4px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .q-count-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .q-count-title {
+    font-weight: 700;
+    font-family: var(--font-degulardisplay-bold, sans-serif);
+    font-size: 15px;
+    margin: 0;
+    color: var(--color-ink-black);
+  }
+
+  .q-count-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .q-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .count-chip-btn {
+    min-width: 58px;
+    font-weight: 700;
+    padding: 6px 14px !important;
+    font-family: var(--font-degulardisplay-bold), var(--font-degularvariable), sans-serif !important;
+    border: 2px solid var(--color-ink-black) !important;
+    border-radius: 4px !important;
+    background: var(--color-bone-white) !important;
+    color: var(--color-ink-black) !important;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px var(--color-ink-black) !important;
+    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
+  }
+
+  .count-chip-btn:hover {
+    background: #ffffff !important;
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px var(--color-ink-black) !important;
+  }
+
+  .count-chip-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px var(--color-ink-black) !important;
+  }
+
+  .count-chip-btn.active-count {
+    background: var(--color-hi-vis-yellow, #f4ed36) !important;
+    color: var(--color-ink-black) !important;
+    border-color: var(--color-ink-black) !important;
+    box-shadow: 2px 2px 0px var(--color-ink-black) !important;
+  }
+
+  .q-custom-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .q-custom-input {
+    width: 64px !important;
+    padding: 6px 8px !important;
+    font-family: var(--font-bergenmonoregular, monospace) !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    border: 2px solid var(--color-ink-black) !important;
+    border-radius: 4px !important;
+    background: #ffffff !important;
+    color: var(--color-ink-black) !important;
+    text-align: center;
+  }
+
+  @media (max-width: 600px) {
+    .q-count-body {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .q-presets {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      width: 100%;
+    }
+
+    .count-chip-btn {
+      min-width: 0;
+      padding: 8px 4px;
+      text-align: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .q-custom-wrap {
+      justify-content: space-between;
+      width: 100%;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(22, 21, 29, 0.15);
+    }
+
+    .q-custom-input {
+      width: 80px !important;
+    }
+  }
+</style>
