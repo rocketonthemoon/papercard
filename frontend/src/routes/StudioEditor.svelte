@@ -591,24 +591,26 @@
             </div>
 
             <form class="form" onsubmit={handleSaveWord}>
-              <div class="segmented" role="radiogroup" aria-label="Part of speech" style="margin-bottom:14px;">
-                {#each Object.entries(POS_LABELS) as [k, l]}
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={editingWord.pos === k}
-                    class:selected={editingWord.pos === k}
-                    onclick={() => {
-                      editingWord.pos = k;
-                      if (k !== 'noun') editingWord.gender = '';
-                    }}
-                  >
-                    {l.charAt(0).toUpperCase() + l.slice(1)}
-                  </button>
-                {/each}
+              <div class="pos-segmented-scroll" style="overflow-x:auto;max-width:100%;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch;">
+                <div class="segmented" role="radiogroup" aria-label="Part of speech" style="white-space:nowrap;display:inline-flex;">
+                  {#each Object.entries(POS_LABELS) as [k, l]}
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={editingWord.pos === k}
+                      class:selected={editingWord.pos === k}
+                      onclick={() => {
+                        editingWord.pos = k;
+                        if (k !== 'noun') editingWord.gender = '';
+                      }}
+                    >
+                      {l.charAt(0).toUpperCase() + l.slice(1)}
+                    </button>
+                  {/each}
+                </div>
               </div>
 
-              <div class="form-two" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div class="form-two word-form-row">
                 <label class="field">
                   {course.toLang}
                   <input
@@ -616,7 +618,6 @@
                     maxlength="100"
                     bind:value={editingWord.lt}
                     required
-                    style="width:100%;padding:10px;margin-top:4px;border:2px solid #000;border-radius:4px;"
                   />
                 </label>
                 <label class="field">
@@ -627,7 +628,6 @@
                     bind:value={editingWord.en}
                     placeholder={editingWord.pos === 'phrase' ? 'Where is the library?' : 'book'}
                     required
-                    style="width:100%;padding:10px;margin-top:4px;border:2px solid #000;border-radius:4px;"
                   />
                 </label>
               </div>
@@ -1051,6 +1051,37 @@
 
 
 <style>
+  .word-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  @media (max-width: 600px) {
+    .word-form-row {
+      grid-template-columns: 1fr !important;
+      gap: 10px !important;
+    }
+
+    .pos-segmented-scroll {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .pos-segmented-scroll .segmented {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      width: max-content !important;
+    }
+
+    .pos-segmented-scroll .segmented button {
+      padding: 6px 12px !important;
+      font-size: 13px !important;
+      white-space: nowrap !important;
+    }
+  }
+
   /* Arrange board: long deck/lesson titles wrap inside their cards instead of spilling out. */
   .board-col {
     min-width: 0 !important;
