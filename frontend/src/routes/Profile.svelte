@@ -214,7 +214,7 @@
                 <span class="mono-tag muted small">{c.words || 0} words</span>
               </div>
               <h3 class="course-title">
-                <a href="#/course/{c.id}">{c.title}</a>
+                <a class="link-plain" href="#/course/{c.id}">{c.title}</a>
               </h3>
               <p class="course-desc muted small">{c.description || ''}</p>
               <div class="course-actions">
@@ -396,7 +396,7 @@
   .course-card {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 10px;
     min-height: 180px;
     background: var(--color-bone-white);
     border: var(--border-thick);
@@ -407,8 +407,20 @@
   }
 
   .course-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 rgba(26, 26, 26, 0.3);
+    border-color: var(--color-ink-black);
+  }
+
+  .course-card :global(.course-actions) {
+    margin-top: auto;
+  }
+
+  .course-card :global(.course-desc) {
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .course-top {
@@ -418,9 +430,11 @@
   }
 
   .course-title {
+    margin: 0;
     font-family: var(--font-display);
     font-size: 18px;
     font-weight: 800;
+    line-height: 1.25;
   }
 
   .empty-courses, .loading-box, .error-box {

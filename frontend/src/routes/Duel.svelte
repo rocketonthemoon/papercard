@@ -206,7 +206,7 @@
         <section>
           <h3>Answered</h3>
           <p class="duel-big mono-tag"><b>{answeredCount}</b> <small>of {duel.count}</small></p>
-          <div class="bar"><i style="width:{answeredPct}%;"></i></div>
+          <div class="bar"><i style:width="{answeredPct}%"></i></div>
         </section>
 
         <section>

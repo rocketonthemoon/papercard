@@ -153,7 +153,7 @@
                   <span><b>{coursePct}%</b> complete</span>
                   <span class="meta-words">{totalWords > learnedWords ? `${totalWords - learnedWords} words left` : 'All learned!'}</span>
                 </div>
-                <div class="bar"><i style="width:{coursePct}%"></i></div>
+                <div class="bar"><i style:width="{coursePct}%"></i></div>
               </div>
               {#if current}
                 <div class="course-hero-cta">
@@ -199,7 +199,7 @@
                   <span><b>{s.pct}%</b> complete</span>
                   <span class="muted small">{s.left ? `${s.left} words left` : 'All learned'}</span>
                 </div>
-                <div class="bar unit-bar"><i style="width:{s.pct}%"></i></div>
+                <div class="bar unit-bar"><i style:width="{s.pct}%"></i></div>
 
                 {#if action?.kind === 'primary'}
                   <div class="module-action">

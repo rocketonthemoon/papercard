@@ -60,7 +60,7 @@
         {#if spot}
           <a class="podium-spot {spot.place}" href="#/u/{spot.row.username}">
             <span class="pic">
-              <span class="avatar-ph podium-avatar {spot.place}" style="--size: {spot.size}px">{initial(spot.row)}</span>
+              <span class="avatar-ph podium-avatar {spot.place}" style:--size="{spot.size}px">{initial(spot.row)}</span>
               <span class="rank-badge">{spot.row.rank ?? spot.rank}</span>
             </span>
             <b>{spot.row.name}{spot.row.isYou ? ' (you)' : ''}</b>

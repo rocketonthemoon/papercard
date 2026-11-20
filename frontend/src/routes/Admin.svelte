@@ -105,7 +105,7 @@
             <span class="course-flag">{flag(c)}</span>
             <div class="admin-course-info">
               <div class="admin-course-title-line">
-                <a class="admin-course-title" href="#/course/{c.id}">{c.title}</a>
+                <a class="admin-course-title link-plain" href="#/course/{c.id}">{c.title}</a>
                 {#if c.hidden}
                   <span class="admin-badge badge-hidden">HIDDEN</span>
                 {:else}

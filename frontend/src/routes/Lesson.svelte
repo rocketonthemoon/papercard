@@ -166,7 +166,7 @@
       aria-valuemax={totalCount}
       aria-valuenow={solvedCount}
     >
-      <i id="prog" style="width: {progressPct}%;"></i>
+      <i id="prog" style:width="{progressPct}%"></i>
     </div>
   </header>
 

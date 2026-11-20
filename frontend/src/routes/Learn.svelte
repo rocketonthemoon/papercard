@@ -79,7 +79,7 @@
                   <span><b>{pct}%</b> complete</span>
                   <span class="muted">{c.learned || 0}/{c.words} words</span>
                 </div>
-                <div class="bar"><i style="width: {pct}%"></i></div>
+                <div class="bar"><i style:width="{pct}%"></i></div>
               </div>
 
               <div class="enrolled-foot">

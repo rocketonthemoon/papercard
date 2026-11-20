@@ -170,5 +170,5 @@
   </svg>
 {:else}
   <!-- Unknown icon name: render an empty box of the right size rather than a placeholder blob. -->
-  <span style="display:inline-block; width:{size}px; height:{size}px;" class={className} aria-hidden="true"></span>
+  <span class="icon-blank {className}" style:width="{size}px" style:height="{size}px" aria-hidden="true"></span>
 {/if}

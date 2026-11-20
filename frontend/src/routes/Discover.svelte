@@ -227,7 +227,7 @@
                         <span>Progress</span>
                         <span>{pct}%</span>
                       </div>
-                      <div class="bar"><i style="width:{pct}%"></i></div>
+                      <div class="bar"><i style:width="{pct}%"></i></div>
                     </div>
                   {:else}
                     <div class="progress-line empty" aria-hidden="true"></div>

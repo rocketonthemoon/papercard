@@ -210,7 +210,7 @@
         </div>
       </div>
       <div class="progress progress-bar" role="progressbar" aria-valuenow={index + 1} aria-valuemin="1" aria-valuemax={deck.length}>
-        <i style="width: {progressPct}%;"></i>
+        <i style:width="{progressPct}%"></i>
       </div>
     </header>
 

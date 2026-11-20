@@ -50,7 +50,7 @@
                   <span class="muted small">{stats?.xp ?? 0}/{q}</span>
                 </div>
                 <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax={q} aria-valuenow={stats?.xp ?? 0}>
-                  <i style="width: {percent(stats?.xp, q)}%"></i>
+                  <i style:width="{percent(stats?.xp, q)}%"></i>
                 </div>
               </li>
             {/each}

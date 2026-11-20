@@ -34,6 +34,12 @@
   --radius-buttons: var(--r-pill);
   --radius: var(--r-card);
   --radius-pill: var(--r-pill);
+  /* Aliases used by component styles (Landing, Profile, Discover, Toast). They were referenced but never
+     defined, so every declaration using them was silently dropped. */
+  --radius-card: var(--r-card);
+  --border-thick: var(--bw) solid var(--color-ink-black);
+  --shadow-card: none;
+  --font-display: var(--font-degulardisplay-bold);
 
   /* ---------------- Spacing Scale (4 / 8 / 12 / 16 / 24 / 32 / 48) ---------------- */
   --space-4: 4px;
@@ -6795,7 +6801,7 @@ label.field textarea {
   body.shell .nav .page-title,
   body.shell .page-title {
     display: block !important;
-    font-family: var(--font-display, 'Syne', sans-serif) !important;
+    font-family: var(--font-obviouslyvariable) !important;
     font-size: 16px !important;
     font-weight: 800 !important;
     letter-spacing: 0.05em !important;
@@ -10303,4 +10309,8 @@ button.pill:focus-visible {
 .settings-grid label.check input {
   flex-shrink: 0;
   margin-top: 2px;
+}
+
+.icon-blank {
+  display: inline-block;
 }
