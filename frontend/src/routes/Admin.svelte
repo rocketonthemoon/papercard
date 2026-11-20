@@ -1,4 +1,5 @@
 <script>
+  import { courseFlag as flag } from '../lib/format.js';
   import { onMount } from 'svelte';
   import { api } from '../lib/api.js';
   import { appState } from '../lib/state.svelte.js';
@@ -11,11 +12,6 @@
   const plural = (n, word, pluralWord) => `${n} ${n === 1 ? word : (pluralWord || word + 's')}`;
   const fmtDate = (ms) => new Date(ms || Date.now()).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
-  function flag(c) {
-    if (c.toCode) return c.toCode.toUpperCase();
-    if (c.toLang && c.toLang.toLowerCase().includes('lithuanian')) return 'LT';
-    return (c.toLang || 'LT').slice(0, 2).toUpperCase();
-  }
 
   onMount(async () => {
     await loadAdminData();
@@ -109,7 +105,7 @@
             <span class="course-flag">{flag(c)}</span>
             <div class="admin-course-info">
               <div class="admin-course-title-line">
-                <a class="admin-course-title" href="#/course/{c.id}">{c.title}</a>
+                <a class="admin-course-title link-plain" href="#/course/{c.id}">{c.title}</a>
                 {#if c.hidden}
                   <span class="admin-badge badge-hidden">HIDDEN</span>
                 {:else}

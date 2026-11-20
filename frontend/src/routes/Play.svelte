@@ -184,7 +184,7 @@
           </label>
         {/if}
 
-        <div class="row spread" style="margin:14px 0 10px;align-items:baseline;">
+        <div class="row spread decks-head">
           <h3>Which decks?</h3>
           <span class="muted small mono-tag" id="deck-count">
             {pickedUnits.size ? `${pickedUnits.size} deck${pickedUnits.size > 1 ? 's' : ''} · ${totalWordsInPicked} words` : 'Pick at least one'}
@@ -203,7 +203,7 @@
                 <summary class="deck-group-summary">
                   <div class="row spread deck-summary-row">
                     <span class="deck-summary-title">
-                      <b><span class="mono-tag" style="background:#ffd33d;padding:2px 8px;border-radius:100px;border:1.5px solid #000;margin-right:6px;">{lvl || 'General'}</span> <span class="deck-sel-count mono-tag">{countSel} of {us.length} selected</span></b>
+                      <b><span class="pill yellow level-tag">{lvl || 'General'}</span> <span class="deck-sel-count mono-tag">{countSel} of {us.length} selected</span></b>
                     </span>
                     <button
                       type="button"
@@ -275,7 +275,7 @@
           </div>
         </div>
 
-        <div class="pane-actions" style="margin-top:20px;padding-top:16px;border-top:1.5px solid rgba(22,21,29,0.1);">
+        <div class="pane-actions create-foot">
           <span class="muted small mono-tag">{questionCount} RANDOM WORDS · YOU PLAY FIRST</span>
           <button
             class="btn btn-gate-pill"
@@ -291,14 +291,15 @@
       <div class="pane" id="pane-join" role="tabpanel">
         <form onsubmit={handleJoinSubmit}>
           <label class="field">Room code
-            <span class="row" style="gap:12px;margin-top:4px;">
+            <span class="row join-row">
               <input
                 type="text"
                 id="join-code"
                 placeholder="e.g. K7QX4M"
                 maxlength="6"
                 autocomplete="off"
-                style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:.12em"
+                class="join-input"
+                aria-label="Room code"
                 bind:value={joinCode}
               />
               <button class="btn btn-gate-pill">Join →</button>
@@ -320,16 +321,15 @@
         {:else}
           {#each myDuels as d}
             <li class="room-row">
-              <a href="#/duel/{d.code}" class="row spread duel-row" style="width:100%;text-decoration:none;color:inherit;align-items:center;">
-                <div class="room-info" style="display:flex;align-items:center;gap:10px;">
-                  <span class="code-chip pill yellow mono-tag" style="font-size:12px;font-weight:900;padding:2px 8px;">{d.code}</span>
+              <a href="#/duel/{d.code}" class="row spread duel-row link-plain">
+                <div class="room-info">
+                  <span class="code-chip pill yellow mono-tag room-code">{d.code}</span>
                   <div>
-                    <span style="font-weight:600;font-size:14px;">{d.title || 'Duel'}</span>
-                    <br />
+                    <span class="room-title">{d.title || 'Duel'}</span>
                     <span class="muted small mono-tag">by {d.creator || 'Player'} · {d.players || 1} played</span>
                   </div>
                 </div>
-                <span class="btn small outline" style="font-weight:700;">
+                <span class="btn small outline room-cta">
                   {d.myPoints != null ? `${d.myPoints} pts` : 'Play →'}
                 </span>
               </a>
@@ -342,6 +342,71 @@
 </div>
 
 <style>
+  .decks-head {
+    align-items: baseline;
+    margin: 14px 0 10px;
+  }
+
+  .level-tag {
+    margin-right: 6px;
+  }
+
+  .create-foot {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1.5px solid rgba(22, 21, 29, 0.1);
+  }
+
+  .join-row {
+    gap: 12px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .join-input {
+    flex: 1;
+    min-width: 160px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .duel-row {
+    width: 100%;
+    align-items: center;
+    gap: 12px;
+    color: inherit;
+  }
+
+  .room-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .room-info > div {
+    display: grid;
+    min-width: 0;
+  }
+
+  .room-code {
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .room-title {
+    font-weight: 600;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .room-cta {
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
   .question-count-picker {
     margin: 20px 0 16px;
     padding: 14px 16px;

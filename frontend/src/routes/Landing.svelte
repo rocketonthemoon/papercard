@@ -80,6 +80,8 @@
         shape: 'pill',
         text: 'signin_with',
         width: 280,
+        // The page is in English; without this Google localises the label to the browser language.
+        locale: 'en',
       });
     } catch (x) {
       errorMsg = x.message || 'Could not load Google Sign-In';
@@ -288,12 +290,12 @@
           <div class="demo-duel">
             <div class="duel-row">
               <span class="duel-ava you">Y</span>
-              <div class="duel-track"><i class="duel-fill you" style="--to: 82%"></i></div>
+              <div class="duel-track"><i class="duel-fill you" style:--to="82%"></i></div>
               <b class="duel-score">90</b>
             </div>
             <div class="duel-row">
               <span class="duel-ava foe">A</span>
-              <div class="duel-track"><i class="duel-fill foe" style="--to: 64%"></i></div>
+              <div class="duel-track"><i class="duel-fill foe" style:--to="64%"></i></div>
               <b class="duel-score">70</b>
             </div>
             <div class="duel-foot">

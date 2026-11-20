@@ -3,6 +3,7 @@
   import { api } from '../lib/api.js';
   import { appState } from '../lib/state.svelte.js';
   import Icon from '../lib/components/Icon.svelte';
+  import PeopleList from '../lib/components/PeopleList.svelte';
 
   let { username } = $props();
 
@@ -38,6 +39,21 @@
   }
 
   let u = $derived(data?.user || null);
+
+  // Followers / following dialog: null when closed, else the tab to open on.
+  let peopleTab = $state(null);
+
+  async function closePeople(changed) {
+    peopleTab = null;
+    if (!changed) return;
+    // Counts may have moved (you followed someone from the list): refresh quietly.
+    try {
+      const res = await api(`/users/${encodeURIComponent(username)}`);
+      data = { ...data, user: res.user };
+    } catch {
+      /* keep the old counts */
+    }
+  }
   let courses = $derived(data?.courses || []);
 
   async function handleFollowToggle() {
@@ -117,8 +133,12 @@
           {/if}
 
           <div class="follow-counts mono-tag small">
-            <span><b>{u.followers || 0}</b> followers</span>
-            <span><b>{u.following || 0}</b> following</span>
+            <button type="button" class="count-btn" onclick={() => (peopleTab = 'followers')}>
+              <b>{u.followers || 0}</b> {(u.followers || 0) === 1 ? 'follower' : 'followers'}
+            </button>
+            <button type="button" class="count-btn" onclick={() => (peopleTab = 'following')}>
+              <b>{u.following || 0}</b> following
+            </button>
           </div>
         </div>
 
@@ -214,7 +234,7 @@
                 <span class="mono-tag muted small">{c.words || 0} words</span>
               </div>
               <h3 class="course-title">
-                <a href="#/course/{c.id}">{c.title}</a>
+                <a class="link-plain" href="#/course/{c.id}">{c.title}</a>
               </h3>
               <p class="course-desc muted small">{c.description || ''}</p>
               <div class="course-actions">
@@ -228,7 +248,12 @@
   {/if}
 </div>
 
+{#if peopleTab && u}
+  <PeopleList username={u.username} tab={peopleTab} onclose={closePeople} />
+{/if}
+
 <style>
+
   .profile-view {
     max-width: 720px;
     margin: 0 auto;
@@ -396,7 +421,7 @@
   .course-card {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 10px;
     min-height: 180px;
     background: var(--color-bone-white);
     border: var(--border-thick);
@@ -407,8 +432,20 @@
   }
 
   .course-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 0 rgba(26, 26, 26, 0.3);
+    border-color: var(--color-ink-black);
+  }
+
+  .course-card :global(.course-actions) {
+    margin-top: auto;
+  }
+
+  .course-card :global(.course-desc) {
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .course-top {
@@ -418,9 +455,11 @@
   }
 
   .course-title {
+    margin: 0;
     font-family: var(--font-display);
     font-size: 18px;
     font-weight: 800;
+    line-height: 1.25;
   }
 
   .empty-courses, .loading-box, .error-box {

@@ -829,7 +829,9 @@ static void reply_leaderboard(struct mg_connection *c, struct mg_http_message *h
   long long since = all ? 0 : db_int(0, "SELECT " WEEK_START_MS, "");
   char *board = db_text(
       "WITH s AS (SELECT u.id, u.name, u.username, u.picture, SUM(x.xp) AS xp FROM users u JOIN xp_events x ON x.user_id = u.id AND x.at >= ?1 GROUP BY u.id),"
-      " r AS (SELECT *, RANK() OVER (ORDER BY xp DESC) AS rank FROM s)"
+      /* Distinct positions (1, 2, 3, 4...), ties broken by name: RANK() gave tied players the same number,
+         so a two-way tie for third showed "3" twice. */
+      " r AS (SELECT *, ROW_NUMBER() OVER (ORDER BY xp DESC, name, id) AS rank FROM s)"
       " SELECT json_object('period', ?3, 'rows',"
       "  (SELECT json_group_array(json_object('rank', rank, 'name', name, 'username', username, 'picture', picture, 'xp', xp,"
       "     'isYou', " JBOOL("id = ?2") ")) FROM (SELECT * FROM r ORDER BY rank, name LIMIT 20)),"

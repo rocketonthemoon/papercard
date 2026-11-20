@@ -1,4 +1,5 @@
 <script>
+  import { courseFlag as flag, plural } from '../lib/format.js';
   import { onMount, tick } from 'svelte';
   import { api } from '../lib/api.js';
   import { appState } from '../lib/state.svelte.js';
@@ -20,13 +21,7 @@
   let creating = $state(false);
   let formErr = $state('');
 
-  function flag(c) {
-    if (c.toCode) return c.toCode.toUpperCase();
-    if (c.toLang && c.toLang.toLowerCase().includes('lithuanian')) return 'LT';
-    return (c.toLang || 'LT').slice(0, 2).toUpperCase();
-  }
 
-  const plural = (n, word, pluralWord) => `${n} ${n === 1 ? word : (pluralWord || word + 's')}`;
 
   onMount(async () => {
     await loadCourses();
@@ -119,20 +114,22 @@
       <p class="muted studio-desc">Build your own course: decks, lessons and words.</p>
     </div>
     <div class="toolbar-actions">
-      <label class="btn btn-gate-pill small" title="Upload a course file exported from Papercard" style="cursor:pointer;">
+      <label class="btn btn-gate-pill small import-btn" title="Upload a course file exported from Papercard">
         <Icon name="upload" size={16} /> Import .db
         <input type="file" id="import" accept=".db,.sqlite,application/vnd.sqlite3" hidden onchange={handleImportDb}>
       </label>
-      <button class="btn btn-gate-pill small" id="new-course" onclick={openNewCourse}>
-        <Icon name="plus" size={16} /> New course →
-      </button>
+      {#if loading || courses.length > 0}
+        <button class="btn btn-gate-pill small" id="new-course" onclick={openNewCourse}>
+          <Icon name="plus" size={16} /> New course →
+        </button>
+      {/if}
     </div>
   </div>
 
   {#if showNewCourse}
-    <form class="card form new-course" id="nc" onsubmit={handleCreateCourse} style="margin-bottom:24px;">
+    <form class="card form new-course" id="nc" onsubmit={handleCreateCourse}>
       <h2>New course</h2>
-      <div class="form-two" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px;">
+      <div class="form-two">
         <label class="field">Title
           <input type="text" id="c-title" maxlength="80" placeholder="Spanish for travellers" bind:value={newTitle} required />
         </label>
@@ -140,7 +137,7 @@
           <input type="text" id="c-to" maxlength="30" placeholder="Spanish" bind:value={newToLang} required />
         </label>
       </div>
-      <div class="form-two" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px;">
+      <div class="form-two">
         <label class="field">For speakers of
           <input type="text" id="c-from" maxlength="30" bind:value={newFromLang} />
         </label>
@@ -148,18 +145,18 @@
           <input type="text" id="c-code" maxlength="8" placeholder="es" bind:value={newCode} />
         </label>
       </div>
-      <label class="field" style="margin-bottom:12px;">Special letters <span class="muted small">(e.g. á é í ó ú ñ)</span>
+      <label class="field">Special letters <span class="muted small">(e.g. á é í ó ú ñ)</span>
         <input type="text" id="c-letters" maxlength="80" placeholder="á é í ó ú ñ" bind:value={newLetters} />
       </label>
-      <label class="field" style="margin-bottom:16px;">Description
+      <label class="field">Description
         <textarea id="c-desc" maxlength="300" placeholder="Who it's for and what they'll learn" bind:value={newDesc}></textarea>
       </label>
 
       {#if formErr}
-        <p class="error" id="nc-err">{formErr}</p>
+        <p class="form-error" id="nc-err" role="alert">{formErr}</p>
       {/if}
 
-      <div class="row" style="justify-content:flex-end;gap:12px;">
+      <div class="row modal-actions">
         <button type="button" class="btn outline" id="nc-cancel" onclick={() => showNewCourse = false}>Cancel</button>
         <button class="btn btn-gate-pill" disabled={creating}>{creating ? 'Creating...' : 'Create course'}</button>
       </div>
@@ -167,9 +164,9 @@
   {/if}
 
   {#if loading}
-    <p class="muted loading" style="text-align:center;padding:40px 0;">Loading your courses…</p>
+    <p class="page-loading" role="status">Loading your courses…</p>
   {:else if errorMsg}
-    <section class="card picker" style="max-width:540px;margin:20px auto;">
+    <section class="card picker page-error">
       <header class="picker-head">
         <h2>Something went wrong</h2>
         <p class="muted">{errorMsg}</p>
@@ -186,7 +183,7 @@
             <h2>No custom courses yet</h2>
             <p class="muted">Create one from scratch, or import a course file someone shared with you.</p>
           </header>
-          <div class="row" style="justify-content:center;margin-top:16px;">
+          <div class="row picker-actions">
             <button class="btn btn-gate-pill" id="studio-empty-new" onclick={openNewCourse}>New course →</button>
           </div>
         </section>
@@ -199,7 +196,7 @@
                 <div class="course-main-info">
                   <h3>{c.title}</h3>
                   <p class="muted small mono-tag-desc">
-                    {c.toLang} · {plural(c.units || 1, 'deck')} · {plural(c.words || 0, 'word')} · {plural(c.learners || 0, 'learner')}
+                    {c.toLang} · {plural(c.units, 'deck')} · {plural(c.words || 0, 'word')} · {plural(c.learners || 0, 'learner')}
                   </p>
                 </div>
               </a>
@@ -220,8 +217,8 @@
     </div>
 
     {#if official.length > 0}
-      <div class="studio-section" style="margin-top:40px;">
-        <div class="row spread section-row" style="margin-bottom:16px;">
+      <div class="studio-section">
+        <div class="row spread section-row">
           <h2>Official courses</h2>
           <span class="muted small mono-tag">ADMIN EDIT PRIVILEGES</span>
         </div>
@@ -233,7 +230,7 @@
                 <div class="course-main-info">
                   <h3>{c.title}</h3>
                   <p class="muted small mono-tag-desc">
-                    {c.toLang} · {plural(c.units || 1, 'deck')} · {plural(c.words || 0, 'word')}
+                    {c.toLang} · {plural(c.units, 'deck')} · {plural(c.words || 0, 'word')}
                   </p>
                 </div>
               </a>

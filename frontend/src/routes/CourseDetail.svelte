@@ -1,8 +1,10 @@
 <script>
+  import { courseFlag as flag, initial } from '../lib/format.js';
   import { onMount } from 'svelte';
   import { api } from '../lib/api.js';
   import { appState } from '../lib/state.svelte.js';
   import Icon from '../lib/components/Icon.svelte';
+  import PeopleList from '../lib/components/PeopleList.svelte';
 
   let { id } = $props();
 
@@ -31,6 +33,33 @@
   let c = $derived(data?.course || null);
   let units = $derived(data?.units || []);
   let creator = $derived(data?.creator || null);
+
+  let showFollowers = $state(false);
+
+  async function closeFollowers(changed) {
+    showFollowers = false;
+    if (!changed || !creator) return;
+    try {
+      const res = await api(`/users/${encodeURIComponent(creator.username)}`);
+      data = { ...data, creator: { ...creator, ...res.user } };
+    } catch {
+      /* keep the old counts */
+    }
+  }
+
+  async function toggleFollow() {
+    if (!creator) return;
+    try {
+      // The server replies with the updated profile card (youFollow, followers).
+      const fresh = await api(`/users/${encodeURIComponent(creator.username)}/follow`, {
+        method: creator.youFollow ? 'DELETE' : 'POST',
+        body: {},
+      });
+      data = { ...data, creator: { ...creator, ...fresh } };
+    } catch (e) {
+      appState.showToast(e.message || 'Action failed');
+    }
+  }
   let canEdit = $derived(data?.canEdit || false);
 
   async function handleEnroll() {
@@ -54,36 +83,27 @@
     }
   }
 
-  function flag(course) {
-    const code = (course?.toCode || course?.toLang || '').toLowerCase();
-    if (code === 'lt' || code === 'lithuanian') return 'LT';
-    if (code === 'en' || code === 'english') return 'EN';
-    if (code === 'es' || code === 'spanish') return 'ES';
-    if (code === 'fr' || code === 'french') return 'FR';
-    if (code === 'de' || code === 'german') return 'DE';
-    return (code.slice(0, 2) || 'LT').toUpperCase();
-  }
 </script>
 
 <div>
   {#if loading}
-    <p class="muted loading" style="text-align:center;padding:60px 0;">Loading course…</p>
+    <p class="page-loading" role="status">Loading course…</p>
   {:else if errorMsg || !c}
-    <section class="card picker" style="max-width:540px;margin:20px auto;">
+    <section class="card picker page-error">
       <header class="picker-head">
         <h2>Course not found</h2>
         <p class="muted">{errorMsg || 'Could not find the requested course.'}</p>
       </header>
-      <div class="row" style="justify-content:center;margin-top:16px;">
+      <div class="row picker-actions">
         <a class="btn btn-gate-pill" href="#/discover">Back to Courses</a>
       </div>
     </section>
   {:else}
     <div class="toolbar course-breadcrumb-bar">
       <div class="breadcrumb-trail">
-        <a class="back mono-tag" href="#/discover">← Courses</a>
+        <a class="back" href="#/discover">← Courses</a>
         <span class="breadcrumb-sep">/</span>
-        <span class="breadcrumb-current mono-tag">{c.title}</span>
+        <span class="breadcrumb-current">{c.title}</span>
       </div>
       <div class="toolbar-actions">
         {#if canEdit}
@@ -153,7 +173,7 @@
         </section>
 
         {#if c.enrolled}
-          <div class="course-leave-row" style="margin-top:16px;">
+          <div class="course-leave-row">
             <button class="link-disclaimer-underline" onclick={handleLeave}>Leave course</button>
           </div>
         {/if}
@@ -162,16 +182,55 @@
       <aside class="card side-card">
         {#if creator}
           <h3>Made by</h3>
-          <div class="profile-mini" style="margin-top:12px;">
-            <a class="who-pill profile-pill" href="#/u/{creator.username}">
-              <span>{creator.name || creator.username}</span>
+          <div class="profile-mini">
+            <a class="profile-mini-head link-plain" href="#/u/{creator.username}">
+              <span class="avatar" aria-hidden="true">
+                {#if creator.picture}<img src={creator.picture} alt="" referrerpolicy="no-referrer" />{:else}{initial(creator)}{/if}
+              </span>
+              <span class="profile-mini-info">
+                <span class="profile-mini-name">
+                  {creator.name || creator.username}
+                  {#if creator.official}<span class="pill yellow sm official-tag">Official</span>{/if}
+                </span>
+                <span class="profile-mini-handle">@{creator.username}</span>
+              </span>
             </a>
             {#if creator.bio}
-              <p class="muted small" style="margin-top:8px;">{creator.bio}</p>
+              <p class="profile-mini-bio">{creator.bio}</p>
             {/if}
+            <div class="profile-mini-foot">
+              <button type="button" class="profile-mini-followers count-btn" onclick={() => (showFollowers = true)}>
+                <b>{creator.followers ?? 0}</b> {(creator.followers ?? 0) === 1 ? 'follower' : 'followers'}
+              </button>
+              {#if !creator.isYou}
+                <button type="button" data-follow aria-pressed={!!creator.youFollow} onclick={toggleFollow}>
+                  {creator.youFollow ? 'Following' : 'Follow'}
+                </button>
+              {/if}
+            </div>
           </div>
         {/if}
       </aside>
     </div>
   {/if}
 </div>
+
+{#if showFollowers && creator}
+  <PeopleList username={creator.username} tab="followers" onclose={closeFollowers} />
+{/if}
+
+<style>
+
+  .course-leave-row {
+    margin-top: 16px;
+  }
+
+  .profile-mini {
+    margin-top: 12px;
+  }
+
+  .official-tag {
+    margin-left: 6px;
+    vertical-align: 2px;
+  }
+</style>
