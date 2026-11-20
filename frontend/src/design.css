@@ -9062,7 +9062,7 @@ ul.tree li,
   border: 2px solid var(--color-ink-black) !important;
   background: var(--color-hi-vis-yellow) !important;
   color: var(--color-ink-black) !important;
-  font-family: var(--font-obviouslyvariable), 'Syne', sans-serif !important;
+  font-family: var(--font-degulardisplay-bold) !important;
   font-size: 17px !important;
   font-weight: 800 !important;
   display: flex !important;
@@ -9080,7 +9080,7 @@ ul.tree li,
 }
 
 .profile-mini-name {
-  font-family: var(--font-obviouslyvariable), 'Syne', sans-serif !important;
+  font-family: var(--font-degulardisplay-bold) !important;
   font-size: 16px !important;
   font-weight: 800 !important;
   color: var(--color-ink-black) !important;
@@ -10313,4 +10313,30 @@ button.pill:focus-visible {
 
 .icon-blank {
   display: inline-block;
+}
+
+/* Follower / following counts are buttons (they open the people list) but read as text */
+button.count-btn {
+  display: inline;
+  min-height: 0 !important;
+  padding: 2px 0 !important;
+  border: none !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  font: inherit !important;
+  cursor: pointer;
+}
+
+button.count-btn:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.people-modal .people-head h2 {
+  font-family: var(--font-degulardisplay-bold) !important;
+  font-size: 18px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
 }

@@ -1,9 +1,10 @@
 <script>
-  import { courseFlag as flag } from '../lib/format.js';
+  import { courseFlag as flag, initial } from '../lib/format.js';
   import { onMount } from 'svelte';
   import { api } from '../lib/api.js';
   import { appState } from '../lib/state.svelte.js';
   import Icon from '../lib/components/Icon.svelte';
+  import PeopleList from '../lib/components/PeopleList.svelte';
 
   let { id } = $props();
 
@@ -32,6 +33,33 @@
   let c = $derived(data?.course || null);
   let units = $derived(data?.units || []);
   let creator = $derived(data?.creator || null);
+
+  let showFollowers = $state(false);
+
+  async function closeFollowers(changed) {
+    showFollowers = false;
+    if (!changed || !creator) return;
+    try {
+      const res = await api(`/users/${encodeURIComponent(creator.username)}`);
+      data = { ...data, creator: { ...creator, ...res.user } };
+    } catch {
+      /* keep the old counts */
+    }
+  }
+
+  async function toggleFollow() {
+    if (!creator) return;
+    try {
+      // The server replies with the updated profile card (youFollow, followers).
+      const fresh = await api(`/users/${encodeURIComponent(creator.username)}/follow`, {
+        method: creator.youFollow ? 'DELETE' : 'POST',
+        body: {},
+      });
+      data = { ...data, creator: { ...creator, ...fresh } };
+    } catch (e) {
+      appState.showToast(e.message || 'Action failed');
+    }
+  }
   let canEdit = $derived(data?.canEdit || false);
 
   async function handleEnroll() {
@@ -155,12 +183,31 @@
         {#if creator}
           <h3>Made by</h3>
           <div class="profile-mini">
-            <a class="who-pill profile-pill" href="#/u/{creator.username}">
-              <span>{creator.name || creator.username}</span>
+            <a class="profile-mini-head link-plain" href="#/u/{creator.username}">
+              <span class="avatar" aria-hidden="true">
+                {#if creator.picture}<img src={creator.picture} alt="" referrerpolicy="no-referrer" />{:else}{initial(creator)}{/if}
+              </span>
+              <span class="profile-mini-info">
+                <span class="profile-mini-name">
+                  {creator.name || creator.username}
+                  {#if creator.official}<span class="pill yellow sm official-tag">Official</span>{/if}
+                </span>
+                <span class="profile-mini-handle">@{creator.username}</span>
+              </span>
             </a>
             {#if creator.bio}
-              <p class="muted small creator-bio">{creator.bio}</p>
+              <p class="profile-mini-bio">{creator.bio}</p>
             {/if}
+            <div class="profile-mini-foot">
+              <button type="button" class="profile-mini-followers count-btn" onclick={() => (showFollowers = true)}>
+                <b>{creator.followers ?? 0}</b> {(creator.followers ?? 0) === 1 ? 'follower' : 'followers'}
+              </button>
+              {#if !creator.isYou}
+                <button type="button" data-follow aria-pressed={!!creator.youFollow} onclick={toggleFollow}>
+                  {creator.youFollow ? 'Following' : 'Follow'}
+                </button>
+              {/if}
+            </div>
           </div>
         {/if}
       </aside>
@@ -168,7 +215,12 @@
   {/if}
 </div>
 
+{#if showFollowers && creator}
+  <PeopleList username={creator.username} tab="followers" onclose={closeFollowers} />
+{/if}
+
 <style>
+
   .course-leave-row {
     margin-top: 16px;
   }
@@ -177,7 +229,8 @@
     margin-top: 12px;
   }
 
-  .creator-bio {
-    margin: 8px 0 0;
+  .official-tag {
+    margin-left: 6px;
+    vertical-align: 2px;
   }
 </style>

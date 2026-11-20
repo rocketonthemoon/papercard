@@ -3,6 +3,7 @@
   import { api } from '../lib/api.js';
   import { appState } from '../lib/state.svelte.js';
   import Icon from '../lib/components/Icon.svelte';
+  import PeopleList from '../lib/components/PeopleList.svelte';
 
   let { username } = $props();
 
@@ -38,6 +39,21 @@
   }
 
   let u = $derived(data?.user || null);
+
+  // Followers / following dialog: null when closed, else the tab to open on.
+  let peopleTab = $state(null);
+
+  async function closePeople(changed) {
+    peopleTab = null;
+    if (!changed) return;
+    // Counts may have moved (you followed someone from the list): refresh quietly.
+    try {
+      const res = await api(`/users/${encodeURIComponent(username)}`);
+      data = { ...data, user: res.user };
+    } catch {
+      /* keep the old counts */
+    }
+  }
   let courses = $derived(data?.courses || []);
 
   async function handleFollowToggle() {
@@ -117,8 +133,12 @@
           {/if}
 
           <div class="follow-counts mono-tag small">
-            <span><b>{u.followers || 0}</b> followers</span>
-            <span><b>{u.following || 0}</b> following</span>
+            <button type="button" class="count-btn" onclick={() => (peopleTab = 'followers')}>
+              <b>{u.followers || 0}</b> {(u.followers || 0) === 1 ? 'follower' : 'followers'}
+            </button>
+            <button type="button" class="count-btn" onclick={() => (peopleTab = 'following')}>
+              <b>{u.following || 0}</b> following
+            </button>
           </div>
         </div>
 
@@ -228,7 +248,12 @@
   {/if}
 </div>
 
+{#if peopleTab && u}
+  <PeopleList username={u.username} tab={peopleTab} onclose={closePeople} />
+{/if}
+
 <style>
+
   .profile-view {
     max-width: 720px;
     margin: 0 auto;
